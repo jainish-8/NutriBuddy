@@ -1,0 +1,4848 @@
+[
+  {
+    "id": 1,
+    "name": "Oats Upma (1 bowl)",
+    "category": "grains",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 216,
+    "protein": 7,
+    "carbs": 38,
+    "fat": 4,
+    "cost": 15,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Rolled oats (gluten-free) - 1 cup",
+      "Onion - 1 small (chopped)",
+      "Carrot & Green Peas - 1/4 cup",
+      "Mustard seeds - 1/2 tsp",
+      "Curry leaves - 6-8",
+      "Green chili - 1 (chopped)",
+      "Turmeric powder - 1/4 tsp",
+      "Ginger - 1/2 tsp (grated)",
+      "Oil - 1 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Dry roast the oats in a pan for 4-5 minutes until lightly aromatic, then set aside. 2. Heat oil in the same pan, add mustard seeds and curry leaves, and let them crackle. 3. Add onions, ginger, and green chili; sauté for 2 minutes. 4. Add carrots, peas, turmeric, and salt; stir and cook covered for 3 minutes. 5. Add 1.5 cups of water and bring to a boil. 6. Reduce flame and slowly stir in roasted oats to prevent lumps. 7. Cook covered on low heat for 3-4 minutes until oats absorb water and become soft. Serve hot.",
+    "benefits": "High in beta-glucan soluble fiber which lowers cholesterol, improves blood sugar stability, and keeps you full.",
+    "tips": "Squeeze fresh lemon juice over the cooked upma to add tanginess and boost Vitamin C absorption."
+  },
+  {
+    "id": 2,
+    "name": "Vegetable Dalia (1 bowl)",
+    "category": "grains",
+    "mealTypes": [
+      "breakfast",
+      "dinner"
+    ],
+    "calories": 251,
+    "protein": 8,
+    "carbs": 48,
+    "fat": 3,
+    "cost": 12,
+    "prepTime": 20,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "gluten"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Broken wheat (Dalia) - 1/2 cup",
+      "Mixed veggies (carrot, beans, peas) - 1/2 cup",
+      "Onion - 1 small (chopped)",
+      "Mustard seeds - 1/2 tsp",
+      "Turmeric powder - 1/4 tsp",
+      "Ghee or Oil - 1 tsp",
+      "Water - 2 cups",
+      "Salt to taste"
+    ],
+    "recipe": "1. Dry roast dalia in a pressure cooker on medium heat until golden brown and fragrant, then set aside. 2. Heat ghee/oil in the cooker, temper mustard seeds. 3. Sauté chopped onions until translucent. 4. Add the mixed vegetables, turmeric, and salt; sauté for a minute. 5. Return the roasted dalia to the cooker and add 2 cups of water. 6. Secure the lid and pressure cook for 3 whistles. 7. Let the steam release naturally, stir gently, and serve hot.",
+    "benefits": "Rich in complex carbohydrates, manganese, and magnesium, promoting slow energy release and digestive health.",
+    "tips": "Pair with a cup of low-fat curd for added protein and probiotic benefits."
+  },
+  {
+    "id": 3,
+    "name": "Ragi Roti (1 piece)",
+    "category": "grains",
+    "mealTypes": [
+      "breakfast",
+      "dinner"
+    ],
+    "calories": 170,
+    "protein": 4,
+    "carbs": 34,
+    "fat": 2,
+    "cost": 10,
+    "prepTime": 15,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Ragi (Finger Millet) flour - 1 cup",
+      "Onion - 2 tbsp (finely chopped)",
+      "Coriander leaves - 1 tbsp (chopped)",
+      "Green chili - 1 (finely chopped)",
+      "Cumin seeds - 1/2 tsp",
+      "Warm water - as needed",
+      "Oil - 1/2 tsp"
+    ],
+    "recipe": "1. Combine ragi flour, onion, coriander, green chili, cumin, and a pinch of salt in a bowl. 2. Gradually add warm water and knead into a soft, pliable dough. 3. Divide the dough into balls. Pat each ball directly onto a greased warm tawa or roll it between sheets of parchment paper. 4. Place on tawa, cook on medium heat. Sprinkle a few drops of water on top. 5. Flip and cook both sides with a tiny smear of oil until cooked through (around 2-3 mins per side). Serve warm.",
+    "benefits": "Naturally gluten-free, exceptionally high in calcium (essential for bones), and has a low glycemic index.",
+    "tips": "Serve with freshly made mint-coriander chutney to complement the rustic taste."
+  },
+  {
+    "id": 4,
+    "name": "Brown Rice Khichdi (1 bowl)",
+    "category": "grains",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 272,
+    "protein": 9,
+    "carbs": 50,
+    "fat": 4,
+    "cost": 20,
+    "prepTime": 30,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Brown rice - 1/2 cup",
+      "Yellow Moong dal - 1/2 cup",
+      "Ginger-garlic paste - 1/2 tsp",
+      "Turmeric powder - 1/4 tsp",
+      "Cumin seeds - 1/2 tsp",
+      "Asafoetida (Hing) - a pinch",
+      "Ghee or Oil - 1 tsp",
+      "Water - 4 cups",
+      "Salt to taste"
+    ],
+    "recipe": "1. Wash brown rice and moong dal together, and soak for 20-30 minutes. 2. Heat ghee/oil in a pressure cooker, add cumin seeds and hing, letting them splutter. 3. Add ginger-garlic paste and sauté for 30 seconds. 4. Drain the soaked rice and dal, add them to the cooker along with turmeric and salt. 5. Pour in 4 cups of water and stir. 6. Close the cooker and cook on medium flame for 4-5 whistles (brown rice takes longer than white). 7. Let pressure subside, mash slightly, and serve hot.",
+    "benefits": "Highly digestible, complete protein source (grain-lentil combo), and rich in dietary fiber and B-complex vitamins.",
+    "tips": "Top with a single teaspoon of fresh ghee for essential fats that assist in absorbing fat-soluble vitamins."
+  },
+  {
+    "id": 5,
+    "name": "Jowar Roti (1 piece)",
+    "category": "grains",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 129,
+    "protein": 3.5,
+    "carbs": 26,
+    "fat": 1.2,
+    "cost": 8,
+    "prepTime": 15,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Jowar (Sorghum) flour - 1 cup",
+      "Hot water - as needed",
+      "Salt - a pinch"
+    ],
+    "recipe": "1. Mix jowar flour and salt in a bowl. 2. Add boiling hot water gradually and mix with a spoon. 3. Once warm enough to handle, knead vigorously for 3-5 minutes until smooth and flexible. 4. Take a ball of dough, dust it with dry jowar flour, and pat it gently with your palm on a flat surface into a thin circle. 5. Transfer to a hot tawa. Wet the top surface of the roti with a damp hand. 6. When the water evaporates, flip the roti and cook until brown spots appear. Cook over direct flame to puff it. Serve hot.",
+    "benefits": "Contains high amounts of dietary fiber, iron, copper, and calcium, helping control diabetes and weight.",
+    "tips": "Keep the dough moist and knead it well; sorghum lacks gluten, so kneading is key to prevent tearing."
+  },
+  {
+    "id": 6,
+    "name": "Millets Pulao (1 plate)",
+    "category": "grains",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 244,
+    "protein": 7,
+    "carbs": 45,
+    "fat": 4,
+    "cost": 25,
+    "prepTime": 20,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Foxtail millet - 1/2 cup",
+      "Mixed vegetables (beans, peas, carrot) - 1/2 cup",
+      "Onion - 1 small (sliced)",
+      "Ginger-garlic paste - 1/2 tsp",
+      "Bay leaf - 1, Cardamom - 1, Cloves - 2",
+      "Oil - 1 tsp",
+      "Water - 1 cup",
+      "Salt to taste"
+    ],
+    "recipe": "1. Wash foxtail millet 2-3 times, then soak for 15 minutes. 2. Heat oil in a pan or pressure cooker; add bay leaf, cardamom, and cloves. 3. Add onions and ginger-garlic paste; sauté until golden. 4. Toss in the vegetables and sauté for 2 minutes. 5. Drain the millet and add it to the pan, stirring gently for 1 minute. 6. Add 1 cup of water and salt. 7. Cook covered on low heat for 12-15 minutes (or 2 whistles in a pressure cooker) until fluffy. Fluff with a fork.",
+    "benefits": "Highly alkaline, easy to digest, loaded with antioxidants, and has a very low glycemic index to control insulin spikes.",
+    "tips": "Soaking millets overnight or for at least an hour unlocks nutrients by reducing phytic acid."
+  },
+  {
+    "id": 7,
+    "name": "Pearl Barley Salad (1 bowl)",
+    "category": "grains",
+    "mealTypes": [
+      "breakfast",
+      "lunch",
+      "snacks"
+    ],
+    "calories": 186,
+    "protein": 5,
+    "carbs": 38,
+    "fat": 1.5,
+    "cost": 15,
+    "prepTime": 25,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "gluten"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Pearl barley - 1/2 cup",
+      "Cucumber - 1/2 (chopped)",
+      "Tomato - 1/2 (chopped)",
+      "Fresh mint & coriander - 2 tbsp",
+      "Lemon juice - 1 tbsp",
+      "Black paper & salt - to taste",
+      "Olive oil - 1/2 tsp"
+    ],
+    "recipe": "1. Rinse barley, then boil in 2 cups of water for 25-30 minutes until soft yet chewy. 2. Drain and rinse under cold water, letting it cool completely. 3. In a bowl, combine the cooled barley, chopped cucumber, tomato, mint, and coriander. 4. Whisk lemon juice, olive oil, salt, and black pepper. 5. Pour the dressing over the barley mixture, toss well, and chill before serving.",
+    "benefits": "Excellent source of selenium, copper, and beta-glucan fiber, which heavily supports digestive regularity and cardiovascular health.",
+    "tips": "You can boil barley in bulk and store it in the fridge to whip up quick salads throughout the week."
+  },
+  {
+    "id": 8,
+    "name": "Brown Rice Poha (1 bowl)",
+    "category": "grains",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 215,
+    "protein": 5,
+    "carbs": 42,
+    "fat": 3,
+    "cost": 14,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Brown rice poha (flattened) - 1 cup",
+      "Onion - 1 small (chopped)",
+      "Green chili - 1 (chopped)",
+      "Curry leaves - 6-8",
+      "Raw peanuts - 1 tbsp",
+      "Turmeric powder - 1/4 tsp",
+      "Oil - 1 tsp",
+      "Salt and Lemon juice - to taste"
+    ],
+    "recipe": "1. Put brown rice poha in a colander, rinse under running water for 15 seconds, and let drain. (It takes slightly longer to soften than white poha). 2. Heat oil in a pan, add peanuts and fry till golden; remove and set aside. 3. In the same pan, add mustard seeds and curry leaves. Sauté onions and green chili until soft. 4. Add turmeric, salt, and the rinsed poha. 5. Toss gently, cover, and steam on low heat for 3-4 minutes. 6. Garnish with peanuts and lemon juice, then serve.",
+    "benefits": "A whole-grain version of a classic breakfast, containing higher fiber, zinc, iron, and manganese than white poha.",
+    "tips": "Add a few spoonfuls of boiled chickpeas or sprouts to boost the protein content of your breakfast."
+  },
+  {
+    "id": 9,
+    "name": "Whole Wheat Paratha (1 piece)",
+    "category": "grains",
+    "mealTypes": [
+      "breakfast",
+      "lunch"
+    ],
+    "calories": 163,
+    "protein": 4,
+    "carbs": 30,
+    "fat": 3,
+    "cost": 6,
+    "prepTime": 10,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "gluten"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan"
+    ],
+    "ingredients": [
+      "Whole wheat flour - 1/2 cup",
+      "Water - as needed",
+      "Ghee or Oil - 1 tsp",
+      "Salt - a pinch"
+    ],
+    "recipe": "1. Knead whole wheat flour, salt, and water into a smooth, soft dough. Cover and rest for 15 minutes. 2. Divide into balls. Roll one ball out into a 5-inch circle. 3. Lightly smear 1/4 tsp oil, fold into a semi-circle, fold again to form a triangle, and roll out thin. 4. Place on a hot tawa. When bubbles appear, flip. 5. Cook the other side, brushing lightly with 1/2 tsp ghee/oil. Press edges with a spatula until golden spots appear on both sides. Serve hot.",
+    "benefits": "Made from whole grain wheat which preserves the nutrient-rich germ and fiber, yielding sustained physical energy.",
+    "tips": "Pair with high-protein sides like Paneer Bhurji or boiled eggs to prevent rapid carb digestion."
+  },
+  {
+    "id": 10,
+    "name": "Methi Thepla (1 piece)",
+    "category": "grains",
+    "mealTypes": [
+      "breakfast",
+      "lunch",
+      "snacks"
+    ],
+    "calories": 136,
+    "protein": 4,
+    "carbs": 22,
+    "fat": 3.5,
+    "cost": 8,
+    "prepTime": 15,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [
+      "gluten"
+    ],
+    "dietaryStyle": [
+      "vegetarian"
+    ],
+    "ingredients": [
+      "Whole wheat flour - 1/2 cup",
+      "Fresh fenugreek (Methi) leaves - 1/2 cup (chopped)",
+      "Yogurt (low-fat) - 1 tbsp",
+      "Ginger-garlic paste - 1/4 tsp",
+      "Turmeric, Red chili & Coriander powder - 1/4 tsp each",
+      "Oil - 1 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Mix flour, chopped methi leaves, yogurt, ginger-garlic paste, spices, salt, and 1/2 tsp oil. 2. Knead into a soft dough (adding very little water, as methi and yogurt release moisture). 3. Roll out into very thin, flat circles. 4. Cook on a hot tawa. Flip and apply a few drops of oil. 5. Press and cook both sides until golden brown spots appear. Stays soft due to the yogurt in the dough.",
+    "benefits": "Methi leaves contain soluble fibers that improve insulin sensitivity and support blood glucose control.",
+    "tips": "Traditional Gujarati flatbread that travels exceptionally well and stays fresh for up to 2-3 days."
+  },
+  {
+    "id": 11,
+    "name": "Soya Chunks Curry (1 bowl)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner",
+      "post_workout"
+    ],
+    "calories": 198,
+    "protein": 24,
+    "carbs": 12,
+    "fat": 6,
+    "cost": 25,
+    "prepTime": 25,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [
+      "soy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Soya chunks - 50g",
+      "Onion - 1 medium (chopped)",
+      "Tomato puree - 1/2 cup",
+      "Ginger-garlic paste - 1 tsp",
+      "Coriander, Cumin & Garam Masala - 1/2 tsp each",
+      "Oil - 1 tsp",
+      "Fresh coriander leaves - for garnish",
+      "Salt to taste"
+    ],
+    "recipe": "1. Boil soya chunks in salted water for 8-10 minutes. Drain, rinse under cold water, and squeeze out all excess water. 2. Heat oil in a pan, sauté onions until golden brown. 3. Add ginger-garlic paste and sauté for 1 minute. 4. Add tomato puree and cook until the oil begins to separate from the spices. 5. Add coriander, cumin, garam masala, and salt. 6. Add soya chunks and sauté for 2 minutes. 7. Pour in 1 cup of water, cover, and simmer for 10 minutes. Garnish with coriander.",
+    "benefits": "Extremely high in plant-based protein (comparable to meat), zero cholesterol, and rich in iron and calcium.",
+    "tips": "Squeezing the water out of the boiled soya chunks completely is crucial so they act like sponges and absorb the curry flavor."
+  },
+  {
+    "id": 12,
+    "name": "Paneer Tikka (1 plate)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner",
+      "post_workout",
+      "snacks"
+    ],
+    "calories": 290,
+    "protein": 18,
+    "carbs": 5,
+    "fat": 22,
+    "cost": 65,
+    "prepTime": 20,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [
+      "dairy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Low-fat Paneer (Cottage cheese) - 120g (cubed)",
+      "Onion & Bell Pepper (Capsicum) - 1/2 cup (cubed)",
+      "Hung curd (low-fat) - 2 tbsp",
+      "Ginger-garlic paste - 1/2 tsp",
+      "Kashmiri red chili powder & Turmeric - 1/2 tsp",
+      "Tandoori masala & Chaat masala - 1/2 tsp",
+      "Lemon juice - 1 tsp",
+      "Oil - 1/2 tsp"
+    ],
+    "recipe": "1. In a bowl, prepare marinade by whisking hung curd, ginger-garlic paste, red chili, turmeric, tandoori masala, lemon juice, salt, and 1/2 tsp oil. 2. Add paneer cubes, onion, and bell pepper; toss gently to coat. Marinate for 15-20 minutes. 3. Thread paneer and vegetables onto skewers. 4. Grill on a hot non-stick tawa (or bake in oven at 200°C / air fry) for 8-10 minutes, turning regularly until paneer edges are lightly charred and vegetables are tender. Sprinkle chaat masala.",
+    "benefits": "High in calcium and slow-digesting casein protein, which supports sustained muscle recovery and satiety.",
+    "tips": "If paneer is hard, soak cubes in warm water for 5 minutes before marinating to make them soft."
+  },
+  {
+    "id": 13,
+    "name": "Masala Grilled Chicken Breast (150g)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner",
+      "post_workout"
+    ],
+    "calories": 189,
+    "protein": 35,
+    "carbs": 1,
+    "fat": 5,
+    "cost": 90,
+    "prepTime": 20,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "non-vegetarian",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Chicken breast - 150g",
+      "Ginger-garlic paste - 1 tsp",
+      "Lemon juice - 1 tbsp",
+      "Red chili, Cumin & Turmeric powder - 1/2 tsp each",
+      "Garam masala - 1/4 tsp",
+      "Oil - 1 tsp",
+      "Salt and pepper - to taste"
+    ],
+    "recipe": "1. Clean chicken breast and make horizontal slits on the surface for marinade penetration. 2. Marinate with lemon juice, ginger-garlic paste, spices, salt, pepper, and 1 tsp oil. Let sit for 15-20 minutes. 3. Heat a grill pan or non-stick skillet. 4. Cook the chicken breast on medium-high heat for 6-7 minutes on one side. 5. Flip and cook for another 5-6 minutes until the internal temperature reaches 75°C and juices run clear. Let rest for 5 minutes before slicing.",
+    "benefits": "Prime source of lean animal protein, exceptionally low in fat and carbohydrate-free, ideal for muscle hypertrophy.",
+    "tips": "Letting the cooked chicken rest prevents the flavorful juices from leaking out, keeping it tender and moist."
+  },
+  {
+    "id": 14,
+    "name": "Boiled Egg Salad (2 eggs)",
+    "category": "protein",
+    "mealTypes": [
+      "breakfast",
+      "snacks",
+      "post_workout"
+    ],
+    "calories": 154,
+    "protein": 13,
+    "carbs": 3,
+    "fat": 10,
+    "cost": 15,
+    "prepTime": 10,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "eggs"
+    ],
+    "dietaryStyle": [
+      "non-vegetarian",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Whole eggs - 2",
+      "Cucumber - 1/2 cup (chopped)",
+      "Tomato - 1/4 cup (chopped)",
+      "Green chili - 1/2 (chopped)",
+      "Coriander leaves - 1 tbsp (chopped)",
+      "Chaat masala - 1/2 tsp",
+      "Black pepper & Lemon juice - to taste"
+    ],
+    "recipe": "1. Place eggs in a pot with water covering them. Boil for 9-10 minutes. 2. Transfer eggs to cold water, peel, and cut into quarters. 3. In a salad bowl, toss together chopped cucumber, tomato, green chili, and coriander. 4. Add the boiled eggs. 5. Sprinkle with chaat masala, black pepper, and fresh lemon juice. Toss very gently to avoid breaking the yolks. Serve cold.",
+    "benefits": "Eggs provide reference protein (highest biological value), complete amino acids, choline for brain function, and Vitamin D.",
+    "tips": "Yolks contain healthy fats and micronutrients; do not discard them unless strictly managing fat macros."
+  },
+  {
+    "id": 15,
+    "name": "Moong Dal Chilla (2 pieces)",
+    "category": "protein",
+    "mealTypes": [
+      "breakfast",
+      "snacks",
+      "post_workout"
+    ],
+    "calories": 187,
+    "protein": 12,
+    "carbs": 28,
+    "fat": 3,
+    "cost": 12,
+    "prepTime": 15,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Yellow split Moong Dal - 1/2 cup (soaked)",
+      "Ginger - 1/2 inch",
+      "Green chili - 1",
+      "Asafoetida (Hing) - a pinch",
+      "Turmeric powder - 1/4 tsp",
+      "Fresh coriander - 2 tbsp (chopped)",
+      "Oil - 1 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Soak split moong dal in water for 3-4 hours. Drain completely. 2. Grind soaked dal, ginger, and green chili into a smooth paste (adding minimal water). 3. Transfer batter to a bowl; stir in salt, hing, turmeric, and coriander. 4. Heat a non-stick tawa. Pour a ladle of batter and spread it outwards in a circular motion like a dosa. 5. Drizzle 1/2 tsp oil around edges. Cook on medium heat until base is golden-brown. 6. Flip and cook the other side for 1-2 minutes. Repeat for second chilla. Serve hot.",
+    "benefits": "High plant-based protein, rich in dietary fiber, potassium, and magnesium, making it highly digestion-friendly.",
+    "tips": "Stuff with 2 tbsp of grated paneer or tofu to turn it into a high-protein muscle builder."
+  },
+  {
+    "id": 16,
+    "name": "Tofu Stir Fry (1 plate)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner",
+      "post_workout",
+      "snacks"
+    ],
+    "calories": 166,
+    "protein": 15,
+    "carbs": 4,
+    "fat": 10,
+    "cost": 40,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "soy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic",
+      "low-carb",
+      "keto"
+    ],
+    "ingredients": [
+      "Firm Tofu - 120g (cubed)",
+      "Bell peppers (mixed colors) - 1/2 cup (sliced)",
+      "Broccoli florets - 1/2 cup",
+      "Ginger & Garlic - 1 tsp (minced)",
+      "Soy sauce (gluten-free) - 1 tsp",
+      "Sesame oil - 1 tsp",
+      "Salt & Black pepper - to taste"
+    ],
+    "recipe": "1. Press the tofu with paper towels to drain excess water, then cut into bite-sized cubes. 2. Heat sesame oil in a wok or skillet over high heat. 3. Add minced ginger and garlic; stir fry for 30 seconds. 4. Add broccoli and bell peppers; sauté for 3 minutes until tender-crisp. 5. Add tofu cubes, soy sauce, salt, and black pepper. 6. Toss gently to combine and heat tofu through for 2-3 minutes. Serve hot.",
+    "benefits": "Low-calorie, complete vegan protein containing all essential amino acids, iron, and bone-strengthening calcium.",
+    "tips": "For crispy tofu, pan-fry the cubes with a light dust of cornstarch before adding veggies."
+  },
+  {
+    "id": 17,
+    "name": "Bengali Fish Curry (1 plate)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner",
+      "post_workout"
+    ],
+    "calories": 228,
+    "protein": 25,
+    "carbs": 5,
+    "fat": 12,
+    "cost": 110,
+    "prepTime": 25,
+    "difficulty": "advanced",
+    "cuisine": "indian",
+    "allergies": [
+      "fish"
+    ],
+    "dietaryStyle": [
+      "non-vegetarian",
+      "gluten-free",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Rohu or Basa fish fillet - 150g (sliced)",
+      "Tomato - 1 small (chopped)",
+      "Ginger paste - 1/2 tsp",
+      "Turmeric & Cumin powder - 1/2 tsp each",
+      "Mustard seeds - 1/2 tsp",
+      "Green chilies - 2 (slit)",
+      "Mustard oil - 1 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Marinate fish slices with a pinch of turmeric and salt for 10 minutes. 2. Heat mustard oil in a pan until it smokes, then lower heat. Fry fish lightly on both sides for 2 minutes, then remove. 3. In the same oil, add mustard seeds and green chilies. 4. Add chopped tomatoes, ginger paste, cumin powder, remaining turmeric, and salt. Cook until tomatoes are mushy. 5. Add 1 cup of water and bring to a boil. 6. Slide the fried fish in, cover, and simmer on medium-low heat for 8 minutes. Serve hot.",
+    "benefits": "Rich in lean protein and omega-3 fatty acids, which reduce systemic inflammation and support cardiovascular health.",
+    "tips": "Using traditional mustard oil gives the curry its authentic pungent aroma; heat it to smoking point to remove bitterness."
+  },
+  {
+    "id": 18,
+    "name": "Chana Masala (1 bowl)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 237,
+    "protein": 10,
+    "carbs": 38,
+    "fat": 5,
+    "cost": 18,
+    "prepTime": 25,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "White Chickpeas (Kabuli Chana) - 1/2 cup (soaked & boiled)",
+      "Onion - 1 small (finely chopped)",
+      "Tomato - 1 small (pureed)",
+      "Ginger-garlic paste - 1 tsp",
+      "Chana Masala powder - 1 tsp",
+      "Cumin seeds - 1/2 tsp",
+      "Oil - 1 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Drain soaked chickpeas and pressure cook with salt for 5 whistles. 2. Heat oil in a pan, add cumin seeds. 3. Sauté chopped onions until golden brown. 4. Add ginger-garlic paste and cook for 1 minute. 5. Stir in tomato puree and cook until the raw smell fades. 6. Add chana masala powder, salt, and the boiled chickpeas with some boiling water. 7. Simmer uncovered for 10-12 minutes until gravy thickens. Mash a few chickpeas to thicken gravy naturally. Serve.",
+    "benefits": "Provides complex carbohydrates, dietary fiber, and iron. Highly filling and stabilizes blood sugar.",
+    "tips": "Soak chickpeas for at least 8 hours or overnight to ensure even cooking and easier digestion."
+  },
+  {
+    "id": 19,
+    "name": "Rajma Masala (1 bowl)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 214,
+    "protein": 9.5,
+    "carbs": 35,
+    "fat": 4,
+    "cost": 20,
+    "prepTime": 30,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Red Kidney Beans (Rajma) - 1/2 cup (soaked & boiled)",
+      "Onion - 1 small (chopped)",
+      "Tomato puree - 1/2 cup",
+      "Ginger-garlic paste - 1/2 tsp",
+      "Kashmiri chili, turmeric & coriander powder - 1/2 tsp each",
+      "Garam masala - 1/4 tsp",
+      "Oil or Ghee - 1 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Soak rajma overnight, then pressure cook with a pinch of salt for 6 whistles. 2. Heat oil/ghee in a pan, sauté onions. 3. Add ginger-garlic paste, then tomato puree, cooking until the base releases oil. 4. Add the spices and salt. 5. Add boiled rajma along with its cooking water. 6. Cover and simmer on low heat for 15-20 minutes, mashing a few beans with the back of the ladle to make a creamy gravy. Sprinkle garam masala and serve hot.",
+    "benefits": "Rich in potassium, magnesium, iron, and fiber, helping reduce cholesterol levels and providing sustained physical stamina.",
+    "tips": "Cooking rajma slowly on low heat allows the beans to absorb spices fully, intensifying the flavor."
+  },
+  {
+    "id": 20,
+    "name": "Egg Bhurji (2 eggs)",
+    "category": "protein",
+    "mealTypes": [
+      "breakfast",
+      "dinner",
+      "post_workout",
+      "snacks"
+    ],
+    "calories": 171,
+    "protein": 14,
+    "carbs": 4,
+    "fat": 11,
+    "cost": 20,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "eggs"
+    ],
+    "dietaryStyle": [
+      "non-vegetarian",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Whole eggs - 2",
+      "Onion - 1 small (chopped)",
+      "Tomato - 1 small (chopped)",
+      "Green chili - 1 (chopped)",
+      "Turmeric powder - 1/4 tsp",
+      "Coriander leaves - 1 tbsp (chopped)",
+      "Oil - 1 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Whisk eggs in a bowl with a pinch of salt. 2. Heat oil in a pan, sauté onions and green chili until soft. 3. Add tomatoes and cook for 2 minutes until tender. 4. Stir in turmeric powder and salt. 5. Pour in the whisked eggs. 6. Cook on medium heat, stirring continuously to scramble the eggs. 7. Continue scrambling until the eggs are cooked and dry (around 3-4 minutes). Stir in coriander and serve.",
+    "benefits": "High in protein, essential fats, Vitamin B12, and selenium. Promotes quick muscle tissue repair.",
+    "tips": "Throw in some chopped spinach, mushrooms, or bell peppers to double the vitamins and volume of your scramble."
+  },
+  {
+    "id": 21,
+    "name": "Palak Paneer (1 bowl)",
+    "category": "vegetables",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 215,
+    "protein": 14,
+    "carbs": 6,
+    "fat": 15,
+    "cost": 55,
+    "prepTime": 20,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [
+      "dairy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "gluten-free",
+      "diabetic",
+      "low-carb",
+      "keto"
+    ],
+    "ingredients": [
+      "Spinach (Palak) - 200g",
+      "Low-fat Paneer - 80g (cubed)",
+      "Onion - 1 small (chopped)",
+      "Ginger-garlic paste - 1/2 tsp",
+      "Green chili - 1",
+      "Cumin seeds - 1/2 tsp",
+      "Oil - 1 tsp",
+      "Cream or low-fat milk - 1 tbsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Blanch spinach leaves and green chili in boiling water for 2 minutes, plunge in cold water, and blend into a smooth puree. 2. Heat oil, add cumin seeds. Sauté onions and ginger-garlic paste until golden. 3. Add spinach puree and cook for 3 minutes. 4. Stir in salt and a splash of water, bring to simmer. 5. Add paneer cubes (raw or lightly pan-seared). 6. Stir in cream or milk, simmer for 2 minutes. Serve hot.",
+    "benefits": "Spinach provides iron, Vitamin A, C, and lutein, while paneer supplies quality protein and calcium.",
+    "tips": "Do not overcook the spinach puree after adding it to the pan to preserve its vibrant green color."
+  },
+  {
+    "id": 22,
+    "name": "Bhindi Masala (1 bowl)",
+    "category": "vegetables",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 94,
+    "protein": 2.5,
+    "carbs": 12,
+    "fat": 4,
+    "cost": 18,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Okra (Bhindi) - 150g (chopped)",
+      "Onion - 1 small (sliced)",
+      "Turmeric & Coriander powder - 1/2 tsp each",
+      "Amchur (Dry Mango) powder - 1/2 tsp",
+      "Red chili powder - 1/4 tsp",
+      "Oil - 1 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Wash okra and dry them completely with a towel (crucial to prevent sliminess). Cut into 1-inch pieces. 2. Heat oil in a pan. Sauté sliced onions until soft. 3. Add okra and fry on medium heat, uncovered, stirring occasionally for 6-8 minutes. 4. Once okra shrinks and gets tender, add turmeric, coriander powder, chili powder, and salt. 5. Sauté for 3 minutes. 6. Add amchur powder, toss well, and cook for 1 minute. Serve.",
+    "benefits": "Okra contains mucilage fiber which regulates digestion and helps control blood glucose levels.",
+    "tips": "Never cover the pan while cooking okra, and add salt only towards the end to avoid sliminess."
+  },
+  {
+    "id": 23,
+    "name": "Baingan Bharta (1 bowl)",
+    "category": "vegetables",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 85,
+    "protein": 2,
+    "carbs": 9,
+    "fat": 4.5,
+    "cost": 15,
+    "prepTime": 25,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Eggplant (Baingan) - 1 large",
+      "Onion - 1 medium (chopped)",
+      "Tomato - 1 medium (chopped)",
+      "Garlic - 3 cloves (minced)",
+      "Green chili - 1 (chopped)",
+      "Mustard oil - 1 tsp",
+      "Fresh coriander - 1 tbsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Make a few cuts in the eggplant and insert garlic cloves. 2. Roast the eggplant directly on a medium flame, turning occasionally, until the skin is charred and the flesh is soft. 3. Let it cool, peel the charred skin, and mash the flesh. 4. Heat mustard oil in a pan, sauté onions and green chili until soft. 5. Add tomatoes and sauté until mushy. 6. Add the mashed eggplant (with roasted garlic), salt, and cook for 5-6 minutes. Garnish with coriander.",
+    "benefits": "High in nasunin (a powerful brain antioxidant), low in calories, and supports weight management.",
+    "tips": "Using mustard oil provides the signature smoky flavor characteristic of Punjabi dhabas."
+  },
+  {
+    "id": 24,
+    "name": "Alu Gobi Matar (1 bowl)",
+    "category": "vegetables",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 124,
+    "protein": 4,
+    "carbs": 18,
+    "fat": 4,
+    "cost": 15,
+    "prepTime": 20,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Cauliflower (Gobi) - 1 cup (florets)",
+      "Potato (Alu) - 1 small (cubed)",
+      "Green Peas (Matar) - 1/4 cup",
+      "Ginger - 1/2 tsp (minced)",
+      "Turmeric, Coriander & Cumin powder - 1/2 tsp each",
+      "Oil - 1 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Soak cauliflower florets in hot salted water for 5 minutes to clean, then drain. 2. Heat oil in a pan, add a pinch of cumin. 3. Sauté ginger, then add cubed potatoes and cauliflower; stir fry for 2 minutes. 4. Add green peas, turmeric, coriander, cumin powder, and salt. 5. Splash 2-3 tbsp of water, cover, and cook on low heat for 12-15 minutes, stirring occasionally until potatoes are tender. Serve hot.",
+    "benefits": "Cauliflower provides glucosinolates (cancer-fighting compounds), peas add plant protein, and potato yields potassium.",
+    "tips": "Cut potatoes into small cubes so they cook through in the same time as the cauliflower florets."
+  },
+  {
+    "id": 25,
+    "name": "Lauki Sabzi (1 bowl)",
+    "category": "vegetables",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 56,
+    "protein": 1.2,
+    "carbs": 5,
+    "fat": 3.5,
+    "cost": 10,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Bottle Gourd (Lauki) - 200g (peeled and cubed)",
+      "Cumin seeds - 1/2 tsp",
+      "Ginger-garlic paste - 1/2 tsp",
+      "Turmeric powder - 1/4 tsp",
+      "Coriander powder - 1/2 tsp",
+      "Ghee or Oil - 1 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Peel bottle gourd and cut into small cubes. 2. Heat ghee/oil in a cooker or pan, add cumin seeds and let them sizzle. 3. Add ginger-garlic paste, sautéing for 30 seconds. 4. Add lauki cubes, turmeric, coriander powder, and salt. 5. Toss well. If cooking in a pan, cover and cook (lauki releases a lot of water). In a pressure cooker, cook for 2 whistles without adding external water. Serve hot.",
+    "benefits": "Contains over 95% water, exceptionally low-calorie, digests extremely easily, and has cooling properties.",
+    "tips": "Ideal dinner dish for light digestion, preventing acidity, and supporting hydration."
+  },
+  {
+    "id": 26,
+    "name": "Steamed Garlic Broccoli (1 bowl)",
+    "category": "vegetables",
+    "mealTypes": [
+      "lunch",
+      "dinner",
+      "snacks"
+    ],
+    "calories": 68,
+    "protein": 3,
+    "carbs": 6,
+    "fat": 3.5,
+    "cost": 35,
+    "prepTime": 10,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic",
+      "low-carb",
+      "keto"
+    ],
+    "ingredients": [
+      "Broccoli - 1.5 cups (florets)",
+      "Garlic - 3 cloves (finely minced)",
+      "Olive oil - 1 tsp",
+      "Lemon juice - 1 tsp",
+      "Black pepper & salt - to taste"
+    ],
+    "recipe": "1. Steam broccoli florets for 4-5 minutes until tender but still bright green and crunchy. 2. Heat olive oil in a pan on medium-low heat. 3. Add minced garlic and sauté until fragrant (do not brown). 4. Add the steamed broccoli to the pan. 5. Toss well with garlic oil, salt, and black pepper for 1-2 minutes. 6. Drizzle lemon juice and serve immediately.",
+    "benefits": "High in Vitamin C, fiber, folate, and calcium, and contains sulforaphane which promotes detox.",
+    "tips": "Plunge steamed broccoli in ice-cold water immediately to preserve its green color before tossing in garlic."
+  },
+  {
+    "id": 27,
+    "name": "Healthy Methi Matar Malai (1 bowl)",
+    "category": "vegetables",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 149,
+    "protein": 5,
+    "carbs": 12,
+    "fat": 9,
+    "cost": 30,
+    "prepTime": 20,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [
+      "dairy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Fresh fenugreek (Methi) - 1 cup (chopped)",
+      "Green Peas - 1/2 cup (boiled)",
+      "Low-fat milk - 1/2 cup",
+      "Cashew nuts - 4-5 (ground into paste)",
+      "Onion - 1 small (chopped)",
+      "Ginger-garlic - 1/2 tsp",
+      "Oil - 1 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Soak chopped methi leaves in salted water for 10 minutes to reduce bitterness, squeeze dry. 2. Heat 1/2 tsp oil, sauté methi for 2 minutes, then set aside. 3. Heat remaining oil, sauté onions and ginger-garlic. 4. Add cashew paste, cook for 1 minute. 5. Pour milk and bring to a simmer. 6. Add peas, sautéed methi, and salt. 7. Cook on low heat for 5 minutes until gravy is thick. Serve warm.",
+    "benefits": "Fenugreek supports glycemic control and lowers blood lipids, peas supply plant fiber and protein.",
+    "tips": "Substitute dairy milk and cashews with almond milk and almond paste to make it vegan-friendly."
+  },
+  {
+    "id": 28,
+    "name": "Mixed Vegetable Stir Fry (1 bowl)",
+    "category": "vegetables",
+    "mealTypes": [
+      "lunch",
+      "dinner",
+      "snacks"
+    ],
+    "calories": 104,
+    "protein": 3,
+    "carbs": 14,
+    "fat": 4,
+    "cost": 20,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Carrot, beans & bell peppers - 1.5 cups (sliced)",
+      "Sweet corn - 2 tbsp",
+      "Garlic - 2 cloves (minced)",
+      "Olive oil - 1 tsp",
+      "Mixed herbs & black pepper - 1/2 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Slice all vegetables into uniform matchsticks. 2. Heat oil in a pan, add minced garlic and sauté. 3. Add carrots and beans first, sautéing on high heat for 2 minutes. 4. Add bell peppers and sweet corn, stir-frying for another 3 minutes. Keep vegetables crunchy. 5. Season with salt, black pepper, and mixed herbs. Serve hot.",
+    "benefits": "Abundant in various dietary antioxidants (carotenoids, Vitamin C) and digestion-aiding fiber.",
+    "tips": "Cook on high heat briefly to maintain the crunch and nutritional integrity of the vegetables."
+  },
+  {
+    "id": 29,
+    "name": "Cabbage Peas Poriyal (1 bowl)",
+    "category": "vegetables",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 72,
+    "protein": 2.2,
+    "carbs": 8,
+    "fat": 3.5,
+    "cost": 12,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Cabbage - 1.5 cups (shredded)",
+      "Green Peas - 2 tbsp",
+      "Grated coconut - 1 tbsp",
+      "Mustard seeds & Urad dal - 1/2 tsp each",
+      "Curry leaves - 5-6",
+      "Oil - 1 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Heat oil in a pan, add mustard seeds, urad dal, and curry leaves. Let seeds crackle and dal turn golden. 2. Add shredded cabbage and peas, mixing well. 3. Sprinkle 1-2 tbsp water, cover, and steam-cook on low flame for 5-6 minutes. 4. Remove cover, sauté for 1 minute until dry. 5. Turn off heat, stir in grated coconut, and serve.",
+    "benefits": "Cabbage contains sulfur compounds (glucosinolates) that aid liver detoxification and digestion.",
+    "tips": "Shred the cabbage finely and evenly to ensure it cooks quickly without needing extra water."
+  },
+  {
+    "id": 30,
+    "name": "Paneer Bhurji with Veggies (1 plate)",
+    "category": "vegetables",
+    "mealTypes": [
+      "breakfast",
+      "lunch",
+      "dinner",
+      "snacks",
+      "post_workout"
+    ],
+    "calories": 224,
+    "protein": 15,
+    "carbs": 5,
+    "fat": 16,
+    "cost": 50,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "dairy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Low-fat Paneer - 80g (crumbled)",
+      "Onion - 1 small (chopped)",
+      "Tomato - 1 small (chopped)",
+      "Bell pepper - 1/4 cup (chopped)",
+      "Ginger & green chili - 1/2 tsp (chopped)",
+      "Turmeric & Cumin powder - 1/4 tsp each",
+      "Oil - 1 tsp",
+      "Salt and coriander - to taste"
+    ],
+    "recipe": "1. Sauté onions, ginger, and green chili in oil until translucent. 2. Add bell peppers and tomatoes, cooking for 3 minutes until soft. 3. Add turmeric, cumin powder, and salt. 4. Stir in crumbled paneer. 5. Mix well and sauté on medium heat for 2 minutes (do not overcook, or paneer gets rubbery). 6. Garnish with chopped coriander and serve hot.",
+    "benefits": "High-yield protein and calcium with low carbs, perfect for weight management and muscle maintenance.",
+    "tips": "Serve inside a whole wheat wrap or alongside a slice of toast for a quick balanced meal."
+  },
+  {
+    "id": 31,
+    "name": "Low-Fat Curd (1 cup)",
+    "category": "dairy",
+    "mealTypes": [
+      "breakfast",
+      "lunch",
+      "snacks"
+    ],
+    "calories": 46,
+    "protein": 4,
+    "carbs": 4,
+    "fat": 1.5,
+    "cost": 10,
+    "prepTime": 5,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "dairy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Skimmed milk - 1 cup",
+      "Curd culture - 1/2 tsp"
+    ],
+    "recipe": "1. Boil milk and let it cool down until it is lukewarm. 2. Stir in the curd culture thoroughly. 3. Pour into a bowl, cover, and place in a warm, dark spot for 6-8 hours until set. 4. Refrigerate once set to stop fermentation.",
+    "benefits": "Abundant in active probiotics that maintain gut microflora, assist digestion, and provide calcium.",
+    "tips": "Setting curd in a clay pot absorbs excess moisture, resulting in a naturally thicker texture."
+  },
+  {
+    "id": 32,
+    "name": "Greek Yogurt (1 cup)",
+    "category": "dairy",
+    "mealTypes": [
+      "breakfast",
+      "snacks",
+      "post_workout"
+    ],
+    "calories": 85,
+    "protein": 15,
+    "carbs": 4,
+    "fat": 1,
+    "cost": 45,
+    "prepTime": 2,
+    "difficulty": "no-cook",
+    "cuisine": "indian",
+    "allergies": [
+      "dairy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "gluten-free",
+      "diabetic",
+      "low-carb",
+      "keto"
+    ],
+    "ingredients": [
+      "Plain unsweetened Greek Yogurt - 150g"
+    ],
+    "recipe": "1. Measure out 150g of chilled, plain unsweetened Greek yogurt. 2. Serve cold. (Optional: mix in a pinch of stevia or cinnamon powder for flavor).",
+    "benefits": "Contains nearly double the protein of standard yogurt, supporting muscle growth and satiety.",
+    "tips": "You can make Greek yogurt at home by draining normal curd in a cheesecloth for 4 hours."
+  },
+  {
+    "id": 33,
+    "name": "Masala Buttermilk (1 glass)",
+    "category": "dairy",
+    "mealTypes": [
+      "lunch",
+      "snacks"
+    ],
+    "calories": 29,
+    "protein": 2,
+    "carbs": 3,
+    "fat": 1,
+    "cost": 8,
+    "prepTime": 5,
+    "difficulty": "no-cook",
+    "cuisine": "indian",
+    "allergies": [
+      "dairy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Plain low-fat curd - 2 tbsp",
+      "Water - 1 cup (chilled)",
+      "Roasted cumin powder - 1/4 tsp",
+      "Ginger juice - 1/4 tsp",
+      "Black salt & chopped mint - to taste"
+    ],
+    "recipe": "1. Blend curd, chilled water, cumin powder, ginger juice, and black salt in a blender for 30 seconds. 2. Strain to remove ginger fibers. 3. Garnish with chopped mint and coriander. Serve chilled.",
+    "benefits": "Excellent hydration drink, helps restore electrolytes, cools the body, and assists digestion.",
+    "tips": "Consume post-lunch to prevent mid-afternoon bloating and enhance nutrient absorption."
+  },
+  {
+    "id": 34,
+    "name": "Unsweetened Almond Milk (1 cup)",
+    "category": "dairy",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 31,
+    "protein": 1,
+    "carbs": 1,
+    "fat": 2.5,
+    "cost": 40,
+    "prepTime": 5,
+    "difficulty": "no-cook",
+    "cuisine": "indian",
+    "allergies": [
+      "nuts"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic",
+      "low-carb",
+      "keto"
+    ],
+    "ingredients": [
+      "Raw almonds - 15-20 (soaked)",
+      "Water - 1 cup (chilled)"
+    ],
+    "recipe": "1. Soak almonds in warm water for 4 hours, then peel the skins off. 2. Blend peeled almonds with 1 cup of cold water until completely smooth. 3. Strain through a nut milk bag or fine muslin cloth. Serve chilled.",
+    "benefits": "Lactose-free, cholesterol-free, and very low-calorie. Loaded with Vitamin E (antioxidant).",
+    "tips": "Save the leftover almond pulp and mix it into wheat flour for rotis to add healthy fiber."
+  },
+  {
+    "id": 35,
+    "name": "Unsweetened Soy Milk (1 cup)",
+    "category": "dairy",
+    "mealTypes": [
+      "breakfast",
+      "snacks",
+      "post_workout"
+    ],
+    "calories": 76,
+    "protein": 7,
+    "carbs": 4,
+    "fat": 3.5,
+    "cost": 25,
+    "prepTime": 5,
+    "difficulty": "no-cook",
+    "cuisine": "indian",
+    "allergies": [
+      "soy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Unsweetened commercial soy milk - 1 cup (240ml)"
+    ],
+    "recipe": "1. Measure out 240ml of cold unsweetened soy milk. 2. Drink as is, or use as a base for protein shakes.",
+    "benefits": "Best plant-based substitute for dairy milk, yielding matching protein and heart-healthy isoflavones.",
+    "tips": "Always purchase the 'unsweetened' version to avoid hidden sugars and unnecessary calories."
+  },
+  {
+    "id": 36,
+    "name": "Oat Milk (1 cup)",
+    "category": "dairy",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 86,
+    "protein": 2,
+    "carbs": 16,
+    "fat": 1.5,
+    "cost": 15,
+    "prepTime": 10,
+    "difficulty": "no-cook",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Rolled oats - 1/2 cup",
+      "Cold water - 2 cups",
+      "Salt - a tiny pinch"
+    ],
+    "recipe": "1. Add oats, ice-cold water, and a pinch of salt to a blender. 2. Blend for exactly 25-30 seconds (do not overblend, or it becomes slimy). 3. Pour immediately through a fine mesh strainer lined with muslin cloth. Do not squeeze. Serve.",
+    "benefits": "Dairy-free, nut-free vegan milk alternative that is gentle on the stomach and rich in oat fiber.",
+    "tips": "Using ice-cold water and avoiding squeezing the cloth are the secrets to non-slimy oat milk."
+  },
+  {
+    "id": 37,
+    "name": "Golden Turmeric Milk (1 cup)",
+    "category": "dairy",
+    "mealTypes": [
+      "dinner"
+    ],
+    "calories": 88,
+    "protein": 6,
+    "carbs": 8,
+    "fat": 3.5,
+    "cost": 12,
+    "prepTime": 8,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "dairy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Skimmed milk - 1 cup",
+      "Turmeric powder - 1/4 tsp",
+      "Black pepper powder - a pinch",
+      "Cardamom - 1 (crushed)",
+      "Honey - 1/2 tsp"
+    ],
+    "recipe": "1. Pour milk into a saucepan and bring to a simmer. 2. Add turmeric, black pepper, and crushed cardamom. 3. Simmer gently on low heat for 5 minutes. 4. Turn off heat, let cool slightly, then stir in honey. Serve warm.",
+    "benefits": "Highly anti-inflammatory due to curcumin (turmeric). Boosts immunity and promotes restful sleep.",
+    "tips": "Adding a pinch of black pepper is essential because piperine enhances curcumin absorption by 2000%."
+  },
+  {
+    "id": 38,
+    "name": "Ragi Malt (1 cup)",
+    "category": "dairy",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 109,
+    "protein": 3,
+    "carbs": 22,
+    "fat": 1,
+    "cost": 10,
+    "prepTime": 10,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "dairy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Ragi (finger millet) flour - 2 tbsp",
+      "Water - 1 cup",
+      "Low-fat milk - 1/2 cup",
+      "Stevia - 1 tablet (or pinch of cardamom)",
+      "Cardamom powder - 1/4 tsp"
+    ],
+    "recipe": "1. Dissolve ragi flour in 1 cup water completely to ensure no lumps. 2. Cook the mixture on low-medium flame, stirring constantly. 3. As it heats, it will thicken and turn shiny (takes about 5-6 mins). 4. Pour in 1/2 cup low-fat milk and cardamom powder. Simmer for 2 minutes. 5. Sweeten with stevia and drink hot.",
+    "benefits": "Excellent calcium source. High in fiber, low glycemic index, and satisfies morning hunger.",
+    "tips": "To make it vegan, replace dairy milk with water or almond milk after cooking the ragi base."
+  },
+  {
+    "id": 39,
+    "name": "Vegan Cashew Curd (1 cup)",
+    "category": "dairy",
+    "mealTypes": [
+      "breakfast",
+      "lunch",
+      "snacks"
+    ],
+    "calories": 139,
+    "protein": 4,
+    "carbs": 6,
+    "fat": 11,
+    "cost": 50,
+    "prepTime": 10,
+    "difficulty": "no-cook",
+    "cuisine": "indian",
+    "allergies": [
+      "nuts"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Raw cashews - 1/2 cup (soaked)",
+      "Water - 1 cup",
+      "Red chili crowns (stems) - 4-5"
+    ],
+    "recipe": "1. Blend soaked cashews with 1 cup water into a smooth paste. 2. Warm the paste slightly (should not be hot). 3. Transfer to a glass jar. 4. Push red chili crowns (which contain natural fermenting bacteria) into the cream. 5. Cover and keep in a warm, dark place for 8-10 hours to set. Refrigerate.",
+    "benefits": "Lactose-free, creamy yogurt alternative containing healthy monounsaturated fatty acids.",
+    "tips": "Must be refrigerated once set; otherwise, it becomes overly sour very quickly."
+  },
+  {
+    "id": 40,
+    "name": "Healthy Berry Yogurt (1 cup)",
+    "category": "dairy",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 102,
+    "protein": 8,
+    "carbs": 14,
+    "fat": 1.5,
+    "cost": 35,
+    "prepTime": 5,
+    "difficulty": "no-cook",
+    "cuisine": "indian",
+    "allergies": [
+      "dairy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Plain low-fat curd - 1 cup",
+      "Fresh strawberries or blueberries - 4-5",
+      "Honey or Stevia - 1/2 tsp"
+    ],
+    "recipe": "1. Wash berries and mash them thoroughly using a fork. 2. Whisk the curd in a bowl until smooth. 3. Mix the mashed berries, curd, and honey/stevia. 4. Chill in the fridge for 10 minutes and serve.",
+    "benefits": "Combines probiotics with antioxidants from berries. Lower sugar than store-bought options.",
+    "tips": "Use seasonal berries or frozen ones when fresh are unavailable. Never boil the berries."
+  },
+  {
+    "id": 41,
+    "name": "Dal Palak (1 bowl)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 138,
+    "protein": 8,
+    "carbs": 22,
+    "fat": 2,
+    "cost": 15,
+    "prepTime": 20,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Yellow split Moong Dal - 1/2 cup",
+      "Fresh spinach - 1 cup (chopped)",
+      "Garlic - 3 cloves (minced)",
+      "Cumin seeds - 1/2 tsp",
+      "Turmeric powder - 1/4 tsp",
+      "Oil - 1 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Boil moong dal with turmeric, salt, and 1.5 cups water until soft (approx. 3 whistles). 2. Heat oil in a pan, add cumin seeds and minced garlic. Sauté. 3. Add chopped spinach and cook for 2-3 minutes until wilted. 4. Pour the boiled dal into the pan. 5. Mix well, adjust consistency with water, and simmer for 5 minutes. Serve hot.",
+    "benefits": "Combines iron and folate from spinach with high-fiber plant proteins from lentils.",
+    "tips": "Finish with a squeeze of fresh lemon to double the bioavailability of iron."
+  },
+  {
+    "id": 42,
+    "name": "Masoor Dal (1 bowl)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 150,
+    "protein": 9,
+    "carbs": 24,
+    "fat": 2,
+    "cost": 12,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Whole red lentils (Masoor Dal) - 1/2 cup",
+      "Onion - 1 small (chopped)",
+      "Tomato - 1 small (chopped)",
+      "Cumin seeds - 1/2 tsp",
+      "Turmeric & chili powder - 1/4 tsp each",
+      "Oil - 1 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Wash and pressure cook masoor dal with 2 cups of water, turmeric, and salt for 3 whistles. 2. Heat oil in a pan, temper cumin seeds. 3. Sauté onions until golden, then add tomatoes and cook till soft. 4. Pour in the cooked dal and stir. 5. Simmer on low heat for 5 minutes. Garnish with coriander.",
+    "benefits": "Rich in potassium, folate, and soluble fibers. Promotes cardiovascular health.",
+    "tips": "Serve alongside brown rice or Jowar Roti for a balanced, low glycemic meal."
+  },
+  {
+    "id": 43,
+    "name": "Mixed Vegetable Raita (1 bowl)",
+    "category": "dairy",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 58,
+    "protein": 4,
+    "carbs": 6,
+    "fat": 2,
+    "cost": 12,
+    "prepTime": 5,
+    "difficulty": "no-cook",
+    "cuisine": "indian",
+    "allergies": [
+      "dairy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Low-fat curd - 1 cup",
+      "Cucumber, onion & tomato - 1/4 cup total (finely chopped)",
+      "Roasted cumin powder - 1/4 tsp",
+      "Coriander leaves - 1 tsp",
+      "Black salt to taste"
+    ],
+    "recipe": "1. Whisk the curd in a bowl until smooth and free of lumps. 2. Stir in the chopped cucumber, onion, tomato, and coriander. 3. Add roasted cumin powder and black salt. 4. Mix well and serve chilled.",
+    "benefits": "Supplies gut-healthy lactobacillus bacteria and calcium while providing hydration.",
+    "tips": "Squeeze grated cucumber slightly before adding to prevent the raita from becoming runny."
+  },
+  {
+    "id": 44,
+    "name": "Lobia Masala (1 bowl)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 208,
+    "protein": 11,
+    "carbs": 32,
+    "fat": 4,
+    "cost": 16,
+    "prepTime": 25,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Black-eyed peas (Lobia) - 1/2 cup (soaked)",
+      "Onion - 1 small (chopped)",
+      "Tomato puree - 1/4 cup",
+      "Ginger-garlic paste - 1/2 tsp",
+      "Garam masala & coriander powder - 1/2 tsp each",
+      "Oil - 1 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Pressure cook soaked lobia in water with a pinch of salt for 3 whistles. 2. Heat oil in a pan, sauté onions. 3. Add ginger-garlic paste and tomato puree; cook for 3 minutes. 4. Add spices and salt. 5. Add boiled lobia with its water. 6. Simmer uncovered for 10 minutes until thick. Serve.",
+    "benefits": "High in folate, zinc, iron, and potassium. Supports muscle and immune function.",
+    "tips": "Soak lobia for only 2-3 hours; they cook much faster than chickpeas or kidney beans."
+  },
+  {
+    "id": 45,
+    "name": "Stir-Fried Paneer & Capsicum (1 plate)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner",
+      "snacks",
+      "post_workout"
+    ],
+    "calories": 203,
+    "protein": 13,
+    "carbs": 4,
+    "fat": 15,
+    "cost": 48,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "dairy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Low-fat Paneer - 80g (cubed)",
+      "Capsicum (Bell Pepper) - 1 medium (sliced)",
+      "Onion - 1 small (sliced)",
+      "Black pepper & cumin powder - 1/2 tsp each",
+      "Oil - 1 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Heat oil in a non-stick skillet. 2. Add onions and sliced capsicum; stir fry on high heat for 3 minutes until tender-crisp. 3. Add paneer cubes, black pepper, cumin powder, and salt. 4. Sauté gently on medium-low heat for 3-4 minutes. Serve warm.",
+    "benefits": "High protein, calcium-rich, and very low carb. Excellent for fat loss diets.",
+    "tips": "Keep the heat high while sautéing vegetables to retain their color and crunch."
+  },
+  {
+    "id": 46,
+    "name": "Mushroom Masala (1 bowl)",
+    "category": "vegetables",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 91,
+    "protein": 4.5,
+    "carbs": 8,
+    "fat": 4.5,
+    "cost": 35,
+    "prepTime": 20,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Button Mushrooms - 150g (sliced)",
+      "Onion - 1 small (chopped)",
+      "Tomato - 1 small (chopped)",
+      "Garlic - 2 cloves (minced)",
+      "Cumin, turmeric & coriander powder - 1/4 tsp each",
+      "Oil - 1 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Sauté garlic and onions in oil. 2. Add tomatoes and cook until soft. 3. Stir in cumin, turmeric, coriander, and salt. 4. Add sliced mushrooms and mix well. 5. Cover and cook on low heat; mushrooms will release water. Cook for 8-10 minutes until mushrooms are tender and gravy is dry.",
+    "benefits": "Contains selenium, copper, Vitamin D, and ergothioneine (antioxidant) with very low calories.",
+    "tips": "Dry-sauté mushrooms first without oil to release excess water and concentrate their earthy flavor."
+  },
+  {
+    "id": 47,
+    "name": "Sada Dosa (1 piece)",
+    "category": "grains",
+    "mealTypes": [
+      "breakfast",
+      "dinner"
+    ],
+    "calories": 125,
+    "protein": 3,
+    "carbs": 26,
+    "fat": 1,
+    "cost": 8,
+    "prepTime": 10,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Fermented rice & urad dal batter - 1 ladle",
+      "Oil or Ghee - 1/2 tsp"
+    ],
+    "recipe": "1. Heat a tawa, sprinkle water, and wipe it off. 2. Pour a ladle of batter in the center. 3. Spread it outwards in a spiral to make a thin crepe. 4. Drizzle 1/2 tsp oil/ghee around edges. Cook on medium heat until golden and crispy. 5. Roll and serve.",
+    "benefits": "Fermented batter is rich in gut-healthy microflora and B-vitamins, and easy to digest.",
+    "tips": "Serve with sambar or tomato-onion chutney instead of potato filling to reduce empty calories."
+  },
+  {
+    "id": 48,
+    "name": "Idli with Sambar (2 pieces)",
+    "category": "grains",
+    "mealTypes": [
+      "breakfast",
+      "lunch"
+    ],
+    "calories": 159,
+    "protein": 5.5,
+    "carbs": 32,
+    "fat": 1,
+    "cost": 12,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Fermented idli batter - 2 ladles",
+      "Mixed vegetable Sambar - 1 cup"
+    ],
+    "recipe": "1. Grease idli molds lightly. 2. Pour fermented batter into molds. 3. Steam in a cooker/steamer for 10-12 minutes until a toothpick inserted runs clear. 4. Serve hot with warm, veggie-rich lentil sambar.",
+    "benefits": "Steamed, fat-free, fermented meal providing balanced protein-carb fuel that is easy on the gut.",
+    "tips": "Add oats or ragi powder to the idli batter to double the fiber content."
+  },
+  {
+    "id": 49,
+    "name": "Green Peas & Paneer Rice (1 plate)",
+    "category": "grains",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 263,
+    "protein": 12,
+    "carbs": 38,
+    "fat": 7,
+    "cost": 38,
+    "prepTime": 20,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "dairy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Basmati rice (cooked) - 1 cup",
+      "Low-fat paneer - 50g (cubed)",
+      "Green Peas - 1/4 cup",
+      "Cumin seeds - 1/2 tsp",
+      "Oil - 1 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Heat oil in a pan, add cumin seeds and let them crackle. 2. Sauté peas and paneer cubes for 2 minutes on medium heat. 3. Add cooked basmati rice and salt. 4. Mix gently with a spatula to avoid breaking the rice grains. 5. Steam covered for 2 minutes. Serve hot.",
+    "benefits": "Provides clean energy, calcium, and plant protein in a quick-to-prepare meal.",
+    "tips": "Toss in some mint and coriander leaves while steaming for fresh aroma."
+  },
+  {
+    "id": 50,
+    "name": "Air-Fried Fish Fillet (130g)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner",
+      "post_workout",
+      "snacks"
+    ],
+    "calories": 167,
+    "protein": 24,
+    "carbs": 2,
+    "fat": 7,
+    "cost": 95,
+    "prepTime": 15,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [
+      "fish"
+    ],
+    "dietaryStyle": [
+      "non-vegetarian",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Fish fillet (Basa or Surmai) - 130g",
+      "Ginger-garlic paste - 1/2 tsp",
+      "Turmeric, red chili & cumin powder - 1/2 tsp each",
+      "Lemon juice - 1 tsp",
+      "Oil spray - 1/2 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Pat fish fillet dry. Marinate with lemon juice, ginger-garlic, spices, and salt for 15 minutes. 2. Preheat air fryer to 180°C. 3. Spray air fryer basket and fish with a tiny bit of oil. 4. Air fry for 10-12 minutes, flipping halfway, until fish flakes easily with a fork. Serve with lemon slices.",
+    "benefits": "High in protein and heart-protective Omega-3 fatty acids. Extremely low in carbs.",
+    "tips": "Can also be pan-seared on a non-stick tawa on low-medium heat if an air fryer is unavailable."
+  },
+  {
+    "id": 51,
+    "name": "Roasted Makhana (30g)",
+    "category": "snacks",
+    "mealTypes": [
+      "snacks",
+      "pre_workout"
+    ],
+    "calories": 110,
+    "protein": 3,
+    "carbs": 20,
+    "fat": 2,
+    "cost": 10,
+    "prepTime": 8,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Fox nuts (Makhana) - 30g",
+      "Ghee - 1/2 tsp",
+      "Turmeric & black pepper - a pinch",
+      "Salt to taste"
+    ],
+    "recipe": "1. Heat ghee in a heavy-bottomed pan. 2. Add turmeric and makhana. 3. Roast on low heat, stirring continuously, for 5-6 minutes until makhanas become crispy. 4. Sprinkle salt and black pepper, toss well, and turn off heat. Let cool.",
+    "benefits": "Rich in flavonoids, magnesium, and potassium. Very low glycemic index and sodium.",
+    "tips": "Store in an airtight container immediately after cooling to maintain crispiness."
+  },
+  {
+    "id": 52,
+    "name": "Baked Beetroot Cutlets (2 pieces)",
+    "category": "snacks",
+    "mealTypes": [
+      "snacks"
+    ],
+    "calories": 131,
+    "protein": 3,
+    "carbs": 24,
+    "fat": 2.5,
+    "cost": 15,
+    "prepTime": 25,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Beetroot - 1 small (grated)",
+      "Potato - 1 small (boiled & mashed)",
+      "Oats flour - 2 tbsp",
+      "Ginger & chili - 1/2 tsp (chopped)",
+      "Chaat masala - 1/2 tsp",
+      "Oil - 1/2 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. In a bowl, mix grated beetroot, mashed potato, oats flour, ginger, chili, chaat masala, and salt. 2. Knead together and shape into small flat patties. 3. Lightly brush patties with a few drops of oil. 4. Bake in a preheated oven at 180°C for 20 minutes (10 mins per side) or cook on a tawa on low heat until crisp.",
+    "benefits": "Abundant in nitrates that improve athletic endurance and reduce blood pressure. High in fiber.",
+    "tips": "Using oats flour instead of breadcrumbs keeps the recipe gluten-free and adds healthy fibers."
+  },
+  {
+    "id": 53,
+    "name": "Steamed Khaman Dhokla (2 pieces)",
+    "category": "snacks",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 163,
+    "protein": 6,
+    "carbs": 28,
+    "fat": 3,
+    "cost": 12,
+    "prepTime": 20,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Gram flour (Besan) - 1 cup",
+      "Low-fat curd - 2 tbsp",
+      "Lemon juice - 1 tsp",
+      "Fruit salt (Eno) - 1 tsp",
+      "Mustard seeds & Curry leaves - for tempering",
+      "Oil - 1 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Whisk besan, curd, lemon juice, salt, and water to make a thick, smooth batter. 2. Grease a baking pan. 3. Add Eno to the batter, stir quickly (it will froth), and pour into the pan. 4. Steam immediately for 12-15 minutes until a knife comes out clean. 5. Cut into squares. 6. Temper with mustard seeds, curry leaves, and green chili in 1 tsp oil, pour over dhokla. Serve.",
+    "benefits": "Steamed, fermented, and low-fat. High in plant protein and easily digestible.",
+    "tips": "Avoid adding sugar to the tempering water; use a pinch of stevia or skip sweetening."
+  },
+  {
+    "id": 54,
+    "name": "Roasted Peanuts (30g)",
+    "category": "snacks",
+    "mealTypes": [
+      "snacks",
+      "pre_workout"
+    ],
+    "calories": 180,
+    "protein": 7.5,
+    "carbs": 6,
+    "fat": 14,
+    "cost": 5,
+    "prepTime": 8,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "peanuts"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic",
+      "low-carb",
+      "keto"
+    ],
+    "ingredients": [
+      "Raw peanuts - 30g",
+      "Salt - a pinch"
+    ],
+    "recipe": "1. Heat a dry pan on low flame. 2. Add raw peanuts. 3. Roast peanuts, stirring continuously, for 6-8 minutes until they start popping and skins crack. 4. Sprinkle a pinch of salt and let cool. Rub off skins if desired. Serve.",
+    "benefits": "Provides heart-healthy monounsaturated fats, arginine, and protein for energy.",
+    "tips": "Peanuts are a dense source of calories; portion control is key to managing daily fat intake."
+  },
+  {
+    "id": 55,
+    "name": "Cucumber Mint Cooler (1 glass)",
+    "category": "beverages",
+    "mealTypes": [
+      "snacks",
+      "pre_workout"
+    ],
+    "calories": 24,
+    "protein": 0.8,
+    "carbs": 5,
+    "fat": 0.1,
+    "cost": 10,
+    "prepTime": 5,
+    "difficulty": "no-cook",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic",
+      "low-carb",
+      "keto"
+    ],
+    "ingredients": [
+      "Cucumber - 1 (chopped)",
+      "Fresh mint leaves - 10",
+      "Lemon juice - 1 tbsp",
+      "Black salt & ice cubes - to taste"
+    ],
+    "recipe": "1. Blend chopped cucumber and mint leaves with 1 cup of water in a blender. 2. Strain the pulp using a sieve (or keep it for extra fiber). 3. Stir in lemon juice and black salt. 4. Add ice cubes and serve immediately.",
+    "benefits": "Extremely hydrating, flushes toxins, cools the body, and contains near-zero calories.",
+    "tips": "If using organic cucumber, keep the peel on as it contains fiber and key minerals."
+  },
+  {
+    "id": 56,
+    "name": "Chia Seed Lemonade (1 glass)",
+    "category": "beverages",
+    "mealTypes": [
+      "breakfast",
+      "snacks",
+      "pre_workout"
+    ],
+    "calories": 57,
+    "protein": 1.5,
+    "carbs": 6,
+    "fat": 3,
+    "cost": 15,
+    "prepTime": 5,
+    "difficulty": "no-cook",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Chia seeds (or Sabja seeds) - 1 tbsp (soaked)",
+      "Lemon juice - 1 tbsp",
+      "Water - 1.5 cups",
+      "Honey or Stevia - 1/2 tsp"
+    ],
+    "recipe": "1. Soak chia seeds in 1/4 cup water for 15 minutes until they swell and gelatinize. 2. Mix lemon juice, remaining water, and honey/stevia in a glass. 3. Stir in the soaked chia seeds. 4. Serve chilled.",
+    "benefits": "Rich in Omega-3 fatty acids, soluble fiber, and calcium. Helps maintain hydration and satiety.",
+    "tips": "Sabja (basil) seeds can be used instead of chia seeds for a traditional cooling Ayurvedic benefit."
+  },
+  {
+    "id": 57,
+    "name": "Tender Coconut Water (1 glass)",
+    "category": "beverages",
+    "mealTypes": [
+      "snacks",
+      "pre_workout"
+    ],
+    "calories": 45,
+    "protein": 0.7,
+    "carbs": 10,
+    "fat": 0.2,
+    "cost": 50,
+    "prepTime": 1,
+    "difficulty": "no-cook",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Fresh tender coconut water - 250ml"
+    ],
+    "recipe": "1. Cut open a fresh green tender coconut. 2. Pour the water into a glass and drink immediately.",
+    "benefits": "Natural source of potassium and electrolytes. Excellent hydration fuel for pre or post-workouts.",
+    "tips": "Drink it fresh; storing coconut water after opening causes it to lose its enzyme activity and ferment."
+  },
+  {
+    "id": 58,
+    "name": "Spiced Guava Salad (1 bowl)",
+    "category": "fruits",
+    "mealTypes": [
+      "snacks"
+    ],
+    "calories": 79,
+    "protein": 2.5,
+    "carbs": 16,
+    "fat": 0.5,
+    "cost": 10,
+    "prepTime": 5,
+    "difficulty": "no-cook",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Guava (semi-ripe) - 1 medium",
+      "Chaat masala - 1/4 tsp",
+      "Red chili powder - a pinch",
+      "Black salt - a pinch"
+    ],
+    "recipe": "1. Wash and chop guava into bite-sized wedges. 2. Place in a bowl and sprinkle with chaat masala, red chili, and black salt. 3. Toss well and eat immediately.",
+    "benefits": "Extremely high in Vitamin C (4x more than oranges), loaded with dietary fiber, and diabetic-safe.",
+    "tips": "Choose semi-ripe guavas that are firm; overly soft guavas don't make a good salad."
+  },
+  {
+    "id": 59,
+    "name": "Fresh Pomegranate Bowl (1 cup)",
+    "category": "fruits",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 107,
+    "protein": 1.5,
+    "carbs": 23,
+    "fat": 1,
+    "cost": 30,
+    "prepTime": 10,
+    "difficulty": "no-cook",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Fresh pomegranate arils - 1 cup (120g)"
+    ],
+    "recipe": "1. Cut open a fresh pomegranate. 2. De-seed it gently into a bowl. 3. Eat raw as a snack or breakfast topping.",
+    "benefits": "Contains powerful polyphenols and punicalagins that support arterial health and reduce inflammation.",
+    "tips": "De-seed the pomegranate in a bowl of water; the seeds sink and the white pith floats, making it easy to separate."
+  },
+  {
+    "id": 60,
+    "name": "Roasted Pumpkin Seeds (30g)",
+    "category": "snacks",
+    "mealTypes": [
+      "snacks",
+      "pre_workout"
+    ],
+    "calories": 169,
+    "protein": 9,
+    "carbs": 4,
+    "fat": 13,
+    "cost": 25,
+    "prepTime": 5,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic",
+      "low-carb",
+      "keto"
+    ],
+    "ingredients": [
+      "Raw pumpkin seeds - 30g",
+      "Salt & pepper - to taste"
+    ],
+    "recipe": "1. Heat a skillet on medium-low flame. 2. Add raw pumpkin seeds. 3. Dry roast for 3-4 minutes, stirring constantly, until they swell and turn slightly golden. 4. Season with salt and black pepper. Let cool.",
+    "benefits": "Superb plant source of zinc, magnesium, and healthy fats. Promotes immune and prostate health.",
+    "tips": "Keep the flame low while roasting; pumpkin seeds are thin and can burn very quickly."
+  },
+  {
+    "id": 61,
+    "name": "Moong Dal Khichdi (1 bowl)",
+    "category": "grains",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 279,
+    "protein": 11,
+    "carbs": 52,
+    "fat": 3,
+    "cost": 12,
+    "prepTime": 25,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Split yellow Moong Dal - 1/2 cup",
+      "White rice (or brown) - 1/2 cup",
+      "Turmeric powder - 1/4 tsp",
+      "Cumin seeds - 1/2 tsp",
+      "Ginger - 1/2 tsp (minced)",
+      "Ghee or Oil - 1 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Wash rice and moong dal together. 2. Heat ghee/oil in a pressure cooker; sauté cumin seeds and minced ginger. 3. Add rice, dal, turmeric, salt, and 3 cups of water. 4. Cook for 3 whistles on medium flame. 5. Let steam release naturally, stir, and serve warm.",
+    "benefits": "Known as the ultimate Ayurvedic recovery food; easy on the intestines and provides a complete amino acid profile.",
+    "tips": "Excellent during detox cycles or when recovering from any illness."
+  },
+  {
+    "id": 62,
+    "name": "Sattvic Pumpkin Sabzi (1 bowl)",
+    "category": "vegetables",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 86,
+    "protein": 1.5,
+    "carbs": 11,
+    "fat": 4,
+    "cost": 10,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Pumpkin (Kaddu) - 200g (cubed)",
+      "Cumin seeds - 1/2 tsp",
+      "Turmeric & red chili powder - 1/4 tsp each",
+      "Fenugreek seeds (Methi dana) - 1/4 tsp",
+      "Oil - 1 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Heat oil in a pan; add cumin and fenugreek seeds. 2. Add cubed pumpkin, turmeric, chili powder, and salt. 3. Sauté well, cover, and cook on low heat for 10-12 minutes until pumpkin is tender. (No water is needed). Serve.",
+    "benefits": "High in beta-carotene (Vitamin A precursor), potassium, and dietary fibers with very low glycemic load.",
+    "tips": "Pumpkin is naturally sweet, so avoid adding jaggery or sugar to keep it diabetic-friendly."
+  },
+  {
+    "id": 63,
+    "name": "Clear Chicken Soup (1 bowl)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner",
+      "post_workout"
+    ],
+    "calories": 128,
+    "protein": 20,
+    "carbs": 3,
+    "fat": 4,
+    "cost": 45,
+    "prepTime": 20,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "non-vegetarian",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Chicken pieces (boneless) - 100g",
+      "Carrot & Beans - 1/4 cup (chopped)",
+      "Garlic - 3 cloves (minced)",
+      "Ginger - 1/2 tsp (minced)",
+      "Black pepper & salt - to taste",
+      "Water - 3 cups"
+    ],
+    "recipe": "1. In a pot, add chicken, water, minced ginger, garlic, chopped vegetables, and salt. 2. Bring to a boil, then cover and simmer on low heat for 15 minutes. 3. Remove chicken pieces, shred them using two forks, and return to the soup. 4. Season with lots of black pepper and serve piping hot.",
+    "benefits": "Hydrating, protein-dense, and highly restorative; contains bone-healthy minerals and promotes respiratory clearance.",
+    "tips": "Add a few drops of lemon juice at the end to brighten the flavors and add vitamin C."
+  },
+  {
+    "id": 64,
+    "name": "Vegetable Upma (1 bowl)",
+    "category": "grains",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 240,
+    "protein": 6,
+    "carbs": 45,
+    "fat": 4,
+    "cost": 10,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "gluten"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan"
+    ],
+    "ingredients": [
+      "Semolina (Suji/Rava) - 1/2 cup",
+      "Mixed veggies - 1/4 cup (peas, carrot)",
+      "Mustard seeds & curry leaves - for tempering",
+      "Ginger & green chili - 1/2 tsp",
+      "Oil - 1 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Dry roast semolina in a pan for 4-5 minutes until warm and fragrant; set aside. 2. Heat oil, temper mustard seeds, green chili, and curry leaves. 3. Sauté veggies and ginger. 4. Add 1.5 cups water and salt, bring to a boil. 5. Slowly add semolina while stirring continuously to prevent lumps. 6. Cook covered on low heat for 3 minutes. Serve hot.",
+    "benefits": "Provides quick carbohydrate fuel for physical energy. Satiating and easy to prepare.",
+    "tips": "Substitute semolina with oats or quinoa to make it a gluten-free upma."
+  },
+  {
+    "id": 65,
+    "name": "Masala Oats (1 bowl)",
+    "category": "grains",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 184,
+    "protein": 6,
+    "carbs": 32,
+    "fat": 3.5,
+    "cost": 12,
+    "prepTime": 12,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Rolled oats - 1/2 cup",
+      "Onion, tomato & peas - 1/2 cup total (chopped)",
+      "Ginger-garlic paste - 1/2 tsp",
+      "Garam masala & turmeric - 1/4 tsp each",
+      "Oil - 1/2 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Sauté onion, ginger-garlic, and vegetables in oil for 2 minutes. 2. Stir in tomatoes, spices, and salt. 3. Add oats and 1.5 cups water. 4. Cook on medium-low heat, stirring occasionally, for 5-6 minutes until oats are soft and creamy. Serve hot.",
+    "benefits": "High soluble fiber beta-glucan content helps manage cholesterol and insulin response.",
+    "tips": "Prepare this instead of buying pre-packaged masala oats which contain high sodium and chemicals."
+  },
+  {
+    "id": 66,
+    "name": "Tofu Lettuce Wraps (2 pieces)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner",
+      "snacks",
+      "post_workout"
+    ],
+    "calories": 144,
+    "protein": 12,
+    "carbs": 6,
+    "fat": 8,
+    "cost": 35,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "soy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Firm Tofu - 100g (crumbled)",
+      "Garlic - 2 cloves (minced)",
+      "Soy sauce (gluten-free) - 1 tsp",
+      "Lettuce leaves (Romaine or Iceberg) - 2 large cups",
+      "Oil - 1/2 tsp",
+      "Salt and pepper - to taste"
+    ],
+    "recipe": "1. Sauté minced garlic in oil. 2. Add crumbled tofu, cooking for 3 minutes. 3. Add soy sauce, salt, and pepper, sautéing until dry. 4. Wash and dry lettuce leaves. 5. Spoon the tofu crumble into the lettuce cups. Serve cold/warm.",
+    "benefits": "Extremely low-carb, keto-friendly protein option. High in calcium and plant sterols.",
+    "tips": "Garnish with a sprinkle of sesame seeds or chopped green onions for crunch."
+  },
+  {
+    "id": 67,
+    "name": "Ghia Raita (1 bowl)",
+    "category": "dairy",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 52,
+    "protein": 3.5,
+    "carbs": 5,
+    "fat": 2,
+    "cost": 12,
+    "prepTime": 10,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "dairy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Low-fat curd - 1 cup",
+      "Bottle gourd (Lauki/Ghia) - 1/2 cup (grated)",
+      "Roasted cumin powder - 1/4 tsp",
+      "Black salt & black pepper - to taste"
+    ],
+    "recipe": "1. Steam grated bottle gourd for 4-5 minutes until soft, then let cool completely. 2. Whisk curd in a bowl. 3. Mix the cooled bottle gourd, black salt, pepper, and roasted cumin. 4. Serve chilled.",
+    "benefits": "Combines cooling probiotics of yogurt with the hydrating, stomach-soothing benefits of bottle gourd.",
+    "tips": "Press steamed lauki lightly to remove excess water before mixing into yogurt."
+  },
+  {
+    "id": 68,
+    "name": "Green Apple & Cinnamon Oats (1 bowl)",
+    "category": "grains",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 203,
+    "protein": 5,
+    "carbs": 40,
+    "fat": 2.5,
+    "cost": 25,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Rolled oats - 1/2 cup",
+      "Green apple - 1/2 (chopped)",
+      "Cinnamon powder - 1/2 tsp",
+      "Water - 1.5 cups",
+      "Honey or Stevia - 1/2 tsp"
+    ],
+    "recipe": "1. Cook oats in water for 5 minutes. 2. Stir in cinnamon powder and chopped green apple. 3. Simmer for 2 minutes (keeps apple crunchy). 4. Remove from heat, stir in honey/stevia. Serve hot.",
+    "benefits": "Cinnamon naturally helps regulate blood sugar, apples supply quercetin, and oats provide fiber.",
+    "tips": "Keep the apple peel on to maximize intake of pectin fiber and active antioxidants."
+  },
+  {
+    "id": 69,
+    "name": "Boiled Chickpeas Salad (1 bowl)",
+    "category": "protein",
+    "mealTypes": [
+      "breakfast",
+      "snacks",
+      "post_workout"
+    ],
+    "calories": 171,
+    "protein": 8,
+    "carbs": 28,
+    "fat": 3,
+    "cost": 12,
+    "prepTime": 10,
+    "difficulty": "no-cook",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "White Chickpeas (boiled) - 1/2 cup",
+      "Cucumber & Tomato - 1/4 cup (chopped)",
+      "Lemon juice - 1 tbsp",
+      "Chaat masala & black salt - to taste"
+    ],
+    "recipe": "1. Mix boiled chickpeas, chopped cucumber, and tomato in a bowl. 2. Drizzle lemon juice. 3. Sprinkle black salt and chaat masala. 4. Toss well and serve cold.",
+    "benefits": "High-protein, high-fiber vegan snack. Promotes bowel health and controls appetite.",
+    "tips": "Keep canned or pre-boiled chickpeas in the freezer for instant high-protein salad assembly."
+  },
+  {
+    "id": 70,
+    "name": "Sweet Potato Chat (1 bowl)",
+    "category": "fruits",
+    "mealTypes": [
+      "snacks",
+      "pre_workout"
+    ],
+    "calories": 157,
+    "protein": 2,
+    "carbs": 36,
+    "fat": 0.5,
+    "cost": 15,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Sweet potato - 1 medium (boiled)",
+      "Lemon juice - 1 tsp",
+      "Chaat masala & roasted cumin - 1/2 tsp each",
+      "Pomegranate arils - 1 tbsp (for garnish)"
+    ],
+    "recipe": "1. Peel boiled sweet potato and cut into cubes. 2. Toss with lemon juice, chaat masala, and cumin powder. 3. Garnish with pomegranate arils. Serve warm.",
+    "benefits": "Rich in complex carbs, beta-carotene (Vitamin A), and potassium. Slow-burning fuel for workouts.",
+    "tips": "Ideal pre-workout carb source; digests easily without causing digestive distress."
+  },
+  {
+    "id": 71,
+    "name": "Spiced Buttermilk Oats (1 bowl)",
+    "category": "grains",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 142,
+    "protein": 5,
+    "carbs": 26,
+    "fat": 2,
+    "cost": 14,
+    "prepTime": 10,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "dairy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Rolled oats - 1/2 cup",
+      "Low-fat buttermilk - 1 cup",
+      "Ginger & green chili - 1/4 tsp (grated)",
+      "Mustard seeds & curry leaves - for tempering",
+      "Oil - 1/2 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Boil oats in 1 cup water until soft, let cool completely. 2. Whisk buttermilk with salt, ginger, and green chili. 3. Stir cooled oats into buttermilk. 4. Temper with mustard seeds and curry leaves in 1/2 tsp oil, mix in, and serve cold.",
+    "benefits": "Extremely cooling, low glycemic meal that supports hydration and healthy gut microbiota.",
+    "tips": "Perfect summer breakfast option popular in South India as 'Oats Kanji'."
+  },
+  {
+    "id": 72,
+    "name": "Paneer with Green Chutney (80g)",
+    "category": "protein",
+    "mealTypes": [
+      "snacks",
+      "post_workout"
+    ],
+    "calories": 212,
+    "protein": 14,
+    "carbs": 3,
+    "fat": 16,
+    "cost": 42,
+    "prepTime": 5,
+    "difficulty": "no-cook",
+    "cuisine": "indian",
+    "allergies": [
+      "dairy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Low-fat paneer - 80g (cubed)",
+      "Fresh mint-coriander green chutney - 2 tbsp"
+    ],
+    "recipe": "1. Cut fresh paneer into cubes. 2. Serve cold alongside freshly ground mint-coriander chutney.",
+    "benefits": "Instant protein snack with near-zero carbs, rich in calcium and fat-burning CLA.",
+    "tips": "Ensure the green chutney is made without sugar (use lemon, green chili, salt, mint, and coriander)."
+  },
+  {
+    "id": 73,
+    "name": "Methi Chicken Curry (1 plate)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner",
+      "post_workout"
+    ],
+    "calories": 234,
+    "protein": 32,
+    "carbs": 4,
+    "fat": 10,
+    "cost": 105,
+    "prepTime": 25,
+    "difficulty": "advanced",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "non-vegetarian",
+      "gluten-free",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Chicken breast - 150g (cubed)",
+      "Fresh fenugreek (Methi) - 1 cup (chopped)",
+      "Onion-tomato gravy - 1/2 cup",
+      "Ginger-garlic paste - 1/2 tsp",
+      "Oil - 1 tsp",
+      "Spices & salt - to taste"
+    ],
+    "recipe": "1. Sauté ginger-garlic paste and chopped methi leaves in oil for 3 minutes. 2. Add chicken cubes and sauté until they turn white. 3. Pour in onion-tomato gravy, spices (turmeric, chili, cumin), and salt. 4. Add 1/2 cup water, cover, and simmer for 15 minutes until chicken is tender. Serve.",
+    "benefits": "Combines lean protein with fenugreek, which aids glucose control and digestive wellness.",
+    "tips": "Sautéing methi leaves in oil first helps remove their bitter compounds."
+  },
+  {
+    "id": 74,
+    "name": "Stir-Fried Mushroom & Broccoli (1 bowl)",
+    "category": "vegetables",
+    "mealTypes": [
+      "lunch",
+      "dinner",
+      "snacks",
+      "post_workout"
+    ],
+    "calories": 85,
+    "protein": 4,
+    "carbs": 7,
+    "fat": 4.5,
+    "cost": 48,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic",
+      "low-carb",
+      "keto"
+    ],
+    "ingredients": [
+      "Button Mushrooms - 100g (sliced)",
+      "Broccoli - 1 cup (florets)",
+      "Garlic - 2 cloves (minced)",
+      "Olive oil - 1/2 tsp",
+      "Black pepper & salt - to taste"
+    ],
+    "recipe": "1. Sauté minced garlic in oil. 2. Add broccoli and cook for 2 minutes. 3. Add sliced mushrooms. Sauté on high heat for 5-6 minutes until mushrooms are tender and juices evaporate. 4. Season with salt and black pepper.",
+    "benefits": "Low calorie, rich in antioxidant vitamins, minerals, and dietary fibers. Excellent fat loss side.",
+    "tips": "Do not cover the pan, or the vegetables will lose their crunch and release too much water."
+  },
+  {
+    "id": 75,
+    "name": "Carrot Ginger Soup (1 bowl)",
+    "category": "vegetables",
+    "mealTypes": [
+      "dinner",
+      "snacks"
+    ],
+    "calories": 85,
+    "protein": 1.5,
+    "carbs": 14,
+    "fat": 2.5,
+    "cost": 18,
+    "prepTime": 20,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Carrots - 2 (chopped)",
+      "Ginger - 1 inch (sliced)",
+      "Onion - 1/2 small",
+      "Olive oil - 1/2 tsp",
+      "Vegetable broth - 2 cups",
+      "Black pepper - to taste"
+    ],
+    "recipe": "1. Sauté onion and ginger in oil. 2. Add chopped carrots and sauté for 2 minutes. 3. Pour in vegetable broth and bring to a boil. Cook covered until carrots are tender (12 mins). 4. Let cool, then blend into a smooth soup. 5. Reheat, season with salt and pepper, and serve.",
+    "benefits": "High in beta-carotene (supports eyes and skin) and anti-inflammatory gingerols.",
+    "tips": "Stir in a pinch of roasted cumin powder for a warm, earthy flavor."
+  },
+  {
+    "id": 76,
+    "name": "Panchmel Dal (1 bowl)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 175,
+    "protein": 11,
+    "carbs": 26,
+    "fat": 3,
+    "cost": 18,
+    "prepTime": 20,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Five lentils mixture (Moong, Chana, Toor, Masoor, Urad) - 1/2 cup total",
+      "Cumin seeds - 1/2 tsp",
+      "Ginger-garlic paste - 1/2 tsp",
+      "Turmeric & chili powder - 1/4 tsp each",
+      "Ghee or Oil - 1 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Wash and pressure cook the five mixed lentils with turmeric and salt for 4 whistles. 2. Heat oil/ghee in a pan; sauté cumin seeds, then ginger-garlic paste. 3. Stir in chili powder and pour the tempering over the dal. 4. Simmer for 3 minutes and serve hot.",
+    "benefits": "Combines five types of lentils to provide a diverse spectrum of minerals and proteins.",
+    "tips": "Soak the lentils for 30 minutes before boiling to ensure they cook uniformly."
+  },
+  {
+    "id": 77,
+    "name": "Soya Bhurji (1 plate)",
+    "category": "protein",
+    "mealTypes": [
+      "breakfast",
+      "lunch",
+      "dinner",
+      "snacks",
+      "post_workout"
+    ],
+    "calories": 165,
+    "protein": 20,
+    "carbs": 10,
+    "fat": 5,
+    "cost": 20,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "soy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Soya granules - 40g",
+      "Onion - 1 small (chopped)",
+      "Tomato - 1 small (chopped)",
+      "Turmeric, red chili & coriander - 1/4 tsp each",
+      "Oil - 1 tsp",
+      "Salt and coriander - to taste"
+    ],
+    "recipe": "1. Soak soya granules in hot water for 10 minutes. Drain and squeeze out water completely. 2. Heat oil, sauté onions. 3. Add tomatoes and spices, cooking until soft. 4. Stir in soaked soya granules and salt. 5. Sauté on medium flame for 5 minutes. Garnish with coriander.",
+    "benefits": "Highly concentrated vegan protein, low in fat, and supplies plant fibers.",
+    "tips": "Ensure granules are squeezed very dry to avoid a soggy texture in the bhurji."
+  },
+  {
+    "id": 78,
+    "name": "Stir-fried Green Beans (1 bowl)",
+    "category": "vegetables",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 73,
+    "protein": 2,
+    "carbs": 6,
+    "fat": 4.5,
+    "cost": 15,
+    "prepTime": 10,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "French beans - 1.5 cups (chopped)",
+      "Sesame seeds - 1 tsp",
+      "Garlic - 2 cloves (sliced)",
+      "Oil - 1 tsp",
+      "Salt to taste"
+    ],
+    "recipe": "1. Heat oil in a pan, sauté sliced garlic. 2. Add French beans and toss on high flame for 2 minutes. 3. Add salt and 2 tbsp water, cook covered on low flame for 5 minutes. 4. Remove lid, stir fry on high until dry. 5. Toss in toasted sesame seeds and serve.",
+    "benefits": "High in fiber, carotenoids, and silica which supports healthy skin, hair, and nails.",
+    "tips": "Do not overcook; keeping the beans bright green preserves the chlorophyll and folate."
+  },
+  {
+    "id": 79,
+    "name": "Ragi Idli (2 pieces)",
+    "category": "grains",
+    "mealTypes": [
+      "breakfast",
+      "dinner"
+    ],
+    "calories": 145,
+    "protein": 4.5,
+    "carbs": 30,
+    "fat": 0.8,
+    "cost": 14,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Fermented Ragi & Urad Dal idli batter - 2 ladles"
+    ],
+    "recipe": "1. Grease idli molds. 2. Pour fermented ragi batter into the molds. 3. Steam in a steamer for 12-14 minutes until a inserted toothpick runs clean. 4. Serve warm with coconut or mint chutney.",
+    "benefits": "Combines calcium-rich ragi with digestible protein of urad dal. Extremely low in fats.",
+    "tips": "Can make batter by mixing 1 part ragi flour into 2 parts standard fermented idli batter."
+  },
+  {
+    "id": 80,
+    "name": "Turmeric Ginger Herbal Tea (1 cup)",
+    "category": "beverages",
+    "mealTypes": [
+      "snacks",
+      "pre_workout"
+    ],
+    "calories": 8,
+    "protein": 0.1,
+    "carbs": 2,
+    "fat": 0,
+    "cost": 5,
+    "prepTime": 5,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic",
+      "low-carb",
+      "keto"
+    ],
+    "ingredients": [
+      "Fresh ginger - 1/2 inch (sliced)",
+      "Turmeric root or powder - 1/4 tsp",
+      "Lemon juice - 1 tsp",
+      "Water - 1.5 cups"
+    ],
+    "recipe": "1. Boil water with ginger slices and turmeric for 5 minutes. 2. Strain into a cup. 3. Stir in lemon juice and drink warm.",
+    "benefits": "Powerful Ayurvedic detoxifying beverage that boosts immunity and reduces gut inflammation.",
+    "tips": "Excellent calorie-free warm drink to consume between meals or before a workout."
+  },
+  {
+    "id": 81,
+    "name": "High-Protein Sattu Drink (1 large glass)",
+    "category": "beverages",
+    "mealTypes": [
+      "breakfast",
+      "pre_workout",
+      "snacks"
+    ],
+    "calories": 268,
+    "protein": 18,
+    "carbs": 40,
+    "fat": 4,
+    "cost": 12,
+    "prepTime": 5,
+    "difficulty": "no-cook",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "ingredients": [
+      "Sattu (roasted chickpea flour) - 4 tbsp",
+      "Cold water - 300ml",
+      "Lemon juice - 1 tbsp",
+      "Roasted cumin powder - 1/2 tsp",
+      "Black salt - 1/2 tsp",
+      "Mint leaves - 4-5"
+    ],
+    "recipe": "1. In a glass or shaker, add sattu flour and black salt. 2. Gradually add cold water while whisking to prevent lumps. 3. Add lemon juice, cumin powder, and torn mint leaves. 4. Mix thoroughly and serve chilled.",
+    "benefits": "Traditional Indian protein drink, rich in plant protein and complex carbs, providing instant hydration and sustained muscle fuel.",
+    "tips": "Excellent cheap pre-workout drink for hot summer days."
+  },
+  {
+    "id": 82,
+    "name": "Peanut Butter Banana Toast (2 slices)",
+    "category": "snacks",
+    "mealTypes": [
+      "breakfast",
+      "pre_workout",
+      "snacks"
+    ],
+    "calories": 368,
+    "protein": 14,
+    "carbs": 42,
+    "fat": 16,
+    "cost": 20,
+    "prepTime": 5,
+    "difficulty": "no-cook",
+    "cuisine": "indian",
+    "allergies": [
+      "peanuts",
+      "gluten"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan"
+    ],
+    "ingredients": [
+      "Whole wheat bread - 2 slices",
+      "Natural unsweetened peanut butter - 2 tbsp",
+      "Banana - 1 small (sliced)",
+      "Chia seeds - 1/2 tsp"
+    ],
+    "recipe": "1. Toast the bread slices until golden and crisp. 2. Spread 1 tbsp of peanut butter evenly on each slice. 3. Arrange sliced banana on top. 4. Sprinkle chia seeds and serve immediately.",
+    "benefits": "High in healthy monounsaturated fats, potassium, and slow-digesting fiber for sustained physical stamina.",
+    "tips": "Perfect fast-digesting snack to consume 45 minutes before hitting the gym."
+  },
+  {
+    "id": 83,
+    "name": "High-Protein Chickpea & Paneer Salad (1 large bowl)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner",
+      "post_workout"
+    ],
+    "calories": 410,
+    "protein": 24,
+    "carbs": 38,
+    "fat": 18,
+    "cost": 45,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "dairy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Boiled white chickpeas - 1 cup",
+      "Low-fat paneer - 80g (cubed)",
+      "Cucumber & Tomato - 1/2 cup (chopped)",
+      "Lemon juice - 1 tbsp",
+      "Olive oil - 1 tsp",
+      "Coriander, salt & black pepper to taste"
+    ],
+    "recipe": "1. Sauté paneer cubes in 1/2 tsp olive oil in a pan until lightly golden. 2. In a large bowl, mix boiled chickpeas, sautéed paneer, chopped cucumber, and tomatoes. 3. Whisk lemon juice, remaining oil, salt, and pepper together. 4. Pour dressing over the salad and toss well. Garnish with coriander.",
+    "benefits": "High in calcium, fiber, and biological-value protein. Supports skeletal strength and muscle recovery.",
+    "tips": "Soak and boil chickpeas in bulk to easily assemble this high-macro salad in under 5 minutes."
+  },
+  {
+    "id": 84,
+    "name": "Double Egg & Oats Omelette (1 plate)",
+    "category": "protein",
+    "mealTypes": [
+      "breakfast",
+      "post_workout",
+      "snacks"
+    ],
+    "calories": 294,
+    "protein": 20,
+    "carbs": 22,
+    "fat": 14,
+    "cost": 25,
+    "prepTime": 10,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "eggs",
+      "gluten"
+    ],
+    "dietaryStyle": [
+      "non-vegetarian"
+    ],
+    "ingredients": [
+      "Whole eggs - 2",
+      "Powdered rolled oats - 4 tbsp",
+      "Onion & bell pepper - 1/4 cup (chopped)",
+      "Oil - 1 tsp",
+      "Salt & black pepper to taste"
+    ],
+    "recipe": "1. Whisk eggs in a bowl. Add oats powder, salt, pepper, and chopped vegetables; mix well. 2. Heat oil in a non-stick pan. 3. Pour egg mixture and cook on medium flame for 3 minutes. 4. Flip and cook for another 2 minutes until golden. Serve warm.",
+    "benefits": "Combines high biological value egg protein with complex carbs from oats, perfect for post-workout recovery.",
+    "tips": "Serve with hot mint tea for a healthy, high-protein breakfast."
+  },
+  {
+    "id": 85,
+    "name": "Sprouted Moong Salad (1 bowl)",
+    "category": "protein",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 130,
+    "protein": 9,
+    "carbs": 20,
+    "fat": 1,
+    "cost": 10,
+    "prepTime": 10,
+    "difficulty": "no-cook",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Sprouted green moong - 1 cup",
+      "Cucumber - 1/4 cup (chopped)",
+      "Tomato - 1/4 cup (chopped)",
+      "Lemon juice - 1 tbsp",
+      "Chaat masala & Salt"
+    ],
+    "recipe": "1. Mix sprouted green moong, chopped cucumber, and tomato in a bowl. 2. Drizzle lemon juice, season with chaat masala and salt. 3. Toss well and serve fresh.",
+    "benefits": "Living enzyme-rich sprouts provide bioavailable plant protein, iron, and active antioxidants for easy digestion.",
+    "tips": "Sprout moong at home over 24-36 hours for maximum vitamin C and protein bioavailability."
+  },
+  {
+    "id": 86,
+    "name": "Whey Protein Shake in Milk (1 glass)",
+    "category": "protein",
+    "mealTypes": [
+      "post_workout",
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 220,
+    "protein": 28,
+    "carbs": 12,
+    "fat": 5,
+    "cost": 75,
+    "prepTime": 3,
+    "difficulty": "no-cook",
+    "cuisine": "global",
+    "allergies": [
+      "dairy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "gluten-free",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Whey protein isolate - 1 scoop (30g)",
+      "Low-fat milk - 200ml"
+    ],
+    "recipe": "1. Add milk and whey protein powder to a shaker bottle. 2. Shake vigorously for 30 seconds until lump-free. 3. Drink immediately.",
+    "benefits": "Rapidly absorbed amino acids trigger instant muscle protein synthesis right after workouts.",
+    "tips": "Use cold water instead of milk to reduce total calories and fat if in a cut phase."
+  },
+  {
+    "id": 87,
+    "name": "Egg White Omelette with Spinach (4 whites + 1 whole)",
+    "category": "protein",
+    "mealTypes": [
+      "breakfast",
+      "post_workout"
+    ],
+    "calories": 180,
+    "protein": 26,
+    "carbs": 2,
+    "fat": 5,
+    "cost": 35,
+    "prepTime": 10,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "eggs"
+    ],
+    "dietaryStyle": [
+      "non-vegetarian",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Egg whites - 4",
+      "Whole egg - 1",
+      "Spinach - 1/2 cup (chopped)",
+      "Green chili - 1",
+      "Oil - 1 tsp",
+      "Salt & Pepper"
+    ],
+    "recipe": "1. Whisk egg whites and whole egg with salt and pepper. 2. Heat oil, sauté spinach and chili for 1 minute. 3. Pour eggs over spinach. 4. Cook until firm, flip, and serve hot.",
+    "benefits": "Ultra-pure protein with minimal fat, packed with lutein, folate, and iron from fresh spinach.",
+    "tips": "Keep 1 whole egg for essential fat-soluble nutrients like choline and vitamin D."
+  },
+  {
+    "id": 88,
+    "name": "Soya Bhurji with Whole Wheat Roti (2 rotis)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 360,
+    "protein": 28,
+    "carbs": 45,
+    "fat": 8,
+    "cost": 30,
+    "prepTime": 20,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [
+      "soy",
+      "gluten"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan"
+    ],
+    "ingredients": [
+      "Soya granules - 50g",
+      "Whole wheat rotis - 2",
+      "Onion & Tomato - 1/2 cup",
+      "Spices & Oil - 1 tsp"
+    ],
+    "recipe": "1. Soak and drain soya granules. 2. Sauté onions, tomatoes, and Indian spices in oil. 3. Add soya granules and cook for 5 mins. Serve hot with rotis.",
+    "benefits": "Exceptional plant protein combo offering complete amino acid profile for muscle rebuilding.",
+    "tips": "Squeeze lemon on top to enhance iron absorption from soya and wheat."
+  },
+  {
+    "id": 89,
+    "name": "Greek Yogurt Parfait with Chia & Honey (1 glass)",
+    "category": "dairy",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 240,
+    "protein": 16,
+    "carbs": 25,
+    "fat": 7,
+    "cost": 60,
+    "prepTime": 5,
+    "difficulty": "no-cook",
+    "cuisine": "global",
+    "allergies": [
+      "dairy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Plain Greek yogurt - 150g",
+      "Chia seeds - 1 tbsp",
+      "Honey - 1 tsp",
+      "Pomegranate seeds - 2 tbsp"
+    ],
+    "recipe": "1. Layer Greek yogurt in a bowl or glass. 2. Top with chia seeds, pomegranate, and drizzle honey.",
+    "benefits": "Dense probiotic content supports gut microbiome health while delivering high protein.",
+    "tips": "Soak chia seeds in 2 tbsp water beforehand for a thicker pudding consistency."
+  },
+  {
+    "id": 90,
+    "name": "Egg Curry with Brown Rice (1 plate)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 420,
+    "protein": 22,
+    "carbs": 52,
+    "fat": 14,
+    "cost": 40,
+    "prepTime": 25,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [
+      "eggs"
+    ],
+    "dietaryStyle": [
+      "non-vegetarian",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Hard-boiled eggs - 2",
+      "Brown rice cooked - 1 cup",
+      "Onion-tomato gravy - 1/2 cup",
+      "Oil - 1 tsp",
+      "Spices"
+    ],
+    "recipe": "1. Sauté onion, tomato, and spices into a curry base. 2. Add boiled eggs cut in half. 3. Simmer for 5 mins. Serve with warm brown rice.",
+    "benefits": "Sustained carbohydrate energy combined with high-quality animal protein and B vitamins.",
+    "tips": "Score boiled eggs with a knife so the curry spices penetrate deep inside."
+  },
+  {
+    "id": 91,
+    "name": "Chana Sattu Stuffed Paratha (1 piece)",
+    "category": "grains",
+    "mealTypes": [
+      "breakfast",
+      "lunch"
+    ],
+    "calories": 260,
+    "protein": 11,
+    "carbs": 40,
+    "fat": 6,
+    "cost": 18,
+    "prepTime": 15,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [
+      "gluten"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan"
+    ],
+    "ingredients": [
+      "Whole wheat dough - 1 ball",
+      "Sattu flour - 3 tbsp",
+      "Mustard oil - 1/2 tsp",
+      "Ajwain, onion, chili - to taste"
+    ],
+    "recipe": "1. Mix sattu with chopped onion, ajwain, pickle spice, and mustard oil. 2. Stuff into wheat dough, roll, and cook on tawa.",
+    "benefits": "High fiber and plant protein that keeps physical workers satisfied for hours without fatigue.",
+    "tips": "Classic Bihari staple; cook with minimal oil to keep it light."
+  },
+  {
+    "id": 92,
+    "name": "Grilled Fish Tikka (150g Basa/Surmai)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner",
+      "post_workout"
+    ],
+    "calories": 210,
+    "protein": 32,
+    "carbs": 3,
+    "fat": 8,
+    "cost": 120,
+    "prepTime": 20,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [
+      "fish"
+    ],
+    "dietaryStyle": [
+      "non-vegetarian",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Fish fillet - 150g",
+      "Yogurt - 2 tbsp",
+      "Ajwain & Tandoori masala - 1 tsp",
+      "Oil - 1 tsp"
+    ],
+    "recipe": "1. Marinate fish in yogurt, spices, and lemon. 2. Pan-grill or bake at 200°C for 10-12 mins until flaky.",
+    "benefits": "Omega-3 fatty acids for joint health and brain function, paired with easily digestible lean fish protein.",
+    "tips": "Do not overcook fish to preserve its delicate moisture and nutrients."
+  },
+  {
+    "id": 93,
+    "name": "Quinoa Vegetable Upma (1 bowl)",
+    "category": "grains",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 250,
+    "protein": 9,
+    "carbs": 38,
+    "fat": 6,
+    "cost": 45,
+    "prepTime": 20,
+    "difficulty": "basic",
+    "cuisine": "global",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Quinoa - 1/2 cup",
+      "Mixed vegetables - 1/2 cup",
+      "Mustard seeds & Curry leaves - 1/2 tsp",
+      "Oil - 1 tsp"
+    ],
+    "recipe": "1. Toast quinoa lightly, cook in 1 cup water until fluffy. 2. Temper mustard seeds, sauté veggies, and fold in cooked quinoa.",
+    "benefits": "Complete plant protein containing all 9 essential amino acids with low glycemic impact.",
+    "tips": "Rinse quinoa thoroughly in cold water before cooking to remove saponin bitterness."
+  },
+  {
+    "id": 94,
+    "name": "Oats & Peanut Butter Smoothie (1 large glass)",
+    "category": "beverages",
+    "mealTypes": [
+      "breakfast",
+      "pre_workout"
+    ],
+    "calories": 450,
+    "protein": 18,
+    "carbs": 55,
+    "fat": 18,
+    "cost": 35,
+    "prepTime": 5,
+    "difficulty": "no-cook",
+    "cuisine": "global",
+    "allergies": [
+      "peanuts",
+      "dairy"
+    ],
+    "dietaryStyle": [
+      "vegetarian"
+    ],
+    "ingredients": [
+      "Rolled oats - 1/2 cup",
+      "Peanut butter - 2 tbsp",
+      "Banana - 1",
+      "Milk - 250ml"
+    ],
+    "recipe": "1. Add oats, banana, peanut butter, and milk into a blender. 2. Blend on high for 60 seconds until creamy and smooth.",
+    "benefits": "High-calorie nutrient-dense shake ideal for high-intensity physical workers, bulking athletes, and hard-gainers.",
+    "tips": "Soak oats in warm water for 10 minutes prior for an exceptionally silky shake texture."
+  },
+  {
+    "id": 95,
+    "name": "Kala Chana Chaat (1 bowl)",
+    "category": "protein",
+    "mealTypes": [
+      "snacks",
+      "breakfast"
+    ],
+    "calories": 210,
+    "protein": 11,
+    "carbs": 34,
+    "fat": 3,
+    "cost": 15,
+    "prepTime": 10,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Boiled black chickpeas (Kala chana) - 1 cup",
+      "Onion & Cucumber - 1/4 cup",
+      "Lemon & Chaat masala - to taste"
+    ],
+    "recipe": "1. Mix boiled black chickpeas with diced raw veggies. 2. Add lemon juice, black salt, and chaat masala. Toss well.",
+    "benefits": "Rich in dietary fiber and plant-based iron, providing endurance and steady energy release.",
+    "tips": "Add boiled potato cubes if you need extra complex carbohydrates."
+  },
+  {
+    "id": 96,
+    "name": "Spiced Mutton Sukka (120g)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 340,
+    "protein": 28,
+    "carbs": 4,
+    "fat": 22,
+    "cost": 160,
+    "prepTime": 35,
+    "difficulty": "advanced",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "non-vegetarian",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Lean mutton pieces - 120g",
+      "Onion - 1 large",
+      "Coconut powder - 1 tbsp",
+      "Garam masala & Oil - 1.5 tsp"
+    ],
+    "recipe": "1. Pressure cook mutton with turmeric and salt for 6 whistles. 2. Fry onions and roasted spices in oil. 3. Add mutton and roast until dry and coated.",
+    "benefits": "High heme-iron, zinc, and bioavailable protein for intense physical labor and heavy muscle growth.",
+    "tips": "Choose lean cuts like leg or shoulder to keep saturated fat controlled."
+  },
+  {
+    "id": 97,
+    "name": "Light Paneer Butter Masala (1 bowl)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 320,
+    "protein": 16,
+    "carbs": 12,
+    "fat": 22,
+    "cost": 70,
+    "prepTime": 25,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [
+      "dairy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Paneer - 100g",
+      "Tomato cashew gravy - 1/2 cup",
+      "Butter - 1 tsp",
+      "Kasuri methi & Spices"
+    ],
+    "recipe": "1. Simmer blended tomato-cashew puree with spices and 1 tsp butter. 2. Add paneer cubes and crushed kasuri methi. Simmer for 5 mins.",
+    "benefits": "Satisfying, calcium-dense vegetarian favorite optimized with lower butter for healthy macros.",
+    "tips": "Use low-fat milk instead of heavy cream to cut fat while keeping rich taste."
+  },
+  {
+    "id": 98,
+    "name": "Chicken Keema Matar (1 bowl)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner",
+      "post_workout"
+    ],
+    "calories": 310,
+    "protein": 34,
+    "carbs": 10,
+    "fat": 14,
+    "cost": 95,
+    "prepTime": 25,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "non-vegetarian",
+      "gluten-free",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Minced chicken breast (Keema) - 150g",
+      "Green peas - 1/4 cup",
+      "Onion & Tomato - 1/2 cup",
+      "Oil - 1 tsp",
+      "Spices"
+    ],
+    "recipe": "1. Heat oil, sauté onions, ginger, and garlic. 2. Add tomato puree and spices. 3. Stir in minced chicken and green peas. Cook for 12 mins.",
+    "benefits": "High-density protein meal that cooks rapidly; ideal for post-workout muscle repair.",
+    "tips": "Great for meal prep; stores well in the fridge for up to 3 days."
+  },
+  {
+    "id": 99,
+    "name": "Besan Bread Toast (2 slices)",
+    "category": "snacks",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 230,
+    "protein": 10,
+    "carbs": 32,
+    "fat": 6,
+    "cost": 15,
+    "prepTime": 8,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "gluten"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan"
+    ],
+    "ingredients": [
+      "Whole wheat bread - 2 slices",
+      "Besan (chickpea flour) - 3 tbsp",
+      "Onion, chili, coriander - 2 tbsp",
+      "Oil - 1 tsp"
+    ],
+    "recipe": "1. Make a smooth batter with besan, water, spices, and veggies. 2. Dip bread in batter. 3. Toast on a warm oiled tawa on both sides until golden.",
+    "benefits": "Quick budget breakfast combining chickpea protein with complex grain carbs.",
+    "tips": "Add a pinch of carom seeds (ajwain) to the batter for flavor and anti-bloating."
+  },
+  {
+    "id": 100,
+    "name": "Almond Milk Berry Protein Drink (1 glass)",
+    "category": "beverages",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 150,
+    "protein": 4,
+    "carbs": 24,
+    "fat": 5,
+    "cost": 85,
+    "prepTime": 4,
+    "difficulty": "no-cook",
+    "cuisine": "global",
+    "allergies": [
+      "nuts"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Unsweetened almond milk - 250ml",
+      "Frozen mixed berries - 1/2 cup",
+      "Chia seeds - 1 tsp"
+    ],
+    "recipe": "1. Blend almond milk, berries, and chia seeds together for 45 seconds until smooth.",
+    "benefits": "Low-calorie, anti-oxidant rich vegan drink for cellular health and skin vitality.",
+    "tips": "Berry polyphenols help reduce exercise-induced oxidative stress."
+  },
+  {
+    "id": 101,
+    "name": "Goan Fish Curry with Rice (1 bowl)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 380,
+    "protein": 26,
+    "carbs": 48,
+    "fat": 10,
+    "cost": 95,
+    "prepTime": 25,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [
+      "fish"
+    ],
+    "dietaryStyle": [
+      "non-vegetarian",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Fish fillet - 120g",
+      "Coconut milk light - 1/4 cup",
+      "Tamarind & Kashmiri chili - 1 tsp",
+      "Steamed rice - 1 cup"
+    ],
+    "recipe": "1. Simmer ground coconut, tamarind, and chili paste with water. 2. Add fish and cook for 7 mins. Serve over steamed white/brown rice.",
+    "benefits": "Provides healthy medium-chain fats from coconut alongside lean fish protein.",
+    "tips": "Use raw tamarind paste for an authentic tangy coastal flavor profile."
+  },
+  {
+    "id": 102,
+    "name": "Spiced Roasted Makhana (1 bowl)",
+    "category": "snacks",
+    "mealTypes": [
+      "snacks"
+    ],
+    "calories": 140,
+    "protein": 4,
+    "carbs": 22,
+    "fat": 4,
+    "cost": 30,
+    "prepTime": 7,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Fox nuts (Makhana) - 30g",
+      "Ghee - 1/2 tsp",
+      "Black salt, pepper & chaat masala - 1/4 tsp each"
+    ],
+    "recipe": "1. Roast makhana in ghee on low flame for 6-8 mins until crunchy. 2. Toss with black salt and chaat masala.",
+    "benefits": "Low glycemic index, rich in magnesium and potassium; perfect guilt-free snack for office workers.",
+    "tips": "Store in an airtight jar immediately after roasting to keep crispy."
+  },
+  {
+    "id": 103,
+    "name": "Mix Sprouts Usal (1 bowl)",
+    "category": "protein",
+    "mealTypes": [
+      "breakfast",
+      "lunch"
+    ],
+    "calories": 210,
+    "protein": 12,
+    "carbs": 32,
+    "fat": 4,
+    "cost": 18,
+    "prepTime": 20,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Mixed sprouts (Moong, Matki, Chana) - 1 cup",
+      "Onion & Tomato - 1/2 cup",
+      "Goda masala & Mustard seeds - 1/2 tsp",
+      "Oil - 1 tsp"
+    ],
+    "recipe": "1. Temper mustard seeds and sauté onions and spices. 2. Add sprouts and 1/2 cup water. Cover and steam for 10 minutes.",
+    "benefits": "High fiber and rich plant protein combo supporting metabolic health and weight loss.",
+    "tips": "Do not over-boil sprouts; steam lightly to retain active enzymes."
+  },
+  {
+    "id": 104,
+    "name": "Tofu & Mushroom Pepper Stir-Fry (1 plate)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner",
+      "post_workout"
+    ],
+    "calories": 180,
+    "protein": 16,
+    "carbs": 6,
+    "fat": 10,
+    "cost": 60,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "global",
+    "allergies": [
+      "soy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Firm Tofu - 100g",
+      "Button Mushrooms - 100g",
+      "Garlic & Crushed Pepper - 1 tsp",
+      "Oil - 1 tsp"
+    ],
+    "recipe": "1. Sauté sliced garlic in oil. 2. Toss in mushrooms and cubed tofu over high heat for 5-6 minutes. Season with black pepper and salt.",
+    "benefits": "Low calorie, high plant protein, and rich in immune-boosting beta-glucans from mushrooms.",
+    "tips": "Sauté mushrooms on high heat without crowding to prevent them from becoming soggy."
+  },
+  {
+    "id": 105,
+    "name": "Warm Chicken Breast Salad with Olive Dressing",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner",
+      "post_workout"
+    ],
+    "calories": 260,
+    "protein": 36,
+    "carbs": 5,
+    "fat": 10,
+    "cost": 110,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "global",
+    "allergies": [],
+    "dietaryStyle": [
+      "non-vegetarian",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Grilled chicken breast - 150g (sliced)",
+      "Lettuce & Cucumber - 1.5 cups",
+      "Extra virgin olive oil - 1 tsp",
+      "Lemon juice - 1 tbsp"
+    ],
+    "recipe": "1. Toss fresh greens with lemon juice and olive oil. 2. Slice warm grilled chicken breast and lay on top. Season with pepper.",
+    "benefits": "Ultra-clean lean protein for aggressive fat loss and pure muscle retention.",
+    "tips": "Slice chicken across the grain for maximum tenderness."
+  },
+  {
+    "id": 106,
+    "name": "Roasted Sweet Potato Chaat (1 bowl)",
+    "category": "vegetables",
+    "mealTypes": [
+      "snacks",
+      "pre_workout"
+    ],
+    "calories": 190,
+    "protein": 3,
+    "carbs": 44,
+    "fat": 1,
+    "cost": 20,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Boiled sweet potato - 1.5 cups (cubed)",
+      "Chaat masala & Cumin powder - 1/2 tsp",
+      "Lemon juice - 1 tbsp"
+    ],
+    "recipe": "1. Dry roast sweet potato cubes on a tawa until slightly crispy. 2. Toss with lemon juice and spices.",
+    "benefits": "High in vitamin A, fiber, and clean slow-release carbohydrates for stamina.",
+    "tips": "Ideal wholesome pre-workout energy fuel for physical workers and athletes."
+  },
+  {
+    "id": 107,
+    "name": "Bajra & Moong Dal Khichdi (1 bowl)",
+    "category": "grains",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 260,
+    "protein": 8,
+    "carbs": 46,
+    "fat": 5,
+    "cost": 15,
+    "prepTime": 25,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Pearl millet (Bajra) - 1/2 cup (soaked)",
+      "Yellow moong dal - 1/4 cup",
+      "Ghee - 1 tsp",
+      "Cumin & Asafoetida"
+    ],
+    "recipe": "1. Pressure cook soaked bajra and moong dal for 5 whistles. 2. Temper cumin and hing in ghee, mix into khichdi. Serve warm.",
+    "benefits": "High iron and magnesium content; ideal for body warmth and steady physical energy.",
+    "tips": "Soak bajra for 4 hours to reduce cooking time significantly."
+  },
+  {
+    "id": 108,
+    "name": "Steamed Edamame Pods with Sea Salt (1 bowl)",
+    "category": "protein",
+    "mealTypes": [
+      "snacks"
+    ],
+    "calories": 140,
+    "protein": 12,
+    "carbs": 10,
+    "fat": 5,
+    "cost": 90,
+    "prepTime": 8,
+    "difficulty": "no-cook",
+    "cuisine": "global",
+    "allergies": [
+      "soy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Edamame pods - 150g",
+      "Coarse sea salt - 1/2 tsp"
+    ],
+    "recipe": "1. Steam edamame pods in boiling water for 5 minutes. 2. Drain and sprinkle coarse sea salt.",
+    "benefits": "Premium plant-based complete protein snack rich in folate and soy isoflavones.",
+    "tips": "Eat by popping the beans out of the pod directly into your mouth with your teeth."
+  },
+  {
+    "id": 109,
+    "name": "Paneer & Pepper Whole Wheat Wrap (1 roll)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner",
+      "snacks"
+    ],
+    "calories": 380,
+    "protein": 18,
+    "carbs": 42,
+    "fat": 16,
+    "cost": 55,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "dairy",
+      "gluten"
+    ],
+    "dietaryStyle": [
+      "vegetarian"
+    ],
+    "ingredients": [
+      "Whole wheat roti - 1",
+      "Paneer - 80g (strips)",
+      "Onion & Bell pepper - 1/2 cup",
+      "Mint yogurt sauce - 2 tbsp"
+    ],
+    "recipe": "1. Sauté paneer strips and peppers with tikka spices. 2. Spread mint yogurt on roti, place filling, and roll tightly.",
+    "benefits": "Convenient, portable meal loaded with protein, calcium, and complex carbs for busy schedules.",
+    "tips": "Wrap tightly in foil to take with you for busy work shifts."
+  },
+  {
+    "id": 110,
+    "name": "Chicken Tikka Roll in Wheat Roti (1 roll)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner",
+      "snacks"
+    ],
+    "calories": 410,
+    "protein": 28,
+    "carbs": 40,
+    "fat": 15,
+    "cost": 70,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "gluten"
+    ],
+    "dietaryStyle": [
+      "non-vegetarian"
+    ],
+    "ingredients": [
+      "Whole wheat roti - 1",
+      "Grilled chicken tikka - 100g",
+      "Sliced onions & Chutney - 2 tbsp"
+    ],
+    "recipe": "1. Place warm chicken tikka and crisp sliced onions inside a wheat roti. 2. Drizzle green chutney and roll.",
+    "benefits": "High protein street-food alternative that delivers muscle building fuel on the go.",
+    "tips": "Use grilled chicken instead of fried chicken to save over 150 calories."
+  },
+  {
+    "id": 111,
+    "name": "Roasted Chana (1 cup)",
+    "category": "protein",
+    "mealTypes": [
+      "snacks"
+    ],
+    "calories": 160,
+    "protein": 9,
+    "carbs": 24,
+    "fat": 3,
+    "cost": 10,
+    "prepTime": 0,
+    "difficulty": "no-cook",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Dry roasted yellow chickpeas (Bhuna chana) - 40g"
+    ],
+    "recipe": "1. Ready to eat. Enjoy as a crunch snack.",
+    "benefits": "Ultra-affordable, ready-to-eat protein and fiber snack for desk workers and students.",
+    "tips": "Buy unpeeled bhuna chana for maximum natural fiber."
+  },
+  {
+    "id": 112,
+    "name": "Spiced Mint Buttermilk (1 large glass)",
+    "category": "beverages",
+    "mealTypes": [
+      "lunch",
+      "snacks"
+    ],
+    "calories": 60,
+    "protein": 3,
+    "carbs": 5,
+    "fat": 2,
+    "cost": 8,
+    "prepTime": 3,
+    "difficulty": "no-cook",
+    "cuisine": "indian",
+    "allergies": [
+      "dairy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "gluten-free",
+      "low-carb",
+      "keto"
+    ],
+    "ingredients": [
+      "Plain curd - 3 tbsp",
+      "Water - 250ml",
+      "Mint, cumin powder & black salt - 1/4 tsp"
+    ],
+    "recipe": "1. Blend curd, water, mint leaves, cumin powder, and black salt until frothy. 2. Serve chilled.",
+    "benefits": "Cools internal digestive heat, aids food breakdown, and supplies active probiotics.",
+    "tips": "Ideal refreshing drink after a heavy protein-rich meal."
+  },
+  {
+    "id": 113,
+    "name": "Soya Chunk Dum Biryani (1 plate)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 380,
+    "protein": 22,
+    "carbs": 58,
+    "fat": 6,
+    "cost": 35,
+    "prepTime": 30,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [
+      "soy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Soya chunks - 40g",
+      "Basmati rice - 3/4 cup cooked",
+      "Biryani spices & Mint - 1 tbsp",
+      "Oil - 1 tsp"
+    ],
+    "recipe": "1. Cook spiced soya chunks curry. 2. Layer with half-cooked basmati rice, mint, and saffron water. 3. Steam on dum for 15 minutes.",
+    "benefits": "Delicious high-protein plant biryani providing dense carbohydrate recovery fuel.",
+    "tips": "Pair with cucumber raita for a complete balanced meal."
+  },
+  {
+    "id": 114,
+    "name": "Egg White & Mushroom Scramble with Toast",
+    "category": "protein",
+    "mealTypes": [
+      "breakfast",
+      "post_workout"
+    ],
+    "calories": 220,
+    "protein": 22,
+    "carbs": 20,
+    "fat": 4,
+    "cost": 30,
+    "prepTime": 10,
+    "difficulty": "basic",
+    "cuisine": "global",
+    "allergies": [
+      "eggs",
+      "gluten"
+    ],
+    "dietaryStyle": [
+      "non-vegetarian",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Egg whites - 4",
+      "Button mushrooms - 1/2 cup",
+      "Whole wheat bread - 1 slice",
+      "Oil - 1 tsp"
+    ],
+    "recipe": "1. Sauté sliced mushrooms in oil. 2. Add egg whites and scramble gently. 3. Serve over toasted whole wheat bread.",
+    "benefits": "High protein, low fat, and rich in vitamin B3 and selenium.",
+    "tips": "Season with herbs like oregano and red chili flakes for European flavor."
+  },
+  {
+    "id": 115,
+    "name": "Boiled Masala Sweet Corn (1 cup)",
+    "category": "vegetables",
+    "mealTypes": [
+      "snacks"
+    ],
+    "calories": 150,
+    "protein": 4,
+    "carbs": 32,
+    "fat": 2,
+    "cost": 20,
+    "prepTime": 8,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Sweet corn kernels - 1 cup",
+      "Butter - 1/2 tsp",
+      "Lemon juice & Chaat masala"
+    ],
+    "recipe": "1. Steam or boil corn kernels for 5 minutes. 2. Toss with 1/2 tsp butter, lemon juice, and chaat masala.",
+    "benefits": "Rich in lutein and zeaxanthin for eye health, plus natural dietary fiber.",
+    "tips": "Great warm snack during evening work breaks."
+  },
+  {
+    "id": 116,
+    "name": "Whole Green Gram (Sabut Moong) Dal",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 220,
+    "protein": 12,
+    "carbs": 36,
+    "fat": 3,
+    "cost": 14,
+    "prepTime": 25,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Whole green moong - 1/2 cup (soaked)",
+      "Onion & Tomato - 1/2 cup",
+      "Spices & Ghee - 1 tsp"
+    ],
+    "recipe": "1. Pressure cook soaked moong for 4 whistles. 2. Make onion-tomato tadka in ghee. 3. Simmer dal for 5 mins.",
+    "benefits": "Rich in folate, magnesium, and resistant starch that nourishes healthy gut bacteria.",
+    "tips": "Mash slightly with a spoon to create a thick comforting texture."
+  },
+  {
+    "id": 117,
+    "name": "Multigrain Thalipeeth (1 piece)",
+    "category": "grains",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 180,
+    "protein": 6,
+    "carbs": 28,
+    "fat": 5,
+    "cost": 15,
+    "prepTime": 15,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [
+      "gluten"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan"
+    ],
+    "ingredients": [
+      "Bhajanee flour (Jowar, Bajra, Wheat, Bengal gram) - 1/2 cup",
+      "Onion & Coriander - 2 tbsp",
+      "Oil - 1 tsp"
+    ],
+    "recipe": "1. Knead flour with onions, spices, and water into dough. 2. Flatten on a greased sheet. 3. Roast on tawa with a drop of oil.",
+    "benefits": "Traditional multi-millet nutrient density offering low glycemic index carbohydrates.",
+    "tips": "Make small finger holes in the center while roasting to cook evenly."
+  },
+  {
+    "id": 118,
+    "name": "Egg & Spinach Breakfast Wrap (1 wrap)",
+    "category": "protein",
+    "mealTypes": [
+      "breakfast",
+      "post_workout"
+    ],
+    "calories": 280,
+    "protein": 18,
+    "carbs": 24,
+    "fat": 12,
+    "cost": 35,
+    "prepTime": 12,
+    "difficulty": "basic",
+    "cuisine": "global",
+    "allergies": [
+      "eggs",
+      "gluten"
+    ],
+    "dietaryStyle": [
+      "non-vegetarian"
+    ],
+    "ingredients": [
+      "Whole wheat tortilla/roti - 1",
+      "Whole eggs - 2",
+      "Baby spinach - 1/2 cup",
+      "Oil - 1 tsp"
+    ],
+    "recipe": "1. Scramble eggs with spinach. 2. Place in center of warm roti. 3. Roll up into a wrap.",
+    "benefits": "High protein and iron combination in a convenient handheld format for morning commutes.",
+    "tips": "Add a slice of low-fat cheese for extra flavor and calcium."
+  },
+  {
+    "id": 119,
+    "name": "Rava Crispy Fish Fry (150g)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 250,
+    "protein": 24,
+    "carbs": 10,
+    "fat": 12,
+    "cost": 100,
+    "prepTime": 20,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [
+      "fish",
+      "gluten"
+    ],
+    "dietaryStyle": [
+      "non-vegetarian",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Fish steaks - 150g",
+      "Semolina (Rava) - 2 tbsp",
+      "Chili & Turmeric paste - 1 tbsp",
+      "Oil - 1.5 tsp"
+    ],
+    "recipe": "1. Coat marinated fish in semolina. 2. Shallow fry on tawa until crisp on both sides.",
+    "benefits": "Rich in lean marine protein and crunchy texture without deep frying.",
+    "tips": "Use Kingfish or Pomfret for best flavor."
+  },
+  {
+    "id": 120,
+    "name": "Mixed Almond & Walnut Energy Snack (30g)",
+    "category": "nuts",
+    "mealTypes": [
+      "snacks",
+      "pre_workout"
+    ],
+    "calories": 180,
+    "protein": 5,
+    "carbs": 12,
+    "fat": 14,
+    "cost": 40,
+    "prepTime": 0,
+    "difficulty": "no-cook",
+    "cuisine": "global",
+    "allergies": [
+      "nuts"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Raw almonds - 15g",
+      "Walnut halves - 15g"
+    ],
+    "recipe": "1. Ready to eat.",
+    "benefits": "Concentrated omega-3 fatty acids, vitamin E, and clean fats to support brain function and combat brain fog.",
+    "tips": "Keep a pouch in your desk drawer for clean energy during long work stretches."
+  },
+  {
+    "id": 121,
+    "name": "Low-Fat Paneer Bhurji (1 plate)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner",
+      "post_workout"
+    ],
+    "calories": 220,
+    "protein": 19,
+    "carbs": 5,
+    "fat": 13,
+    "cost": 45,
+    "prepTime": 12,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "dairy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Crumble low-fat paneer - 100g",
+      "Onion & Tomato - 1/2 cup",
+      "Green chili & Oil - 1 tsp"
+    ],
+    "recipe": "1. Sauté onions and tomatoes in oil. 2. Add crumbled paneer and spices, cook for 3 minutes.",
+    "benefits": "Fast-cooking high protein scramble that supports lean body recomposition.",
+    "tips": "Do not overcook paneer to prevent it from turning rubbery."
+  },
+  {
+    "id": 122,
+    "name": "Clear Chicken Vegetable Soup (1 large bowl)",
+    "category": "protein",
+    "mealTypes": [
+      "dinner",
+      "snacks"
+    ],
+    "calories": 160,
+    "protein": 20,
+    "carbs": 8,
+    "fat": 4,
+    "cost": 50,
+    "prepTime": 20,
+    "difficulty": "basic",
+    "cuisine": "global",
+    "allergies": [],
+    "dietaryStyle": [
+      "non-vegetarian",
+      "gluten-free",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Shredded chicken breast - 100g",
+      "Carrot, Beans & Celery - 1/2 cup",
+      "Chicken broth - 2 cups",
+      "Black pepper"
+    ],
+    "recipe": "1. Simmer chicken breast and diced veggies in broth for 15 minutes. 2. Shred chicken and return to soup. Season with pepper.",
+    "benefits": "Hydrating, restorative, ultra-low calorie protein meal ideal for night shifts and easy digestion.",
+    "tips": "Add fresh crushed ginger for immunomodulatory benefits."
+  },
+  {
+    "id": 123,
+    "name": "Dal Palak (Spinach Lentil Curry)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 180,
+    "protein": 10,
+    "carbs": 26,
+    "fat": 4,
+    "cost": 15,
+    "prepTime": 20,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Toor dal - 1/2 cup",
+      "Fresh spinach - 1 cup (chopped)",
+      "Garlic - 1 tsp",
+      "Ghee - 1 tsp"
+    ],
+    "recipe": "1. Pressure cook dal and spinach together. 2. Temper garlic and cumin in ghee and pour over hot dal.",
+    "benefits": "Combines iron-dense spinach with plant protein for blood health and digestion.",
+    "tips": "Garlic tadka enhances bio-availability of nutrients."
+  },
+  {
+    "id": 124,
+    "name": "Peanut Jaggery Chikki (2 pieces)",
+    "category": "snacks",
+    "mealTypes": [
+      "snacks",
+      "pre_workout"
+    ],
+    "calories": 180,
+    "protein": 5,
+    "carbs": 20,
+    "fat": 9,
+    "cost": 10,
+    "prepTime": 0,
+    "difficulty": "no-cook",
+    "cuisine": "indian",
+    "allergies": [
+      "peanuts"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Roasted peanuts & unrefined jaggery - 35g"
+    ],
+    "recipe": "1. Ready to eat traditional energy bar.",
+    "benefits": "Instant caloric boost and iron from unrefined jaggery, ideal for physical laborers and outdoor field workers.",
+    "tips": "Great pocket snack for instant stamina."
+  },
+  {
+    "id": 125,
+    "name": "Coconut Chia Seed Pudding (1 cup)",
+    "category": "dairy",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 190,
+    "protein": 6,
+    "carbs": 14,
+    "fat": 12,
+    "cost": 65,
+    "prepTime": 5,
+    "difficulty": "no-cook",
+    "cuisine": "global",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Coconut milk - 150ml",
+      "Chia seeds - 2 tbsp",
+      "Vanilla extract - 2 drops"
+    ],
+    "recipe": "1. Stir chia seeds into coconut milk. 2. Refrigerate overnight or for 4 hours until gelled.",
+    "benefits": "High soluble fiber and healthy medium-chain fats for keto and vegan diets.",
+    "tips": "Top with toasted coconut flakes for crunch."
+  },
+  {
+    "id": 126,
+    "name": "Steamed Chicken Momos (6 pieces)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "snacks"
+    ],
+    "calories": 290,
+    "protein": 22,
+    "carbs": 32,
+    "fat": 8,
+    "cost": 75,
+    "prepTime": 25,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [
+      "gluten"
+    ],
+    "dietaryStyle": [
+      "non-vegetarian"
+    ],
+    "ingredients": [
+      "Minced chicken - 120g",
+      "Refined/wheat flour dough wrappers - 6",
+      "Garlic & Ginger - 1 tsp"
+    ],
+    "recipe": "1. Fill wrappers with seasoned minced chicken. 2. Steam in a steamer for 10-12 minutes.",
+    "benefits": "Steamed lean meat snack offering high protein with moderate carbohydrates.",
+    "tips": "Pair with spicy tomato-garlic chutney instead of mayonnaise."
+  },
+  {
+    "id": 127,
+    "name": "Vegetable Poha with Roasted Peanuts (1 bowl)",
+    "category": "grains",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 210,
+    "protein": 5,
+    "carbs": 36,
+    "fat": 6,
+    "cost": 12,
+    "prepTime": 12,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [
+      "peanuts"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Flattened rice (Poha) - 1 cup",
+      "Peanuts - 1 tbsp",
+      "Onion & Green peas - 1/4 cup",
+      "Oil - 1 tsp"
+    ],
+    "recipe": "1. Wash and drain poha. 2. Fry peanuts in oil. Sauté onions and peas. 3. Toss in poha and turmeric, steam 3 mins.",
+    "benefits": "Light, easily digestible carbohydrate breakfast for quick morning energy.",
+    "tips": "Squeeze lemon juice for vitamin C."
+  },
+  {
+    "id": 128,
+    "name": "Grilled Salmon Filet with Herbs (150g)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 320,
+    "protein": 32,
+    "carbs": 0,
+    "fat": 20,
+    "cost": 250,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "global",
+    "allergies": [
+      "fish"
+    ],
+    "dietaryStyle": [
+      "non-vegetarian",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Salmon fillet - 150g",
+      "Olive oil - 1 tsp",
+      "Dill & Lemon juice - 1 tbsp",
+      "Salt & Pepper"
+    ],
+    "recipe": "1. Season salmon with olive oil, salt, pepper, and herbs. 2. Pan sear skin-side down for 4 mins, flip and cook 3 mins.",
+    "benefits": "Ultra-premium source of EPA/DHA omega-3 fatty acids and superior cardiac protection.",
+    "tips": "Keep skin intact during searing to lock in flavorful healthy oils."
+  },
+  {
+    "id": 129,
+    "name": "Soya Milk Iced Coffee Shake (1 glass)",
+    "category": "beverages",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 140,
+    "protein": 10,
+    "carbs": 14,
+    "fat": 4,
+    "cost": 25,
+    "prepTime": 3,
+    "difficulty": "no-cook",
+    "cuisine": "global",
+    "allergies": [
+      "soy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Unsweetened soya milk - 250ml",
+      "Instant coffee powder - 1 tsp",
+      "Ice cubes & Honey - 1 tsp"
+    ],
+    "recipe": "1. Blend cold soya milk, coffee, honey, and ice for 30 seconds until frothy.",
+    "benefits": "Combines alertness-boosting caffeine with 10g of clean plant protein for work focus.",
+    "tips": "Great morning beverage for desk workers and students."
+  },
+  {
+    "id": 130,
+    "name": "Rolled Oats Chilla (2 pieces)",
+    "category": "grains",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 200,
+    "protein": 8,
+    "carbs": 32,
+    "fat": 4,
+    "cost": 15,
+    "prepTime": 12,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Ground oats - 1/2 cup",
+      "Besan - 2 tbsp",
+      "Onion & Tomato - 2 tbsp",
+      "Oil - 1 tsp"
+    ],
+    "recipe": "1. Mix ground oats, besan, veggies, and water into batter. 2. Spread on tawa and cook until crisp on both sides.",
+    "benefits": "High soluble fiber beta-glucan breakfast that manages cholesterol and keeps appetite satisfied.",
+    "tips": "Serve with fresh mint chutney."
+  },
+  {
+    "id": 131,
+    "name": "Egg Dosa (1 piece)",
+    "category": "protein",
+    "mealTypes": [
+      "breakfast",
+      "dinner"
+    ],
+    "calories": 260,
+    "protein": 12,
+    "carbs": 32,
+    "fat": 9,
+    "cost": 30,
+    "prepTime": 10,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [
+      "eggs"
+    ],
+    "dietaryStyle": [
+      "non-vegetarian",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Fermented dosa batter - 1 ladle",
+      "Whole egg - 1",
+      "Pepper & Chili powder - 1/2 tsp",
+      "Oil - 1 tsp"
+    ],
+    "recipe": "1. Spread dosa batter on tawa. 2. Crack an egg directly on top, spread evenly, sprinkle pepper and oil. 3. Flip and cook for 1 minute.",
+    "benefits": "Delicious combination of fermented rice-urad carbs with high-value egg protein.",
+    "tips": "Dust with podi powder for authentic South Indian spice."
+  },
+  {
+    "id": 132,
+    "name": "Black Eyed Peas (Lobia) Curry (1 bowl)",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 210,
+    "protein": 11,
+    "carbs": 34,
+    "fat": 3,
+    "cost": 16,
+    "prepTime": 25,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Soaked Lobia - 1/2 cup",
+      "Onion & Tomato - 1/2 cup",
+      "Spices & Oil - 1 tsp"
+    ],
+    "recipe": "1. Pressure cook lobia for 3 whistles. 2. Sauté onion-tomato masala and simmer lobia for 8 mins.",
+    "benefits": "Rich in zinc, potassium, and folate; supports immune resilience and red blood cell production.",
+    "tips": "Does not require long soaking compared to kidney beans."
+  },
+  {
+    "id": 133,
+    "name": "Cucumber & Roasted Peanut Salad (1 bowl)",
+    "category": "vegetables",
+    "mealTypes": [
+      "snacks",
+      "lunch"
+    ],
+    "calories": 170,
+    "protein": 7,
+    "carbs": 10,
+    "fat": 11,
+    "cost": 15,
+    "prepTime": 8,
+    "difficulty": "no-cook",
+    "cuisine": "indian",
+    "allergies": [
+      "peanuts"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Diced cucumber - 1.5 cups",
+      "Crushed roasted peanuts - 2 tbsp",
+      "Lemon juice & Chili - 1 tsp"
+    ],
+    "recipe": "1. Toss cucumber with crushed peanuts, green chili, and lemon juice.",
+    "benefits": "Extremely hydrating, low-carb crunchy salad packed with healthy fats.",
+    "tips": "Classic Maharashtrian Khamang Kakdi salad."
+  },
+  {
+    "id": 134,
+    "name": "Mutton Bone Broth Soup (1 bowl)",
+    "category": "protein",
+    "mealTypes": [
+      "dinner",
+      "snacks"
+    ],
+    "calories": 120,
+    "protein": 15,
+    "carbs": 2,
+    "fat": 5,
+    "cost": 60,
+    "prepTime": 45,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "non-vegetarian",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Mutton marrow bones - 250g",
+      "Black pepper, ginger, garlic - 1 tbsp",
+      "Water - 4 cups"
+    ],
+    "recipe": "1. Pressure cook bones with ginger, garlic, pepper, and water for 8-10 whistles. 2. Strain and serve hot.",
+    "benefits": "Rich in bioavailable collagen, glucosamine, and minerals for joint repair and gut lining health.",
+    "tips": "Squeeze lemon juice into warm broth before drinking."
+  },
+  {
+    "id": 135,
+    "name": "Avocado & Egg Toast on Multigrain Bread",
+    "category": "protein",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 270,
+    "protein": 10,
+    "carbs": 26,
+    "fat": 16,
+    "cost": 110,
+    "prepTime": 8,
+    "difficulty": "basic",
+    "cuisine": "global",
+    "allergies": [
+      "eggs",
+      "gluten"
+    ],
+    "dietaryStyle": [
+      "non-vegetarian"
+    ],
+    "ingredients": [
+      "Multigrain bread - 1 slice",
+      "Ripe avocado - 1/2 (mashed)",
+      "Poached/fried egg - 1",
+      "Chili flakes"
+    ],
+    "recipe": "1. Toast bread. 2. Spread mashed avocado. 3. Top with cooked egg and chili flakes.",
+    "benefits": "Monounsaturated heart-healthy fats combined with high quality egg protein.",
+    "tips": "Use ripe dark-skinned Hass avocados for creaminess."
+  },
+  {
+    "id": 136,
+    "name": "Paneer & Spinach Stuffed Paratha (1 heavy paratha)",
+    "category": "protein",
+    "mealTypes": [
+      "breakfast",
+      "lunch"
+    ],
+    "calories": 340,
+    "protein": 16,
+    "carbs": 42,
+    "fat": 12,
+    "cost": 35,
+    "prepTime": 20,
+    "difficulty": "moderate",
+    "cuisine": "indian",
+    "allergies": [
+      "dairy",
+      "gluten"
+    ],
+    "dietaryStyle": [
+      "vegetarian"
+    ],
+    "ingredients": [
+      "Whole wheat dough - 1 ball",
+      "Grated paneer - 50g",
+      "Chopped spinach - 1/4 cup",
+      "Ghee - 1 tsp"
+    ],
+    "recipe": "1. Mix paneer, spinach, and spices for filling. 2. Stuff dough, roll out, and cook on tawa with ghee.",
+    "benefits": "High energy density meal ideal for heavy physical labor, farmers, and bulking athletes.",
+    "tips": "Serve with fresh curd."
+  },
+  {
+    "id": 137,
+    "name": "High-Protein Moong Dal Soup (1 bowl)",
+    "category": "protein",
+    "mealTypes": [
+      "dinner",
+      "snacks"
+    ],
+    "calories": 130,
+    "protein": 8,
+    "carbs": 20,
+    "fat": 2,
+    "cost": 12,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Yellow moong dal - 1/4 cup",
+      "Cumin & Ginger - 1/2 tsp",
+      "Lemon juice - 1 tsp"
+    ],
+    "recipe": "1. Pressure cook dal until completely soft. 2. Whisk into thin soup. Temper with cumin and ginger.",
+    "benefits": "Gentle on digestive system; excellent light evening nourishment.",
+    "tips": "Great night meal for shift workers who want lightweight digestion."
+  },
+  {
+    "id": 138,
+    "name": "Grilled Tofu Skewers (150g Tofu)",
+    "category": "protein",
+    "mealTypes": [
+      "snacks",
+      "dinner",
+      "post_workout"
+    ],
+    "calories": 200,
+    "protein": 18,
+    "carbs": 6,
+    "fat": 11,
+    "cost": 50,
+    "prepTime": 15,
+    "difficulty": "basic",
+    "cuisine": "global",
+    "allergies": [
+      "soy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "ingredients": [
+      "Firm Tofu - 150g",
+      "Soy sauce & Chili flakes - 1 tsp",
+      "Oil - 1 tsp"
+    ],
+    "recipe": "1. Cube tofu, thread on skewers. 2. Brush with oil and soy sauce marinade. Grill 8 mins.",
+    "benefits": "Clean plant protein for low-carb and keto diets.",
+    "tips": "Press tofu prior to grilling for firm chewy texture."
+  },
+  {
+    "id": 139,
+    "name": "Mangalorean Chicken Sukka with Neer Dosa",
+    "category": "protein",
+    "mealTypes": [
+      "lunch",
+      "dinner"
+    ],
+    "calories": 420,
+    "protein": 32,
+    "carbs": 44,
+    "fat": 12,
+    "cost": 120,
+    "prepTime": 30,
+    "difficulty": "advanced",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "non-vegetarian",
+      "gluten-free"
+    ],
+    "ingredients": [
+      "Chicken - 150g",
+      "Roasted coconut & Spices - 2 tbsp",
+      "Neer dosa - 2 pieces"
+    ],
+    "recipe": "1. Cook chicken in roasted spice coconut masala until dry. 2. Serve with delicate steamed neer dosas.",
+    "benefits": "High protein regional delicacy providing wholesome nutrition for heavy work days.",
+    "tips": "Neer dosa is light and paper thin, made purely with rice and water."
+  },
+  {
+    "id": 140,
+    "name": "Mixed Seed & Hemp Flour Pancake (2 pcs)",
+    "category": "protein",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 210,
+    "protein": 11,
+    "carbs": 12,
+    "fat": 14,
+    "cost": 35,
+    "prepTime": 10,
+    "difficulty": "basic",
+    "cuisine": "global",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "low-carb",
+      "keto"
+    ],
+    "ingredients": [
+      "Flaxseed, Hemp seed & Sesame flour mix - 4 tbsp",
+      "Water - as needed",
+      "Oil - 1 tsp"
+    ],
+    "recipe": "1. Whisk seed flour mix with water and salt. 2. Pour batter on tawa and cook both sides until set.",
+    "benefits": "Ultra high in fiber, omega-3, lignans, and plant protein for keto & diabetic friendly diets.",
+    "tips": "Serve with sugar-free peanut butter spread."
+  }
+]
