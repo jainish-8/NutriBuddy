@@ -30,11 +30,7 @@ try {
 }
 
 // Middleware
-app.use(cors({
-  origin: process.env.FRONTEND_URL 
-    ? [process.env.FRONTEND_URL, 'http://localhost:3000', 'http://localhost:3001'] 
-    : ['http://localhost:3000', 'http://localhost:3001']
-}));
+app.use(cors());
 app.use(bodyParser.json({ limit: '10mb' }));
 
 // LOAD EXPANDED INDIAN FOODS DATABASE (80 items)
