@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { API_BASE } from '../config';
 
 // ─── SCROLL REVEAL HOOK ───────────────────────────────────────────────────────
 function useReveal(delay = 0, threshold = 0.08) {
@@ -490,7 +491,7 @@ export default function Dashboard({ user, setCurrentPage }) {
 
   const fetchDailyData = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/daily-logs/${user?.id}`);
+      const res = await fetch(`${API_BASE}/api/daily-logs/${user?.id}`);
       const data = await res.json();
       if (data.success) setDailyData(data);
     } catch {

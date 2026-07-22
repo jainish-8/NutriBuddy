@@ -31,7 +31,9 @@ try {
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001']
+  origin: process.env.FRONTEND_URL 
+    ? [process.env.FRONTEND_URL, 'http://localhost:3000', 'http://localhost:3001'] 
+    : ['http://localhost:3000', 'http://localhost:3001']
 }));
 app.use(bodyParser.json({ limit: '10mb' }));
 

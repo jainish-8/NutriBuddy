@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE } from '../config';
 
 export default function UserProfileForm({ user, setUser, setCurrentPage }) {
   const [step, setStep] = useState(1);
@@ -237,7 +238,7 @@ export default function UserProfileForm({ user, setUser, setCurrentPage }) {
     };
 
     try {
-      const response = await fetch('http://localhost:5000/api/user-profile', {
+      const response = await fetch(`${API_BASE}/api/user-profile`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData),

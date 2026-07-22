@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import fallbackFoods from '../data/indian_diet_db.json';
+import { API_BASE } from '../config';
 
 export default function WeeklyMealPlanner({ user, setCurrentPage }) {
   const [weeklyPlan, setWeeklyPlan] = useState({});
@@ -110,7 +111,7 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
   useEffect(() => {
     const fetchFoods = async () => {
       try {
-        const response = await fetch('/api/foods');
+        const response = await fetch(`${API_BASE}/api/foods`);
         const data = await response.json();
         if (data.success && data.foods && data.foods.length > 0) {
           setAllFoods(data.foods);
@@ -500,7 +501,7 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
     } catch (_) {}
 
     try {
-      await fetch('/api/food-logs', {
+      await fetch(`${API_BASE}/api/food-logs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(foodLog)

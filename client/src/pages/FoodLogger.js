@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import fallbackFoods from '../data/indian_diet_db.json';
+import { API_BASE } from '../config';
 
 export default function FoodLogger({ user, setCurrentPage }) {
   const [foods, setFoods] = useState([]);
@@ -16,7 +17,7 @@ export default function FoodLogger({ user, setCurrentPage }) {
 
   const fetchFoods = async () => {
     try {
-      const response = await fetch(`/api/foods?search=${searchTerm}`);
+      const response = await fetch(`${API_BASE}/api/foods?search=${searchTerm}`);
       const data = await response.json();
       if (data.success) setFoods(data.foods);
     } catch {
@@ -43,7 +44,7 @@ export default function FoodLogger({ user, setCurrentPage }) {
       timestamp: new Date().toISOString()
     };
     try {
-      const response = await fetch('/api/food-logs', {
+      const response = await fetch(`${API_BASE}/api/food-logs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(foodLog),
