@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Bot, Send, X, MessageSquare, Sparkles } from 'lucide-react';
 
 const AIChatbot = ({ user, setCurrentPage }) => {
   const [messages, setMessages] = useState([]);
@@ -14,13 +15,13 @@ const AIChatbot = ({ user, setCurrentPage }) => {
       const welcomeMessage = {
         id: Date.now(),
         type: 'ai',
-        content: `Hi ${user?.fullName?.split(' ')[0] || 'there'}! 👋 I'm your AI Nutrition Assistant. I can help you with:
+        content: `Hi ${user?.fullName?.split(' ')[0] || 'there'}! I'm your AI Nutrition Assistant. I can help you with:
 
-• 🍽️ Personalized meal recommendations
-• 💰 Budget-friendly food suggestions  
-• 🎯 Nutrition advice based on your goals
-• 📊 Meal planning and calorie tracking
-• 🏃 Fitness and health tips
+• Personalized meal recommendations
+• Budget-friendly food suggestions  
+• Nutrition advice based on your goals
+• Meal planning and calorie tracking
+• Fitness and health tips
 
 What would you like to know about nutrition today?`,
         timestamp: new Date().toLocaleTimeString()
@@ -39,25 +40,22 @@ What would you like to know about nutrition today?`,
 
   const generateAIResponse = async (userMessage) => {
     // Simulate AI processing delay
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+    await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 1000));
     
     const userProfile = {
       name: user?.fullName?.split(' ')[0] || 'User',
-      age: user?.age || 'N/A',
       goal: user?.goal || 'maintain',
-      dailyCalories: user?.dailyCalories || 2000,
-      profession: user?.profession || 'N/A',
       budget: user?.budgetRange || 'moderate',
-      dietaryPrefs: user?.dietaryPreferences || 'none',
-      allergies: user?.allergies || [],
-      cuisines: user?.cuisinePreferences || [],
+      dailyCalories: user?.dailyCalories || 2000,
+      dietaryPrefs: user?.dietaryPreferences || 'None',
+      age: user?.age || 25,
+      profession: user?.profession || 'Professional',
       fitnessGoals: user?.fitnessGoals || []
     };
 
-    // Smart response generation based on user input
     const message = userMessage.toLowerCase();
-    
-    if (message.includes('meal') || message.includes('food') || message.includes('eat')) {
+
+    if (message.includes('meal') || message.includes('food') || message.includes('eat') || message.includes('recipe')) {
       if (message.includes('breakfast')) {
         return generateMealSuggestion('breakfast', userProfile);
       } else if (message.includes('lunch')) {
@@ -67,34 +65,23 @@ What would you like to know about nutrition today?`,
       } else {
         return generateGeneralMealAdvice(userProfile);
       }
-    }
-    
-    if (message.includes('budget') || message.includes('cheap') || message.includes('affordable')) {
+    } else if (message.includes('budget') || message.includes('cost') || message.includes('cheap') || message.includes('price')) {
       return generateBudgetAdvice(userProfile);
-    }
-    
-    if (message.includes('weight') || message.includes('lose') || message.includes('gain')) {
-      return generateWeightAdvice(userProfile);
-    }
-    
-    if (message.includes('calorie') || message.includes('nutrition')) {
+    } else if (message.includes('calorie') || message.includes('protein') || message.includes('macro') || message.includes('nutrition')) {
       return generateNutritionAdvice(userProfile);
-    }
-    
-    if (message.includes('exercise') || message.includes('workout') || message.includes('fitness')) {
+    } else if (message.includes('weight') || message.includes('lose') || message.includes('gain') || message.includes('fat')) {
+      return generateWeightAdvice(userProfile);
+    } else if (message.includes('workout') || message.includes('exercise') || message.includes('gym') || message.includes('fitness')) {
       return generateFitnessAdvice(userProfile);
-    }
-
-    if (message.includes('plan') || message.includes('schedule')) {
+    } else if (message.includes('plan') || message.includes('weekly') || message.includes('schedule')) {
       return generateMealPlanAdvice(userProfile);
+    } else {
+      return generateDefaultResponse(userProfile);
     }
-    
-    // Default helpful response
-    return generateDefaultResponse(userProfile);
   };
 
   const generateGeneralMealAdvice = (profile) => {
-    return `🍽️ **Meal & Nutrition Advice for ${profile.name}:**
+    return `**Meal & Nutrition Advice for ${profile.name}:**
 
 To achieve your goal of **${profile.goal} weight** on a **${profile.budget} budget**, try these guidelines:
 
@@ -128,17 +115,17 @@ Would you like suggestions for a specific meal, like **breakfast**, **lunch**, o
     const suggestions = budgetMeals[profile.budget]?.[mealType] || budgetMeals.moderate[mealType];
     const randomSuggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
 
-    return `🍽️ **${mealType.charAt(0).toUpperCase() + mealType.slice(1)} Suggestion for ${profile.name}:**
+    return `**${mealType.charAt(0).toUpperCase() + mealType.slice(1)} Suggestion for ${profile.name}:**
 
 **Recommended:** ${randomSuggestion}
 **Target Calories:** ~${calorieTarget} cal
 **Budget:** ${profile.budget} range
 
 ${profile.goal === 'lose' 
-  ? '💡 Focus on high protein and fiber to stay full longer!' 
+  ? 'Tip: Focus on high protein and fiber to stay full longer.' 
   : profile.goal === 'gain' 
-  ? '💡 Add healthy fats like nuts or ghee for extra calories!' 
-  : '💡 Maintain balanced portions of protein, carbs, and vegetables!'
+  ? 'Tip: Add healthy fats like nuts or ghee for extra calories.' 
+  : 'Tip: Maintain balanced portions of protein, carbs, and vegetables.'
 }
 
 Would you like more specific recipes or nutrition details?`;
@@ -147,7 +134,7 @@ Would you like more specific recipes or nutrition details?`;
   const generateBudgetAdvice = (profile) => {
     const budgetTips = {
       tight: [
-        'Buy seasonal vegetables - they\'re cheaper and fresher',
+        'Buy seasonal vegetables - they are cheaper and fresher',
         'Cook dal-rice combinations for complete protein',
         'Use eggs as affordable protein source',
         'Buy grains in bulk to save money'
@@ -169,7 +156,7 @@ Would you like more specific recipes or nutrition details?`;
     const tips = budgetTips[profile.budget] || budgetTips.moderate;
     const randomTips = tips.slice(0, 3);
 
-    return `💰 **Budget-Smart Nutrition Tips for ${profile.name}:**
+    return `**Budget-Smart Nutrition Tips for ${profile.name}:**
 
 **Your Budget Range:** ${profile.budget.charAt(0).toUpperCase() + profile.budget.slice(1)}
 
@@ -219,7 +206,7 @@ Want specific meal plans within your budget?`;
 
     const advice = goalAdvice[profile.goal] || goalAdvice.maintain;
 
-    return `🎯 **${advice.title} for ${profile.name}:**
+    return `**${advice.title} for ${profile.name}:**
 
 **Your Goal:** ${profile.goal.charAt(0).toUpperCase() + profile.goal.slice(1)} weight
 **${advice.calories}**
@@ -235,13 +222,13 @@ Need specific meal plans to achieve your goal?`;
   };
 
   const generateNutritionAdvice = (profile) => {
-    return `📊 **Personalized Nutrition Guide for ${profile.name}:**
+    return `**Personalized Nutrition Guide for ${profile.name}:**
 
 **Your Daily Targets:**
-- 🔥 Calories: ${profile.dailyCalories}
-- 🥩 Protein: ${Math.round(profile.dailyCalories * 0.15 / 4)}g (15% of calories)
-- 🍞 Carbs: ${Math.round(profile.dailyCalories * 0.55 / 4)}g (55% of calories)  
-- 🧈 Fats: ${Math.round(profile.dailyCalories * 0.30 / 9)}g (30% of calories)
+- Calories: ${profile.dailyCalories}
+- Protein: ${Math.round(profile.dailyCalories * 0.15 / 4)}g (15% of calories)
+- Carbs: ${Math.round(profile.dailyCalories * 0.55 / 4)}g (55% of calories)  
+- Fats: ${Math.round(profile.dailyCalories * 0.30 / 9)}g (30% of calories)
 
 **Smart Choices:**
 - **Proteins:** Eggs, dal, paneer, chicken, fish
@@ -253,7 +240,7 @@ Need specific meal plans to achieve your goal?`;
 ${profile.goal === 'lose' 
   ? '• Prioritize protein and fiber\n• Control portion sizes\n• Avoid liquid calories' 
   : profile.goal === 'gain'
-  ? '• Add calorie-dense foods\n• Don\'t skip meals\n• Include healthy fats'
+  ? '• Add calorie-dense foods\n• Do not skip meals\n• Include healthy fats'
   : '• Maintain balanced portions\n• Eat mindfully\n• Stay hydrated'
 }
 
@@ -261,14 +248,14 @@ Want to track these nutrients in your meals?`;
   };
 
   const generateFitnessAdvice = (profile) => {
-    return `💪 **Fitness Recommendations for ${profile.name}:**
+    return `**Fitness Recommendations for ${profile.name}:**
 
 **Based on your goals:** ${profile.fitnessGoals.join(', ') || 'General fitness'}
 
 **Weekly Plan:**
-- 🏃 Cardio: 3-4 days (walking, running, cycling)
-- 💪 Strength: 2-3 days (bodyweight or weights)
-- 🧘 Flexibility: Daily (stretching, yoga)
+- Cardio: 3-4 days (walking, running, cycling)
+- Strength: 2-3 days (bodyweight or weights)
+- Flexibility: Daily (stretching, yoga)
 
 **Nutrition + Exercise:**
 - **Pre-workout:** Banana or dates (30 mins before)
@@ -285,7 +272,7 @@ Want specific workout plans or pre/post workout meal ideas?`;
   };
 
   const generateMealPlanAdvice = (profile) => {
-    return `📅 **Smart Meal Planning for ${profile.name}:**
+    return `**Smart Meal Planning for ${profile.name}:**
 
 **Weekly Prep Strategy:**
 1. **Sunday:** Plan meals & grocery shopping
@@ -294,18 +281,18 @@ Want specific workout plans or pre/post workout meal ideas?`;
 
 **Sample Day (${profile.dailyCalories} cal):**
 
-**🌅 Breakfast (${Math.round(profile.dailyCalories * 0.25)} cal):**
+**Breakfast (${Math.round(profile.dailyCalories * 0.25)} cal):**
 - Option 1: Oats + banana + nuts
 - Option 2: Paratha + curd + pickle
 
-**☀️ Lunch (${Math.round(profile.dailyCalories * 0.35)} cal):**
+**Lunch (${Math.round(profile.dailyCalories * 0.35)} cal):**
 - Dal + rice + vegetable + salad
 
-**🌙 Dinner (${Math.round(profile.dailyCalories * 0.30)} cal):**
+**Dinner (${Math.round(profile.dailyCalories * 0.30)} cal):**
 - Roti + sabzi + dal + curd
 
-**🍪 Snacks (${Math.round(profile.dailyCalories * 0.10)} cal):**
-- Fruits, nuts, or chai with biscuits
+**Snacks (${Math.round(profile.dailyCalories * 0.10)} cal):**
+- Fruits, nuts, or tea with biscuits
 
 **Budget: ${profile.budget}** | **Diet: ${profile.dietaryPrefs}**
 
@@ -316,49 +303,47 @@ Ready to create your personalized weekly meal plan?`;
     const responses = [
       `Hi ${profile.name}! I can help with nutrition, meal planning, and health tips. What specific area interests you?`,
       `Great question! As your nutrition assistant, I can provide advice on meals, calories, budget-friendly options, and fitness. What would you like to explore?`,
-      `I'm here to help with your nutrition journey! Whether it's meal suggestions, calorie counting, or healthy recipes - just ask!`,
-      `Let me help you with that! I specialize in personalized nutrition advice based on your goals and preferences. What's on your mind?`
+      `I am here to help with your nutrition journey! Whether it is meal suggestions, calorie counting, or healthy recipes - just ask!`,
+      `Let me help you with that! I specialize in personalized nutrition advice based on your goals and preferences. What is on your mind?`
     ];
-    
-    return responses[Math.floor(Math.random() * responses.length)] + 
-           `\n\n**Quick Options:**\n• Ask about meals for any time of day\n• Get budget-friendly food suggestions\n• Learn about nutrition for your ${profile.goal} goal\n• Request personalized meal plans`;
+    return responses[Math.floor(Math.random() * responses.length)];
   };
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return;
+    if (!inputMessage.trim() || isLoading) return;
 
-    const userMessage = {
+    const userMsg = {
       id: Date.now(),
       type: 'user',
-      content: inputMessage,
+      content: inputMessage.trim(),
       timestamp: new Date().toLocaleTimeString()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages(prev => [...prev, userMsg]);
     setInputMessage('');
     setIsLoading(true);
 
     try {
-      const aiResponse = await generateAIResponse(inputMessage);
-      const aiMessage = {
+      const aiResponseContent = await generateAIResponse(userMsg.content);
+      const aiMsg = {
         id: Date.now() + 1,
         type: 'ai',
-        content: aiResponse,
+        content: aiResponseContent,
         timestamp: new Date().toLocaleTimeString()
       };
-      
-      setMessages(prev => [...prev, aiMessage]);
+      setMessages(prev => [...prev, aiMsg]);
     } catch (error) {
-      const errorMessage = {
+      console.error('Chat error:', error);
+      const errorMsg = {
         id: Date.now() + 1,
         type: 'ai',
-        content: 'Sorry, I encountered an error. Please try asking again!',
+        content: 'I apologize, but I am having trouble responding right now. Please try asking again!',
         timestamp: new Date().toLocaleTimeString()
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => [...prev, errorMsg]);
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   const handleKeyPress = (e) => {
@@ -369,63 +354,51 @@ Ready to create your personalized weekly meal plan?`;
   };
 
   const quickQuestions = [
-    "What should I eat for breakfast?",
-    "Suggest budget-friendly meals",
-    "Help me lose weight",
-    "Plan my weekly meals",
-    "What's good for post-workout?"
+    'What should I eat for breakfast?',
+    'How to lose weight on budget?',
+    'Healthy snacks under 200 calories',
+    'Calculate my daily protein needs'
   ];
+
+  const handleQuickQuestion = (question) => {
+    setInputMessage(question);
+  };
 
   if (!isOpen) {
     return (
       <div style={{
         position: 'fixed',
-        bottom: '30px',
-        right: '30px',
+        bottom: '24px',
+        right: '24px',
         zIndex: 1000
       }}>
         <button
           onClick={() => setIsOpen(true)}
           style={{
-            width: '64px',
-            height: '64px',
+            width: '56px',
+            height: '56px',
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, var(--accent-lavender), var(--accent-lavender-dark))',
+            background: 'linear-gradient(135deg, var(--brand-primary, #F59E0B), #ea580c)',
             border: 'none',
-            color: 'white',
-            fontSize: '28px',
+            color: '#ffffff',
             cursor: 'pointer',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)',
-            transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-            animation: 'pulse 2.2s infinite'
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
+            transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
           }}
           onMouseEnter={(e) => {
-            e.target.style.transform = 'scale(1.1) translateY(-2px)';
-            e.target.style.boxShadow = '0 12px 36px rgba(0, 0, 0, 0.35)';
+            e.currentTarget.style.transform = 'scale(1.08) translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 12px 36px rgba(0, 0, 0, 0.45)';
           }}
           onMouseLeave={(e) => {
-            e.target.style.transform = 'scale(1) translateY(0)';
-            e.target.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.25)';
+            e.currentTarget.style.transform = 'scale(1) translateY(0)';
+            e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.35)';
           }}
         >
-          💬
+          <MessageSquare size={24} />
         </button>
-        <style jsx>{`
-          @keyframes pulse {
-            0% {
-              transform: scale(1);
-              box-shadow: 0 8px 32px rgba(200,180,255,0.25);
-            }
-            50% {
-              transform: scale(1.05);
-              box-shadow: 0 8px 32px rgba(200,180,255,0.45);
-            }
-            100% {
-              transform: scale(1);
-              box-shadow: 0 8px 32px rgba(200,180,255,0.25);
-            }
-          }
-        `}</style>
       </div>
     );
   }
@@ -433,8 +406,8 @@ Ready to create your personalized weekly meal plan?`;
   return (
     <div style={{
       position: 'fixed',
-      bottom: '30px',
-      right: '30px',
+      bottom: '24px',
+      right: '24px',
       width: '380px',
       height: '560px',
       background: 'var(--bg-surface)',
@@ -449,40 +422,42 @@ Ready to create your personalized weekly meal plan?`;
     }}>
       {/* Header */}
       <div style={{
-        background: 'linear-gradient(135deg, var(--accent-lavender), var(--accent-lavender-dark))',
-        color: '#ffffff',
+        background: 'var(--bg-surface-raised)',
+        color: 'var(--text-primary)',
         padding: '16px 20px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         borderBottom: '1px solid var(--border-subtle)'
       }}>
-        <div>
-          <h3 style={{ margin: 0, fontSize: '16px', color: '#ffffff', fontWeight: 800 }}>🤖 AI Health Assistant</h3>
-          <p style={{ margin: '3px 0 0 0', fontSize: '11px', opacity: 0.9, color: 'rgba(255,255,255,0.85)' }}>
-            Personalized Nutrition for {user?.fullName?.split(' ')[0] || 'You'}
-          </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--brand-primary, #F59E0B)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Bot size={18} />
+          </div>
+          <div>
+            <h3 style={{ margin: 0, fontSize: '15px', color: 'var(--text-primary)', fontWeight: 800 }}>AI Health Assistant</h3>
+            <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: 'var(--text-muted)' }}>
+              Personalized Nutrition for {user?.fullName?.split(' ')[0] || 'You'}
+            </p>
+          </div>
         </div>
         <button
           onClick={() => setIsOpen(false)}
           style={{
-            background: 'rgba(255,255,255,0.18)',
+            background: 'transparent',
             border: 'none',
-            color: '#ffffff',
-            width: '26px',
-            height: '26px',
+            color: 'var(--text-muted)',
+            width: '28px',
+            height: '28px',
             borderRadius: '50%',
             cursor: 'pointer',
-            fontSize: '13px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             transition: 'background 0.2s ease'
           }}
-          onMouseEnter={(e) => e.target.style.background = 'rgba(255,255,255,0.3)'}
-          onMouseLeave={(e) => e.target.style.background = 'rgba(255,255,255,0.18)'}
         >
-          ✕
+          <X size={16} />
         </button>
       </div>
 
@@ -500,129 +475,114 @@ Ready to create your personalized weekly meal plan?`;
           <div
             key={message.id}
             style={{
+              marginBottom: '16px',
               display: 'flex',
-              marginBottom: '14px',
-              justifyContent: message.type === 'user' ? 'flex-end' : 'flex-start'
+              flexDirection: 'column',
+              alignItems: message.type === 'user' ? 'flex-end' : 'flex-start'
             }}
           >
-            <div style={{
-              maxWidth: '82%',
-              padding: '10px 14px',
-              borderRadius: message.type === 'user' ? '14px 14px 2px 14px' : '14px 14px 14px 2px',
-              background: message.type === 'user' 
-                ? 'linear-gradient(135deg, var(--accent-lavender), var(--accent-lavender-dark))' 
-                : 'var(--bg-surface)',
-              color: message.type === 'user' ? '#ffffff' : 'var(--text-primary)',
-              border: message.type === 'user' ? 'none' : '1px solid var(--border-subtle)',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-              fontSize: '13.5px',
-              lineHeight: '1.5',
-              whiteSpace: 'pre-wrap'
-            }}>
+            <div
+              style={{
+                maxWidth: '85%',
+                padding: '12px 16px',
+                borderRadius: message.type === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                background: message.type === 'user' 
+                  ? 'var(--brand-primary, #F59E0B)' 
+                  : 'var(--bg-surface-raised)',
+                color: message.type === 'user' ? '#000000' : 'var(--text-primary)',
+                fontSize: '13px',
+                lineHeight: '1.5',
+                whiteSpace: 'pre-line',
+                border: message.type === 'user' ? 'none' : '1px solid var(--border-subtle)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+              }}
+            >
               {message.content}
-              <div style={{
-                fontSize: '10px',
-                opacity: 0.7,
-                marginTop: '6px',
-                textAlign: 'right',
-                color: message.type === 'user' ? '#ffffff' : 'var(--text-muted)'
-              }}>
-                {message.timestamp}
-              </div>
             </div>
+            <span
+              style={{
+                fontSize: '10px',
+                color: 'var(--text-muted)',
+                marginTop: '4px',
+                padding: '0 4px'
+              }}
+            >
+              {message.timestamp}
+            </span>
           </div>
         ))}
-        
+
         {isLoading && (
-          <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '14px' }}>
-            <div style={{
-              padding: '12px 16px',
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: '14px 14px 14px 2px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-            }}>
-              <div style={{ display: 'flex', gap: '5px' }}>
-                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-lavender)', animation: 'bounce 1.4s ease-in-out infinite both' }}></div>
-                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-lavender)', animation: 'bounce 1.4s ease-in-out 0.16s infinite both' }}></div>
-                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-lavender)', animation: 'bounce 1.4s ease-in-out 0.32s infinite both' }}></div>
-              </div>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', background: 'var(--bg-surface-raised)', borderRadius: '16px 16px 16px 4px', width: 'fit-content' }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--brand-primary, #F59E0B)', animation: 'bounce 1s infinite' }} />
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--brand-primary, #F59E0B)', animation: 'bounce 1s infinite 0.2s' }} />
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--brand-primary, #F59E0B)', animation: 'bounce 1s infinite 0.4s' }} />
           </div>
         )}
-        
         <div ref={messagesEndRef} />
       </div>
 
       {/* Quick Questions */}
       {messages.length <= 1 && (
-        <div style={{ padding: '12px 16px', background: 'var(--bg-surface)', borderTop: '1px solid var(--border-subtle)' }}>
-          <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 8px 0', fontWeight: 'bold' }}>Quick suggestions:</p>
+        <div style={{
+          padding: '12px 18px',
+          background: 'var(--bg-surface)',
+          borderTop: '1px solid var(--border-subtle)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px'
+        }}>
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>
+            Suggested Prompts:
+          </span>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-            {quickQuestions.slice(0, 3).map((question, index) => (
+            {quickQuestions.map((q, idx) => (
               <button
-                key={index}
-                onClick={() => setInputMessage(question)}
+                key={idx}
+                onClick={() => handleQuickQuestion(q)}
                 style={{
-                  fontSize: '11px',
-                  padding: '5px 10px',
                   background: 'var(--bg-surface-raised)',
                   border: '1px solid var(--border-subtle)',
                   borderRadius: '12px',
+                  padding: '4px 10px',
+                  fontSize: '11px',
+                  color: 'var(--text-secondary)',
                   cursor: 'pointer',
-                  color: 'var(--accent-lavender)',
-                  fontWeight: 600,
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = 'var(--bg-surface-alt)';
-                  e.target.style.borderColor = 'var(--accent-lavender)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = 'var(--bg-surface-raised)';
-                  e.target.style.borderColor = 'var(--border-subtle)';
+                  textAlign: 'left'
                 }}
               >
-                {question}
+                {q}
               </button>
             ))}
           </div>
         </div>
       )}
 
-      {/* Input */}
+      {/* Input Form */}
       <div style={{
-        padding: '14px 16px',
-        borderTop: '1px solid var(--border-subtle)',
+        padding: '12px 16px',
         background: 'var(--bg-surface)',
+        borderTop: '1px solid var(--border-subtle)',
         display: 'flex',
-        gap: '10px',
+        gap: '8px',
         alignItems: 'center'
       }}>
-        <textarea
+        <input
+          type="text"
           value={inputMessage}
           onChange={(e) => setInputMessage(e.target.value)}
           onKeyPress={handleKeyPress}
-          placeholder="Ask me about nutrition..."
-          disabled={isLoading}
+          placeholder="Ask about nutrition, diet, calories..."
           style={{
             flex: 1,
             padding: '10px 14px',
+            borderRadius: '12px',
             background: 'var(--bg-input)',
-            color: 'var(--text-primary)',
             border: '1px solid var(--border-subtle)',
-            borderRadius: '18px',
-            resize: 'none',
-            minHeight: '38px',
-            maxHeight: '75px',
+            color: 'var(--text-primary)',
             fontSize: '13px',
-            outline: 'none',
-            fontFamily: 'inherit',
-            transition: 'border-color 0.2s ease'
+            outline: 'none'
           }}
-          rows="1"
-          onFocus={(e) => e.target.style.borderColor = 'var(--accent-lavender)'}
-          onBlur={(e) => e.target.style.borderColor = 'var(--border-subtle)'}
         />
         <button
           onClick={handleSendMessage}
@@ -632,32 +592,20 @@ Ready to create your personalized weekly meal plan?`;
             height: '38px',
             borderRadius: '50%',
             background: inputMessage.trim() && !isLoading 
-              ? 'linear-gradient(135deg, var(--accent-lavender), var(--accent-lavender-dark))' 
+              ? 'var(--brand-primary, #F59E0B)' 
               : 'var(--bg-surface-raised)',
             border: 'none',
-            color: inputMessage.trim() && !isLoading ? '#ffffff' : 'var(--text-muted)',
+            color: inputMessage.trim() && !isLoading ? '#000000' : 'var(--text-muted)',
             cursor: inputMessage.trim() && !isLoading ? 'pointer' : 'not-allowed',
-            fontSize: '14px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             transition: 'all 0.2s ease'
           }}
         >
-          ➤
+          <Send size={15} />
         </button>
       </div>
-
-      <style jsx>{`
-        @keyframes bounce {
-          0%, 80%, 100% {
-            transform: scale(0);
-          }
-          40% {
-            transform: scale(1);
-          }
-        }
-      `}</style>
     </div>
   );
 };
