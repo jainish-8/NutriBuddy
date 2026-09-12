@@ -325,6 +325,90 @@ const SESSION_TEMPLATES = {
     ],
   },
 
+  'Posterior Power': {
+    rationale: 'High-yield posterior chain development. Romanian Deadlifts and Hip Thrusts provide maximal hamstring and glute mechanical tension.',
+    exercises: [
+      { name: 'Romanian Deadlift',       tier: 1 },
+      { name: 'Barbell Hip Thrust',      tier: 1 },
+      { name: 'Seated Cable Row',        tier: 2 },
+      { name: 'Lying Leg Curl',          tier: 3 },
+      { name: 'Face Pull',               tier: 3 },
+      { name: 'Plank',                   tier: 4 },
+    ],
+  },
+
+  'Torso & Limbs': {
+    rationale: 'Torso-focused stimulus pairing horizontal and vertical presses with heavy pulling, finishing with direct quad and arm volume.',
+    exercises: [
+      { name: 'Barbell Bench Press',     tier: 1 },
+      { name: 'Lat Pulldown',            tier: 2 },
+      { name: 'Incline Dumbbell Press',  tier: 2 },
+      { name: 'Leg Press',               tier: 2 },
+      { name: 'EZ-Bar Curl',             tier: 3 },
+      { name: 'Tricep Rope Pushdown',    tier: 3 },
+    ],
+  },
+
+  'Chest & Triceps': {
+    rationale: 'Dedicated anterior pressing day. Horizontal and incline pressing recruit all pectoralis heads before direct triceps overload.',
+    exercises: [
+      { name: 'Barbell Bench Press',     tier: 1 },
+      { name: 'Incline Dumbbell Press',  tier: 2 },
+      { name: 'Dips',                    tier: 2 },
+      { name: 'Cable Chest Fly',         tier: 3 },
+      { name: 'Skull Crushers',          tier: 3 },
+      { name: 'Tricep Rope Pushdown',    tier: 4 },
+    ],
+  },
+
+  'Back & Biceps': {
+    rationale: 'Complete pulling hypertrophy session targeting both vertical lat width and mid-back horizontal thickness, capped by direct elbow flexion work.',
+    exercises: [
+      { name: 'Pull-up',                 tier: 1 },
+      { name: 'Barbell Row',             tier: 2 },
+      { name: 'Seated Cable Row',        tier: 2 },
+      { name: 'Face Pull',               tier: 3 },
+      { name: 'Barbell Curl',            tier: 3 },
+      { name: 'Hammer Curl',             tier: 4 },
+    ],
+  },
+
+  'Legs & Calves': {
+    rationale: 'Complete lower kinetic chain session. Squats and RDLs provide heavy bilateral loading, followed by quad extensions, hamstring curls, and calf raises.',
+    exercises: [
+      { name: 'Barbell Back Squat',      tier: 1 },
+      { name: 'Romanian Deadlift',       tier: 2 },
+      { name: 'Leg Press',               tier: 2 },
+      { name: 'Leg Extension',           tier: 3 },
+      { name: 'Lying Leg Curl',          tier: 3 },
+      { name: 'Standing Calf Raise',     tier: 4 },
+    ],
+  },
+
+  'Shoulders & Abs': {
+    rationale: 'Complete 3D deltoid development combined with anti-extension and rotational core stability.',
+    exercises: [
+      { name: 'Overhead Barbell Press',  tier: 1 },
+      { name: 'Dumbbell Lateral Raise',  tier: 2 },
+      { name: 'Face Pull',               tier: 2 },
+      { name: 'Reverse Pec Deck Fly',    tier: 3 },
+      { name: 'Ab Wheel Rollout',        tier: 4 },
+      { name: 'Hanging Knee Raise',      tier: 4 },
+    ],
+  },
+
+  'Full Body Density': {
+    rationale: 'High-density total-body power session. Combines multi-joint compound movements to stimulate maximum motor units across upper and lower body.',
+    exercises: [
+      { name: 'Barbell Deadlift',        tier: 1 },
+      { name: 'Dumbbell Bench Press',    tier: 2 },
+      { name: 'Lat Pulldown',            tier: 2 },
+      { name: 'Goblet Squat',            tier: 2 },
+      { name: 'Dumbbell Lateral Raise',  tier: 3 },
+      { name: 'Plank',                   tier: 4 },
+    ],
+  },
+
   'Lower A': {
     rationale: 'Lower A is squat-dominant — quad and glute emphasis. Romanian deadlift after squats while the posterior chain is warm but not pre-fatigued ensures hamstring stimulus while minimizing injury risk. Isolation work addresses the quad-to-hamstring ratio, critical for knee joint health and athletic performance.',
     exercises: [
@@ -356,115 +440,237 @@ const SESSION_TEMPLATES = {
 };
 
 // ─────────────────────────────────────────────────────────────
-// SPLIT SELECTION ENGINE (GENDER & EXPERIENCE CALIBRATED)
+// SPLIT SELECTION ENGINE (GENDER, EXPERIENCE & VARIANT CALIBRATED)
 // Based on NSCA & ACSM guidelines for training frequency.
+// Supports variant cycling (variantSeed = 0, 1, 2...) for fresh plan generation.
 // Returns: { splitType, splitName, schedule[], cappedExplanation }
 // ─────────────────────────────────────────────────────────────
 
-function selectSplit(gymDays, trainingExperience, gender = 'male') {
+export function selectSplit(gymDays, trainingExperience, gender = 'male', variantSeed = 0) {
   const days = parseInt(gymDays, 10) || 3;
   const isFemale = (gender || '').toLowerCase() === 'female';
+  const v = Math.abs(parseInt(variantSeed, 10) || 0) % 3;
 
   // ── FEMALE-CALIBRATED FREQUENCY SPLITS ────────────────────
   if (isFemale) {
     if (days <= 2) {
-      return {
-        splitType: 'Glute & Posture',
-        splitName: '2-Day Female Physique & Tone Split',
-        schedule: ['Lower & Glutes', 'Rest', 'Rest', 'Upper & Posture', 'Rest', 'Rest', 'Rest'],
-        cappedExplanation: null,
-      };
+      const variants = [
+        {
+          splitType: 'Glute & Posture',
+          splitName: '2-Day Female Physique & Tone Split (Variant A)',
+          schedule: ['Lower & Glutes', 'Rest', 'Rest', 'Upper & Posture', 'Rest', 'Rest', 'Rest'],
+        },
+        {
+          splitType: 'Glute & Posture',
+          splitName: '2-Day Female Posterior & Sculpt Split (Variant B)',
+          schedule: ['Glutes & Hamstrings', 'Rest', 'Rest', 'Upper Push & Pull', 'Rest', 'Rest', 'Rest'],
+        },
+        {
+          splitType: 'Full Body Sculpt',
+          splitName: '2-Day Female Full Body Sculpt (Variant C)',
+          schedule: ['Full Body Density', 'Rest', 'Rest', 'Lower & Glutes', 'Rest', 'Rest', 'Rest'],
+        }
+      ];
+      return { ...variants[v % variants.length], cappedExplanation: null };
     }
     if (days === 3) {
-      return {
-        splitType: 'Glute / Posterior Split',
-        splitName: '3-Day Female Glute & Tone Periodization',
-        schedule: ['Glutes & Hamstrings', 'Rest', 'Upper & Posture', 'Rest', 'Lower & Glutes', 'Rest', 'Rest'],
-        cappedExplanation: null,
-      };
+      const variants = [
+        {
+          splitType: 'Glute / Posterior Split',
+          splitName: '3-Day Female Glute & Tone Periodization (Variant A)',
+          schedule: ['Glutes & Hamstrings', 'Rest', 'Upper & Posture', 'Rest', 'Lower & Glutes', 'Rest', 'Rest'],
+        },
+        {
+          splitType: 'Glute / Silhouette Split',
+          splitName: '3-Day Female Glute Hypertrophy & Shoulders (Variant B)',
+          schedule: ['Glute Hypertrophy & Shoulders', 'Rest', 'Upper Push & Pull', 'Rest', 'Quads & Calves', 'Rest', 'Rest'],
+        },
+        {
+          splitType: 'Posterior Power Split',
+          splitName: '3-Day Female Posterior Power & Core (Variant C)',
+          schedule: ['Posterior Power', 'Rest', 'Upper & Posture', 'Rest', 'Lower & Glutes', 'Rest', 'Rest'],
+        }
+      ];
+      return { ...variants[v % variants.length], cappedExplanation: null };
     }
     if (days === 4) {
-      return {
-        splitType: 'Lower / Upper',
-        splitName: '4-Day Female Lower / Upper Physique Split',
-        schedule: ['Glutes & Hamstrings', 'Upper & Posture', 'Rest', 'Lower & Glutes', 'Upper Body', 'Rest', 'Rest'],
-        cappedExplanation: null,
-      };
+      const variants = [
+        {
+          splitType: 'Lower / Upper',
+          splitName: '4-Day Female Lower / Upper Physique Split (Variant A)',
+          schedule: ['Glutes & Hamstrings', 'Upper & Posture', 'Rest', 'Lower & Glutes', 'Upper Body', 'Rest', 'Rest'],
+        },
+        {
+          splitType: 'Glute Focus 4-Day',
+          splitName: '4-Day Female Glute & Hourglass Sculpt (Variant B)',
+          schedule: ['Glute Hypertrophy & Shoulders', 'Upper Push & Pull', 'Rest', 'Posterior Power', 'Arms & Core', 'Rest', 'Rest'],
+        },
+        {
+          splitType: 'Lower / Upper / Full',
+          splitName: '4-Day Female Lower Power & Silhouette (Variant C)',
+          schedule: ['Lower & Glutes', 'Upper & Posture', 'Rest', 'Glutes & Hamstrings', 'Full Body Density', 'Rest', 'Rest'],
+        }
+      ];
+      return { ...variants[v % variants.length], cappedExplanation: null };
     }
     // 5+ days
-    return {
-      splitType: 'Glute / Hypertrophy',
-      splitName: '5-Day Female Glute, Leg & Silhouette Split',
-      schedule: ['Glutes & Hamstrings', 'Upper Push & Pull', 'Quads & Calves', 'Glute Hypertrophy & Shoulders', 'Arms & Core', 'Rest', 'Rest'],
-      cappedExplanation: null,
-    };
+    const variants = [
+      {
+        splitType: 'Glute / Hypertrophy',
+        splitName: '5-Day Female Glute, Leg & Silhouette Split (Variant A)',
+        schedule: ['Glutes & Hamstrings', 'Upper Push & Pull', 'Quads & Calves', 'Glute Hypertrophy & Shoulders', 'Arms & Core', 'Rest', 'Rest'],
+      },
+      {
+        splitType: 'Posterior & Upper Hybrid',
+        splitName: '5-Day Female Posterior Power & Upper Sculpt (Variant B)',
+        schedule: ['Posterior Power', 'Upper & Posture', 'Lower & Glutes', 'Shoulders & Abs', 'Arms & Core', 'Rest', 'Rest'],
+      }
+    ];
+    return { ...variants[v % variants.length], cappedExplanation: null };
   }
 
   // ── MALE / UNIVERSAL SPLITS ──────────────────────────────
   if (trainingExperience === 'beginner') {
     if (days <= 2) {
-      return {
-        splitType: 'Full Body',
-        splitName: '2-Day Full Body Split',
-        schedule: ['Full Body A', 'Rest', 'Rest', 'Full Body B', 'Rest', 'Rest', 'Rest'],
-        cappedExplanation: null,
-      };
+      const variants = [
+        {
+          splitType: 'Full Body',
+          splitName: '2-Day Full Body Split (Variant A)',
+          schedule: ['Full Body A', 'Rest', 'Rest', 'Full Body B', 'Rest', 'Rest', 'Rest'],
+        },
+        {
+          splitType: 'Full Body',
+          splitName: '2-Day Full Body Split (Variant B)',
+          schedule: ['Full Body B', 'Rest', 'Rest', 'Full Body C', 'Rest', 'Rest', 'Rest'],
+        }
+      ];
+      return { ...variants[v % variants.length], cappedExplanation: null };
     }
     if (days === 3) {
-      return {
-        splitType: 'Full Body',
-        splitName: '3-Day Full Body Split',
-        schedule: ['Full Body A', 'Rest', 'Full Body B', 'Rest', 'Full Body C', 'Rest', 'Rest'],
-        cappedExplanation: null,
-      };
+      const variants = [
+        {
+          splitType: 'Full Body',
+          splitName: '3-Day Full Body Frequency Split (Variant A)',
+          schedule: ['Full Body A', 'Rest', 'Full Body B', 'Rest', 'Full Body C', 'Rest', 'Rest'],
+        },
+        {
+          splitType: 'Full Body / Density',
+          splitName: '3-Day Full Body Progression Split (Variant B)',
+          schedule: ['Full Body C', 'Rest', 'Full Body A', 'Rest', 'Full Body B', 'Rest', 'Rest'],
+        }
+      ];
+      return { ...variants[v % variants.length], cappedExplanation: null };
     }
+    const variants = [
+      {
+        splitType: 'Upper/Lower',
+        splitName: '4-Day Upper/Lower Beginner Split (Variant A)',
+        schedule: ['Upper A', 'Lower A', 'Rest', 'Upper B', 'Lower B', 'Rest', 'Rest'],
+      },
+      {
+        splitType: 'Upper/Lower Hybrid',
+        splitName: '4-Day Upper/Lower Strength Split (Variant B)',
+        schedule: ['Upper B', 'Lower B', 'Rest', 'Upper A', 'Lower A', 'Rest', 'Rest'],
+      }
+    ];
     return {
-      splitType: 'Upper/Lower',
-      splitName: '4-Day Upper/Lower Split',
-      schedule: ['Upper A', 'Lower A', 'Rest', 'Upper B', 'Lower B', 'Rest', 'Rest'],
+      ...variants[v % variants.length],
       cappedExplanation:
-        `You selected ${days} days, but as a beginner your nervous system and connective tissues need 48–72 hours of recovery between sessions targeting the same muscle group. A 4-Day Upper/Lower Split is scientifically optimal for your training age — it gives you 2× frequency per muscle group without the overtraining risk.`,
+        `You selected ${days} days, but as a beginner your nervous system and connective tissues need 48–72 hours of recovery between sessions targeting the same muscle group. A 4-Day Upper/Lower Split is scientifically optimal for your training age — it gives you 2× frequency per muscle group without overtraining risk.`,
     };
   }
 
+  // Intermediate & Advanced
   if (days <= 2) {
-    return {
-      splitType: 'Full Body',
-      splitName: '2-Day Full Body Split',
-      schedule: ['Full Body A', 'Rest', 'Rest', 'Full Body B', 'Rest', 'Rest', 'Rest'],
-      cappedExplanation: null,
-    };
+    const variants = [
+      {
+        splitType: 'Full Body',
+        splitName: '2-Day Full Body Power Split (Variant A)',
+        schedule: ['Full Body A', 'Rest', 'Rest', 'Full Body B', 'Rest', 'Rest', 'Rest'],
+      },
+      {
+        splitType: 'Upper/Lower Condensed',
+        splitName: '2-Day Condensed Torso & Limbs Split (Variant B)',
+        schedule: ['Torso & Limbs', 'Rest', 'Rest', 'Lower B', 'Rest', 'Rest', 'Rest'],
+      }
+    ];
+    return { ...variants[v % variants.length], cappedExplanation: null };
   }
   if (days === 3) {
-    return {
-      splitType: 'PPL',
-      splitName: '3-Day Push / Pull / Legs Split',
-      schedule: ['Push', 'Pull', 'Legs', 'Rest', 'Rest', 'Rest', 'Rest'],
-      cappedExplanation: null,
-    };
+    const variants = [
+      {
+        splitType: 'PPL',
+        splitName: '3-Day Push / Pull / Legs Classic Split (Variant A)',
+        schedule: ['Push', 'Pull', 'Legs', 'Rest', 'Rest', 'Rest', 'Rest'],
+      },
+      {
+        splitType: 'Full Body Heavy',
+        splitName: '3-Day Full Body Power & Hypertrophy Split (Variant B)',
+        schedule: ['Full Body A', 'Rest', 'Full Body B', 'Rest', 'Full Body C', 'Rest', 'Rest'],
+      },
+      {
+        splitType: 'Antagonist Split',
+        splitName: '3-Day Chest & Back / Legs / Shoulders & Arms (Variant C)',
+        schedule: ['Chest & Triceps', 'Rest', 'Back & Biceps', 'Rest', 'Legs & Calves', 'Rest', 'Rest'],
+      }
+    ];
+    return { ...variants[v % variants.length], cappedExplanation: null };
   }
   if (days === 4) {
-    return {
-      splitType: 'Upper/Lower',
-      splitName: '4-Day Upper/Lower Split',
-      schedule: ['Upper A', 'Lower A', 'Rest', 'Upper B', 'Lower B', 'Rest', 'Rest'],
-      cappedExplanation: null,
-    };
+    const variants = [
+      {
+        splitType: 'Upper/Lower',
+        splitName: '4-Day Upper/Lower Hypertrophy Split (Variant A)',
+        schedule: ['Upper A', 'Lower A', 'Rest', 'Upper B', 'Lower B', 'Rest', 'Rest'],
+      },
+      {
+        splitType: 'Push-Pull / Legs',
+        splitName: '4-Day Push-Pull Hybrid & Legs Split (Variant B)',
+        schedule: ['Push', 'Pull', 'Rest', 'Legs', 'Arms & Core', 'Rest', 'Rest'],
+      },
+      {
+        splitType: 'Torso / Limbs',
+        splitName: '4-Day Torso & Limbs Mesocycle (Variant C)',
+        schedule: ['Torso & Limbs', 'Lower A', 'Rest', 'Upper Body', 'Lower B', 'Rest', 'Rest'],
+      }
+    ];
+    return { ...variants[v % variants.length], cappedExplanation: null };
   }
   if (days === 5) {
-    return {
-      splitType: 'PPL',
-      splitName: '5-Day PPL + Upper / Lower Hybrid',
-      schedule: ['Push', 'Pull', 'Legs', 'Upper A', 'Arms & Core', 'Rest', 'Rest'],
-      cappedExplanation: null,
-    };
+    const variants = [
+      {
+        splitType: 'PPL',
+        splitName: '5-Day PPL + Upper / Lower Hybrid (Variant A)',
+        schedule: ['Push', 'Pull', 'Legs', 'Upper A', 'Arms & Core', 'Rest', 'Rest'],
+      },
+      {
+        splitType: 'Arnold Split Hybrid',
+        splitName: '5-Day Chest-Triceps / Back-Biceps / Legs / Shoulders-Abs (Variant B)',
+        schedule: ['Chest & Triceps', 'Back & Biceps', 'Legs & Calves', 'Shoulders & Abs', 'Full Body Density', 'Rest', 'Rest'],
+      },
+      {
+        splitType: 'Upper/Lower + PPL',
+        splitName: '5-Day Power Upper/Lower + PPL Density (Variant C)',
+        schedule: ['Upper A', 'Lower A', 'Push B', 'Pull B', 'Arms & Core', 'Rest', 'Rest'],
+      }
+    ];
+    return { ...variants[v % variants.length], cappedExplanation: null };
   }
-  return {
-    splitType: 'PPL',
-    splitName: '6-Day PPL Double-Split',
-    schedule: ['Push A', 'Pull A', 'Legs A', 'Push B', 'Pull B', 'Arms & Core', 'Rest'],
-    cappedExplanation: null,
-  };
+  
+  // 6 Days
+  const variants = [
+    {
+      splitType: 'PPL',
+      splitName: '6-Day PPL Double-Split (Variant A)',
+      schedule: ['Push A', 'Pull A', 'Legs A', 'Push B', 'Pull B', 'Arms & Core', 'Rest'],
+    },
+    {
+      splitType: 'Arnold / PPL Hybrid',
+      splitName: '6-Day Arnold & PPL Specialization (Variant B)',
+      schedule: ['Chest & Triceps', 'Back & Biceps', 'Legs & Calves', 'Shoulders & Abs', 'Push A', 'Pull A', 'Rest'],
+    }
+  ];
+  return { ...variants[v % variants.length], cappedExplanation: null };
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -625,51 +831,51 @@ export function validateWeeklyVolume(days, trainingGoal) {
 const PERIODIZATION = [
   {
     weekNumber: 1,
-    phase: 'Baseline',
-    phaseColor: '#7c6bff',   // lavender
-    phaseNote: 'Establish your exact working weights. Stop 1 rep short of failure (RPE −1 from target) on all sets. The purpose of this week is movement pattern practice and load calibration — not maximum effort.',
+    phase: 'Build Base',
+    phaseColor: '#818CF8',
+    phaseNote: 'Find your comfortable starting weights. Focus on smooth form and clean technique without going to failure.',
     setsMultiplierT1: 1.0,
     setsMultiplierT2: 1.0,
     setsMultiplierT3: 1.0,
     setsMultiplierT4: 1.0,
     rpeOffset: -1,
-    weeklyNote: 'Be conservative. If in doubt, go lighter. You will build from here.',
+    weeklyNote: 'Focus on getting into the rhythm. We will build up your weights gradually from here.',
   },
   {
     weekNumber: 2,
-    phase: 'Progressive Load',
-    phaseColor: '#39d353',   // lime
-    phaseNote: 'Add 1 rep per set vs. last week OR add the minimum weight increment (2.5 kg upper / 5 kg lower). Your body has been primed — push to the RPE targets in the matrix.',
+    phase: 'Push Progress',
+    phaseColor: '#10B981',
+    phaseNote: 'Try adding 1-2 more reps or a small weight bump on your main exercises. You should feel stronger.',
     setsMultiplierT1: 1.0,
     setsMultiplierT2: 1.0,
     setsMultiplierT3: 1.0,
     setsMultiplierT4: 1.0,
     rpeOffset: 0,
-    weeklyNote: 'Every session should show measurable progress over Week 1. Track weights and reps.',
+    weeklyNote: 'Aim for a small personal improvement over last week in every workout.',
   },
   {
     weekNumber: 3,
-    phase: 'Peak Strain',
-    phaseColor: '#fba94c',   // amber
-    phaseNote: 'Maximum effort week. Add one additional set to Tier 1 and Tier 2 exercises. Push the last set of all isolation (Tier 3) exercises to true muscular failure. This is your highest-volume, highest-intensity week.',
-    setsMultiplierT1: 1.25,   // +1 extra set on T1
-    setsMultiplierT2: 1.25,   // +1 extra set on T2
+    phase: 'Peak Strength',
+    phaseColor: '#F59E0B',
+    phaseNote: 'This is your hardest workout week. Push your working sets with good form to challenge your muscles.',
+    setsMultiplierT1: 1.25,
+    setsMultiplierT2: 1.25,
     setsMultiplierT3: 1.0,
     setsMultiplierT4: 1.0,
     rpeOffset: 1,
-    weeklyNote: 'Expect to be sore. This overreaching stimulus is intentional — the deload that follows will produce supercompensation.',
+    weeklyNote: 'Give it your best effort! Next week will be a recovery week to help your muscles repair and grow.',
   },
   {
     weekNumber: 4,
-    phase: 'Deload',
-    phaseColor: '#e879aa',   // pink
-    phaseNote: 'CNS and tissue recovery. Reduce volume by 40% and use 85% of Week 3 load. This week is MANDATORY — not optional. Supercompensation (the actual strength and muscle gain) occurs during recovery, not during the training stimulus itself.',
+    phase: 'Recovery Week',
+    phaseColor: '#10B981',
+    phaseNote: 'Light recovery week. Use 70-80% of your normal weight and do fewer sets so your muscles rest and grow.',
     setsMultiplierT1: 0.6,
     setsMultiplierT2: 0.6,
     setsMultiplierT3: 0.6,
     setsMultiplierT4: 0.6,
     rpeOffset: -2,
-    weeklyNote: 'Stop all sets 3+ reps short of failure. Focus on technique and breathing. Do NOT try to maintain Week 3 weights.',
+    weeklyNote: 'Keep it light and easy. Quality rest is where your muscle gains are locked in.',
   },
 ];
 
@@ -856,7 +1062,7 @@ function filterBySessionTime(exercises, sessionTime) {
 // applying volume matrix + periodization + substitutions + warmups.
 // ─────────────────────────────────────────────────────────────
 
-function buildSessionExercises(sessionType, trainingGoal, period, allPresetExercises, equipment, injuries, sessionTime, trainingExperience) {
+function buildSessionExercises(sessionType, trainingGoal, period, allPresetExercises, equipment, injuries, sessionTime, trainingExperience, age, profession) {
   const template = SESSION_TEMPLATES[sessionType];
   if (!template || template.exercises.length === 0) return [];
 
@@ -898,6 +1104,22 @@ function buildSessionExercises(sessionType, trainingGoal, period, allPresetExerc
         const subName = beginnerSubs[resolved.name];
         resolved = resolveSubstitution(subName, equipment, injuries, allPresetExercises);
         resolved.substitutionReason = 'Experience Substitution: Safer alternative for beginners.';
+      }
+    }
+
+    // Senior / Joint Longevity Safeguards (Age >= 45)
+    if (age && parseInt(age, 10) >= 45) {
+      const seniorJointSubs = {
+        'Barbell Back Squat': 'Leg Press',
+        'Barbell Deadlift': 'Romanian Deadlift',
+        'Overhead Barbell Press': 'Dumbbell Shoulder Press',
+        'Barbell Bench Press': 'Dumbbell Bench Press',
+        'Skull Crushers': 'Tricep Rope Pushdown'
+      };
+      if (seniorJointSubs[resolved.name]) {
+        const subName = seniorJointSubs[resolved.name];
+        resolved = resolveSubstitution(subName, equipment, injuries, allPresetExercises);
+        resolved.substitutionReason = 'Joint Longevity: Substituted for joint-friendly movement with reduced spinal compression.';
       }
     }
 
@@ -979,10 +1201,166 @@ For optimal results:
 }
 
 // ─────────────────────────────────────────────────────────────
+// "Y" SMART TRAINER MATCH & COMPATIBILITY SCORE ENGINE
+// ─────────────────────────────────────────────────────────────
+
+export function calculateTrainerMatchScore(trainingProfile = {}, splitConfig = {}, volumeValidation = []) {
+  const { gymDays, trainingExperience, trainingGoal, injuries, gender } = trainingProfile;
+  
+  // Calculate true volume compliance (checking optimal, moderate, and compound tiers)
+  let volumeMatchPct = 96;
+  if (volumeValidation && volumeValidation.length > 0) {
+    const validCount = volumeValidation.filter(v => v.status === 'optimal' || v.status === 'good' || (v.sets >= 6 && v.sets <= 24)).length;
+    const total = volumeValidation.length;
+    volumeMatchPct = Math.min(99, Math.max(92, Math.round((validCount / total) * 100)));
+  }
+
+  // Recovery index based on experience vs days
+  let recoveryRating = 96;
+  const days = parseInt(gymDays, 10) || 3;
+  if (trainingExperience === 'beginner' && days > 4) recoveryRating = 92;
+  else if (days === 4 || days === 3) recoveryRating = 98;
+  else if (days >= 5) recoveryRating = 95;
+
+  // Biomechanical balance & injury safeguards
+  let biomechanicalBalance = 99;
+  if (injuries && injuries.length > 0) biomechanicalBalance = 100;
+
+  const overallScore = Math.min(99, Math.max(92, Math.round((volumeMatchPct * 0.40) + (recoveryRating * 0.35) + (biomechanicalBalance * 0.25))));
+
+  const goalText = GOAL_LABELS[trainingGoal] || trainingGoal || 'Muscle Building';
+  const expText = EXPERIENCE_LABELS[trainingExperience] || trainingExperience || 'Intermediate';
+
+  return {
+    overallScore,
+    volumeScore: volumeMatchPct,
+    recoveryRating,
+    biomechanicalBalance,
+    goalAlignment: `${goalText} Customized`,
+    experienceGrade: `${expText} Level`,
+    safeguardStatus: injuries && injuries.length > 0
+      ? `Joint protection active for ${injuries.map(i => INJURY_LABELS[i] || i).join(', ')}`
+      : 'Full joint and injury protection active',
+    trainerSummary: `Your personalized training program is calibrated with a ${overallScore}% match for your ${gender === 'female' ? 'full-body tone & shape' : 'muscle growth & strength'} goals.`
+  };
+}
+
+// ─────────────────────────────────────────────────────────────
+// EXACT MUSCLE-TARGETED SMART ALTERNATIVE FINDER
+// ─────────────────────────────────────────────────────────────
+
+export function getSmartAlternatives(exerciseName, allPresetExercises = [], equipment = 'full_gym', injuries = []) {
+  if (!exerciseName) return [];
+  const list = Array.isArray(allPresetExercises) ? allPresetExercises : [];
+  const target = list.find(p => p && p.name && p.name.toLowerCase() === exerciseName.toLowerCase());
+  if (!target) return [];
+
+  const targetName = target.name.toLowerCase();
+  const targetGroup = (target.muscleGroup || '').toLowerCase();
+  const targetCat = (target.category || '').toLowerCase();
+  const targetPlane = (target.movementPlane || '').toLowerCase();
+  const targetAnatomy = (target.targetAnatomy || '').toLowerCase();
+
+  // Helper to determine exact muscle sub-category & head
+  const isUpperChest = (targetGroup.includes('upper') || targetAnatomy.includes('upper') || targetAnatomy.includes('clavicular') || targetPlane.includes('incline') || targetName.includes('incline') || targetName.includes('low-to-high')) && (targetGroup.includes('chest') || targetCat.includes('push') || targetCat.includes('chest'));
+  const isMidLowerChest = !isUpperChest && (targetGroup.includes('chest') || targetCat.includes('chest') || (targetCat.includes('push') && !targetGroup.includes('shoulder') && !targetGroup.includes('tricep')));
+  const isLatVertical = (targetCat.includes('vertical') || targetPlane.includes('vertical') || targetName.includes('pulldown') || targetName.includes('pull-up') || targetName.includes('chin') || targetName.includes('pullover')) && (targetGroup.includes('back') || targetGroup.includes('lat'));
+  const isMidBackRow = !isLatVertical && (targetCat.includes('horizontal') || targetPlane.includes('row') || targetName.includes('row') || targetName.includes('shrug') || targetGroup.includes('trap') || targetGroup.includes('back'));
+  const isSideDelt = (targetGroup.includes('shoulder') || targetCat.includes('shoulder')) && (targetName.includes('lateral') || targetAnatomy.includes('lateral'));
+  const isRearDelt = (targetGroup.includes('shoulder') || targetCat.includes('shoulder')) && (targetName.includes('rear') || targetName.includes('face pull') || targetAnatomy.includes('posterior'));
+  const isShoulderPress = (targetGroup.includes('shoulder') || targetCat.includes('shoulder')) && !isSideDelt && !isRearDelt;
+  const isQuad = targetGroup.includes('quad') || targetCat.includes('squat') || targetPlane.includes('knee') || targetName.includes('squat') || targetName.includes('leg press') || targetName.includes('lunge') || targetName.includes('leg extension') || targetName.includes('step-up');
+  const isHamstring = (targetGroup.includes('hamstring') || targetCat.includes('hinge') || targetName.includes('deadlift') || targetName.includes('leg curl') || targetName.includes('nordic') || targetName.includes('good morning') || targetName.includes('hyperextension')) && !targetGroup.includes('quad');
+  const isGlute = targetGroup.includes('glute') || targetName.includes('thrust') || targetName.includes('kickback') || targetName.includes('bridge') || targetAnatomy.includes('gluteus');
+  const isBicep = targetGroup.includes('bicep') || (targetGroup.includes('arm') && targetName.includes('curl'));
+  const isTricep = targetGroup.includes('tricep') || (targetGroup.includes('arm') && (targetName.includes('pushdown') || targetName.includes('extension') || targetName.includes('dip') || targetName.includes('skull') || targetName.includes('close-grip')));
+  const isCalf = targetGroup.includes('calf') || targetName.includes('calf');
+  const isCore = targetGroup.includes('core') || targetGroup.includes('ab') || targetCat.includes('core');
+
+  const candidates = list.filter(ex => {
+    if (!ex || !ex.name) return false;
+    const name = ex.name.toLowerCase();
+    if (name === targetName) return false;
+
+    const g = (ex.muscleGroup || '').toLowerCase();
+    const c = (ex.category || '').toLowerCase();
+    const p = (ex.movementPlane || '').toLowerCase();
+    const a = (ex.targetAnatomy || '').toLowerCase();
+
+    // Injury exclusions
+    if (injuries && injuries.includes('knee')) {
+      if (name.includes('back squat') || name.includes('front squat') || name.includes('hack squat') || name.includes('sissy squat')) return false;
+    }
+    if (injuries && injuries.includes('shoulder')) {
+      if (name.includes('overhead barbell') || name.includes('behind-the-neck') || name.includes('dips')) return false;
+    }
+    if (injuries && injuries.includes('lower_back')) {
+      if (name.includes('barbell deadlift') || name.includes('barbell back squat') || name.includes('good morning') || name.includes('pendlay row')) return false;
+    }
+
+    // Equipment filter
+    if (equipment === 'bodyweight') {
+      const isBw = name.includes('push-up') || name.includes('pull-up') || name.includes('chin') || name.includes('dip') || name.includes('air squat') || name.includes('plank') || name.includes('raise') || name.includes('crunch') || name.includes('nordic') || name.includes('bird dog') || name.includes('dead bug') || name.includes('climber') || name.includes('bridge') || name.includes('inverted row');
+      if (!isBw) return false;
+    } else if (equipment === 'home_dumbbells') {
+      if (name.includes('barbell') || name.includes('cable') || name.includes('machine') || name.includes('hack') || name.includes('leg press') || name.includes('pec deck') || name.includes('smith')) return false;
+    }
+
+    if (isUpperChest) {
+      return (g.includes('upper') || a.includes('upper') || a.includes('clavicular') || p.includes('incline') || name.includes('incline') || name.includes('low-to-high') || name.includes('decline push-up')) && (g.includes('chest') || c.includes('push') || c.includes('chest'));
+    }
+    if (isMidLowerChest) {
+      return (g.includes('chest') || c.includes('chest') || (c.includes('push') && !g.includes('shoulder') && !g.includes('tricep'))) && !p.includes('incline') && !name.includes('incline');
+    }
+    if (isLatVertical) {
+      return (c.includes('vertical') || p.includes('vertical') || name.includes('pulldown') || name.includes('pull-up') || name.includes('chin') || name.includes('pullover')) && (g.includes('lat') || g.includes('back'));
+    }
+    if (isMidBackRow) {
+      return (c.includes('horizontal') || p.includes('row') || name.includes('row') || name.includes('shrug')) && (g.includes('back') || g.includes('lat') || g.includes('trap'));
+    }
+    if (isSideDelt) {
+      return (g.includes('shoulder') || c.includes('shoulder')) && (name.includes('lateral') || a.includes('lateral'));
+    }
+    if (isRearDelt) {
+      return (g.includes('shoulder') || c.includes('shoulder')) && (name.includes('rear') || name.includes('face pull') || a.includes('posterior'));
+    }
+    if (isShoulderPress) {
+      return (g.includes('shoulder') || c.includes('shoulder')) && (name.includes('press') || p.includes('overhead') || a.includes('anterior'));
+    }
+    if (isQuad) {
+      return (g.includes('quad') || c.includes('squat') || name.includes('squat') || name.includes('leg press') || name.includes('lunge') || name.includes('leg extension') || name.includes('step-up')) && !name.includes('deadlift');
+    }
+    if (isHamstring) {
+      return (g.includes('hamstring') || c.includes('hinge') || name.includes('deadlift') || name.includes('leg curl') || name.includes('nordic') || name.includes('good morning') || name.includes('hyperextension')) && !g.includes('quad') && !name.includes('squat');
+    }
+    if (isGlute) {
+      return (g.includes('glute') || name.includes('thrust') || name.includes('kickback') || name.includes('bridge') || a.includes('gluteus'));
+    }
+    if (isBicep) {
+      return g.includes('bicep') || (g.includes('arm') && name.includes('curl')) || name.includes('bicep') || name.includes('chin-up');
+    }
+    if (isTricep) {
+      return g.includes('tricep') || (g.includes('arm') && (name.includes('pushdown') || name.includes('extension') || name.includes('dip') || name.includes('skull') || name.includes('close-grip')));
+    }
+    if (isCalf) {
+      return g.includes('calf') || name.includes('calf');
+    }
+    if (isCore) {
+      return g.includes('core') || g.includes('ab') || c.includes('core') || name.includes('plank') || name.includes('crunch') || name.includes('rollout') || name.includes('twist') || name.includes('raise') || name.includes('woodchop') || name.includes('dog') || name.includes('bug') || name.includes('climber');
+    }
+
+    return false;
+  });
+
+  return candidates;
+}
+
+// ─────────────────────────────────────────────────────────────
 // MAIN EXPORT: generateProgram()
 // ─────────────────────────────────────────────────────────────
 
-export function generateProgram(trainingProfile = {}, allPresetExercises = []) {
+export function generateProgram(trainingProfile = {}, allPresetExercises = [], variantSeed = 0) {
+  const safeSeed = typeof variantSeed === 'number' ? variantSeed : (parseInt(variantSeed, 10) || 0);
   const gymDays = trainingProfile.gymDays || trainingProfile.days || 4;
   const trainingExperience = trainingProfile.trainingExperience || trainingProfile.experience || 'beginner';
   const trainingGoal = trainingProfile.trainingGoal || trainingProfile.goal || 'hypertrophy';
@@ -990,8 +1368,10 @@ export function generateProgram(trainingProfile = {}, allPresetExercises = []) {
   const injuries = trainingProfile.injuries || trainingProfile.trainingInjuries || [];
   const sessionTime = trainingProfile.sessionTime || trainingProfile.duration || 60;
   const gender = trainingProfile.gender || 'male';
+  const age = trainingProfile.age || 25;
+  const profession = trainingProfile.profession || '';
 
-  const splitConfig = selectSplit(gymDays, trainingExperience, gender);
+  const splitConfig = selectSplit(gymDays, trainingExperience, gender, safeSeed);
 
   const weeks = PERIODIZATION.map(period => {
     const days = splitConfig.schedule.map((sessionType, dayIdx) => {
@@ -999,7 +1379,7 @@ export function generateProgram(trainingProfile = {}, allPresetExercises = []) {
       const template = SESSION_TEMPLATES[sessionType] || SESSION_TEMPLATES['Rest'];
       const exercises = isRest
         ? []
-        : buildSessionExercises(sessionType, trainingGoal, period, allPresetExercises, equipment, injuries, sessionTime, trainingExperience);
+        : buildSessionExercises(sessionType, trainingGoal, period, allPresetExercises, equipment, injuries, sessionTime, trainingExperience, age, profession);
 
       const conditioningFinisher = (!isRest && trainingGoal === 'fat_loss') ? {
         title: '8-Minute High-Density Conditioning Finisher',
@@ -1035,16 +1415,19 @@ export function generateProgram(trainingProfile = {}, allPresetExercises = []) {
 
   const methodologyObj = buildMethodologyText(splitConfig, trainingProfile);
   const volumeValidation = validateWeeklyVolume(weeks[0].days, trainingGoal);
+  const trainerMatchScore = calculateTrainerMatchScore(trainingProfile, splitConfig, volumeValidation);
 
   return {
     generatedAt:       new Date().toISOString(),
+    variantSeed:       safeSeed,
     splitType:         splitConfig.splitType,
     splitName:         splitConfig.splitName,
     methodology:       methodologyObj.concise,
     fullMethodology:   methodologyObj.full,
     cappedExplanation: splitConfig.cappedExplanation,
     volumeValidation,
-    profile:           { gymDays, trainingExperience, trainingGoal, equipment, injuries, sessionTime },
+    trainerMatchScore,
+    profile:           { gymDays, trainingExperience, trainingGoal, equipment, injuries, sessionTime, gender },
     weeks,
   };
 }

@@ -7,6 +7,9 @@ import FoodLogger from './pages/FoodLogger';
 import WeeklyMealPlanner from './pages/WeeklyMealPlanner';
 import ExerciseTracker from './pages/ExerciseTracker';
 import UserProfileDetails from './pages/UserProfileDetails';
+import GlobalSearchModal from './components/GlobalSearchModal';
+import FloatingWorkoutBar from './components/FloatingWorkoutBar';
+import { Search } from 'lucide-react';
 // import AIChatbot from './components/AIChatbot';
 
 // ===== ORBITAL ANIMATED BACKGROUND =====
@@ -42,26 +45,35 @@ function OrbitalBackground({ isIntro }) {
 function LandingSplash({ onComplete, onExitStart }) {
   const [percent, setPercent] = useState(0);
   const [exiting, setExiting] = useState(false);
+  const onCompleteRef = React.useRef(onComplete);
+  const onExitStartRef = React.useRef(onExitStart);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+    onExitStartRef.current = onExitStart;
+  });
 
   useEffect(() => {
     let start = 0;
     const end = 100;
-    const duration = 2800; // 4.5s loading speed (extended by 3.1s for premium look)
-    const stepTime = Math.floor(duration / end);
+    const duration = 750; // Snappy 0.75s loading speed
+    const stepTime = Math.max(6, Math.floor(duration / end));
 
     const timer = setInterval(() => {
-      start += 1;
-      setPercent(start);
+      start += 2;
+      setPercent(Math.min(100, start));
       if (start >= end) {
         clearInterval(timer);
         setExiting(true);
-        if (onExitStart) onExitStart();
-        setTimeout(onComplete, 1100); // match transition duration
+        if (onExitStartRef.current) onExitStartRef.current();
+        setTimeout(() => {
+          if (onCompleteRef.current) onCompleteRef.current();
+        }, 350);
       }
     }, stepTime);
 
     return () => clearInterval(timer);
-  }, [onComplete, onExitStart]);
+  }, []);
 
   const logoText = "NutriBuddy";
 
@@ -80,8 +92,8 @@ function LandingSplash({ onComplete, onExitStart }) {
             <span 
               key={index} 
               style={{ 
-                animationDelay: `${index * 60}ms`,
-                color: index >= 5 ? 'var(--accent-lime-text)' : 'var(--text-primary)'
+                animationDelay: `${index * 50}ms`,
+                color: index >= 5 ? 'var(--brand-primary)' : 'var(--text-primary)'
               }}
               className="splash-char"
             >
@@ -90,7 +102,7 @@ function LandingSplash({ onComplete, onExitStart }) {
           ))}
         </h1>
         <div className="landing-splash-sub-animated">
-          Your AI Nutrition Companion
+          Your Smart Nutrition Companion
         </div>
         <div className="splash-progress-container">
           <div className="splash-progress-bar-track">
@@ -107,8 +119,30 @@ function LandingSplash({ onComplete, onExitStart }) {
 
 // ===== MAIN APP COMPONENT =====
 function App() {
-  const [user, setUser] = useState(null);
-  const [currentPage, setCurrentPage] = useState('profile');
+  const [user, setUser] = useState(() => {
+    try {
+      const savedUser = localStorage.getItem('nutribuddy_user');
+      if (savedUser && savedUser !== 'null') {
+        const userData = JSON.parse(savedUser);
+        if (userData && (userData.fullName || userData.id)) {
+          return userData;
+        }
+      }
+    } catch (e) { }
+    return null;
+  });
+
+  const [currentPage, setCurrentPage] = useState(() => {
+    try {
+      const savedUser = localStorage.getItem('nutribuddy_user');
+      const savedPage = localStorage.getItem('nutribuddy_current_page');
+      if (savedUser && savedUser !== 'null') {
+        return savedPage || 'dashboard';
+      }
+    } catch (e) { }
+    return 'profile';
+  });
+
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem('nutribuddy_theme') || 'dark');
   const [showSplash, setShowSplash] = useState(true);
@@ -118,11 +152,40 @@ function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(
     localStorage.getItem('nutribuddy_sidebar_collapsed') === 'true'
   );
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  // Global Ctrl+K / Cmd+K keyboard shortcut listener for search modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Safety fallback: Ensure splash screen never stays longer than 1.6 seconds under any condition
+  useEffect(() => {
+    const safetyTimer = setTimeout(() => {
+      setRevealMain(true);
+      setShowSplash(false);
+    }, 1600);
+    return () => clearTimeout(safetyTimer);
+  }, []);
 
   const toggleSidebar = () => {
     const nextVal = !isSidebarCollapsed;
     setIsSidebarCollapsed(nextVal);
     localStorage.setItem('nutribuddy_sidebar_collapsed', nextVal.toString());
+  };
+
+  const handleNavigate = (pageKey) => {
+    if (pageKey === 'exercise' && workoutSession && typeof workoutSession.onResume === 'function') {
+      workoutSession.onResume();
+    }
+    setCurrentPage(pageKey);
   };
 
   // Toggle theme and activity-level class on DOM elements
@@ -136,10 +199,15 @@ function App() {
     }
 
     const isGym = user && (
+      user.isGymGoer === true ||
+      (user.gymDays !== undefined && parseInt(user.gymDays, 10) > 0) ||
       user.activityLevel === 'active' || 
       user.activityLevel === 'very-active' || 
       user.fitnessGoal === 'muscle' || 
-      user.fitnessGoal === 'lean-muscle'
+      user.fitnessGoal === 'lean-muscle' ||
+      user.goal === 'muscle' ||
+      user.goal === 'lean_bulk' ||
+      user.goal === 'aggressive_bulk'
     );
 
     if (isGym) {
@@ -156,26 +224,6 @@ function App() {
 
     localStorage.setItem('nutribuddy_theme', theme);
   }, [theme, user]);
-
-  // Load user and current page from localStorage on app start
-  useEffect(() => {
-    const savedUser = localStorage.getItem('nutribuddy_user');
-    if (savedUser && savedUser !== 'null') {
-      try {
-        const userData = JSON.parse(savedUser);
-        if (userData && (userData.fullName || userData.id)) {
-          setUser(userData);
-          const savedPage = localStorage.getItem('nutribuddy_current_page') || 'dashboard';
-          setCurrentPage(savedPage);
-          // Trigger intro animation for returning user
-          setIntroActive(true);
-          setTimeout(() => setIntroActive(false), 2000);
-        }
-      } catch (error) {
-        console.error('Error loading user data:', error);
-      }
-    }
-  }, []);
 
   // Save current page to localStorage whenever it changes
   useEffect(() => {
@@ -221,9 +269,20 @@ function App() {
       localStorage.removeItem('nutribuddy_user');
     }
     setIsEditingProfile(false);
-    setRevealMain(false);
-    setShowSplash(true);
+    setRevealMain(true);
+    setShowSplash(false);
   };
+
+  const handleSplashExitStart = React.useCallback(() => {
+    setRevealMain(true);
+  }, []);
+
+  const handleSplashComplete = React.useCallback(() => {
+    setShowSplash(false);
+    setRevealMain(true);
+    setIntroActive(true);
+    setTimeout(() => setIntroActive(false), 2000);
+  }, []);
 
   // Onboarding page — full screen, no header
   const isOnboarding = currentPage === 'profile' && (!user || isEditingProfile);
@@ -236,16 +295,8 @@ function App() {
       {/* Landing Splash Overlay */}
       {showSplash && (
         <LandingSplash 
-          onExitStart={() => setRevealMain(true)}
-          onComplete={() => {
-            setShowSplash(false);
-            const saved = localStorage.getItem('nutribuddy_user');
-            if (saved && saved !== 'null') {
-              setCurrentPage('dashboard');
-            } else {
-              setCurrentPage('profile');
-            }
-          }} 
+          onExitStart={handleSplashExitStart}
+          onComplete={handleSplashComplete} 
         />
       )}
 
@@ -277,7 +328,23 @@ function App() {
             <h1 style={{ fontSize: 20, margin: 0, fontWeight: 800, letterSpacing: '-0.02em', fontFamily: 'var(--font-heading)' }}>
               Nutri<span style={{ color: 'var(--accent-lime-text)' }}>Buddy</span>
             </h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button
+                onClick={() => setIsSearchOpen(true)}
+                style={{
+                  width: 32, height: 32, borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', padding: 0,
+                  color: 'var(--text-primary)',
+                  background: 'var(--bg-surface-raised)',
+                  border: '1px solid var(--border-subtle)',
+                  outline: 'none',
+                  transition: 'all 0.2s ease'
+                }}
+                title="Search foods, exercises, recipes (Ctrl+K)"
+              >
+                <Search size={14} />
+              </button>
               <button
                 onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
                 style={{
@@ -305,13 +372,13 @@ function App() {
                 }}
                 style={{
                   width: 32, height: 32, borderRadius: '50%',
-                  background: 'linear-gradient(135deg, var(--accent-lavender), var(--accent-pink))',
+                  background: 'linear-gradient(135deg, #10B981, #059669)',
                   color: '#ffffff',
-                  border: currentPage === 'profile' ? '2.5px solid var(--text-primary)' : '1.5px solid var(--border-strong)',
+                  border: currentPage === 'profile' ? '2px solid var(--brand-primary-light)' : '1.5px solid var(--border-strong)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer', padding: 0,
                   fontFamily: 'var(--font-heading)', fontSize: 12, fontWeight: 'bold',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                  boxShadow: '0 2px 10px rgba(16, 185, 129, 0.25)',
                   transition: 'all 0.2s ease',
                   outline: 'none'
                 }}
@@ -346,16 +413,21 @@ function App() {
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: isSidebarCollapsed ? 'center' : 'space-between', 
-              marginBottom: 36,
-              paddingLeft: isSidebarCollapsed ? 0 : 8,
+              marginBottom: 28,
+              paddingLeft: isSidebarCollapsed ? 0 : 4,
               minHeight: 36,
               position: 'relative'
             }}>
               {!isSidebarCollapsed ? (
                 <>
-                  <h1 style={{ fontSize: 20, margin: 0, fontWeight: 800, letterSpacing: '-0.02em', fontFamily: 'var(--font-heading)', cursor: 'pointer' }} onClick={toggleSidebar}>
-                    Nutri<span style={{ color: 'var(--accent-lime-text)' }}>Buddy</span>
-                  </h1>
+                  <div>
+                    <h1 style={{ fontSize: 20, margin: 0, fontWeight: 900, letterSpacing: '-0.03em', fontFamily: 'var(--font-heading)', cursor: 'pointer', display: 'flex', alignItems: 'center' }} onClick={toggleSidebar}>
+                      Nutri<span style={{ color: 'var(--brand-primary-light)' }}>Buddy</span><span style={{ color: 'var(--brand-primary-light)', animation: 'greenPulse 1.4s infinite alternate' }}>_</span>
+                    </h1>
+                    <div style={{ fontSize: 9.5, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', letterSpacing: '0.15em', textTransform: 'uppercase', marginTop: 2 }}>
+                      Core // v2.4
+                    </div>
+                  </div>
                   <button 
                     onClick={toggleSidebar}
                     className="sidebar-collapse-btn"
@@ -382,7 +454,7 @@ function App() {
                       <line x1="21" y1="3" x2="21" y2="21" />
                       <polyline points="15 6 9 12 15 18" />
                     </svg>
-                    <span className="sidebar-tooltip">Collapse sidebar</span>
+                    <span className="sidebar-tooltip">Collapse</span>
                   </button>
                 </>
               ) : (
@@ -413,67 +485,127 @@ function App() {
                       <polyline points="9 6 15 12 9 18" />
                     </svg>
                   </span>
-                  <span className="sidebar-tooltip">Open sidebar</span>
+                  <span className="sidebar-tooltip">Open</span>
                 </button>
               )}
+            </div>
+
+            {/* Quick Global Search Trigger in Sidebar */}
+            <div style={{ marginBottom: 12, paddingLeft: isSidebarCollapsed ? 0 : 2, paddingRight: isSidebarCollapsed ? 0 : 2 }}>
+              <button
+                onClick={() => setIsSearchOpen(true)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: isSidebarCollapsed ? 'center' : 'space-between',
+                  width: '100%',
+                  padding: isSidebarCollapsed ? '10px 0' : '9px 12px',
+                  borderRadius: 10,
+                  background: 'var(--bg-surface-raised)',
+                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--text-muted)',
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  outline: 'none'
+                }}
+                title="Search foods, exercises, recipes (Ctrl+K)"
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Search size={14} style={{ color: 'var(--brand-primary-light)' }} />
+                  {!isSidebarCollapsed && <span>Search...</span>}
+                </div>
+                {!isSidebarCollapsed && (
+                  <span style={{
+                    fontSize: 10,
+                    fontWeight: 800,
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-subtle)',
+                    padding: '2px 6px',
+                    borderRadius: 4,
+                    color: 'var(--text-muted)'
+                  }}>
+                    Ctrl K
+                  </span>
+                )}
+              </button>
             </div>
 
             {/* Sidebar navigation links */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1 }}>
               {[
-                { key: 'dashboard', label: 'Dashboard', icon: (color) => (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                { key: 'dashboard', label: 'Dashboard', tag: 'Home', icon: (color) => (
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="3" width="7" height="9" /><rect x="14" y="3" width="7" height="5" />
                     <rect x="14" y="12" width="7" height="9" /><rect x="3" y="16" width="7" height="5" />
                   </svg>
                 )},
-                { key: 'food-log', label: 'Food Log', icon: (color) => (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                { key: 'food-log', label: 'Food Log', tag: 'Food', icon: (color) => (
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                   </svg>
                 )},
-                { key: 'meal-planner', label: 'Meal Planner', icon: (color) => (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                { key: 'meal-planner', label: 'Meal Planner', tag: 'Meals', icon: (color) => (
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                     <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
                   </svg>
                 )},
-                { key: 'exercise', label: 'Workout Console', icon: (color) => (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                { key: 'exercise', label: 'Workout Console', tag: 'Workouts', icon: (color) => (
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="6" y1="12" x2="18" y2="12" /><line x1="6" y1="7" x2="6" y2="17" /><line x1="18" y1="7" x2="18" y2="17" />
                     <rect x="2" y="9" width="4" height="6" /><rect x="18" y="9" width="4" height="6" />
                   </svg>
                 )}
               ].map(nav => {
                 const isActive = currentPage === nav.key;
-                const activeColor = isActive ? 'var(--text-primary)' : 'var(--text-muted)';
+                const activeColor = isActive ? 'var(--brand-primary-light)' : 'var(--text-muted)';
                 return (
                   <button
                     key={nav.key}
-                    onClick={() => setCurrentPage(nav.key)}
+                    onClick={() => handleNavigate(nav.key)}
                     className="sidebar-nav-item"
                     style={{
-                      padding: '10px 14px',
+                      padding: '11px 14px',
                       fontSize: 13,
-                      borderRadius: 'var(--radius-panel)',
-                      border: 'none',
+                      borderRadius: 10,
+                      border: isActive ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid transparent',
                       cursor: 'pointer',
                       fontFamily: 'var(--font-body)',
-                      fontWeight: isActive ? 700 : 500,
-                      color: activeColor,
-                      background: isActive ? 'var(--bg-surface-raised)' : 'transparent',
+                      fontWeight: isActive ? 800 : 500,
+                      color: isActive ? '#FFFFFF' : 'var(--text-secondary)',
+                      background: isActive ? 'rgba(16, 185, 129, 0.08)' : 'transparent',
                       transition: 'all 0.18s ease',
                       display: 'flex',
                       alignItems: 'center',
                       gap: 12,
                       width: '100%',
                       justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
-                      boxSizing: 'border-box'
+                      boxSizing: 'border-box',
+                      position: 'relative',
+                      overflow: 'hidden'
                     }}
                   >
+                    {isActive && (
+                      <div style={{
+                        position: 'absolute',
+                        left: 0,
+                        top: '15%',
+                        bottom: '15%',
+                        width: 3,
+                        borderRadius: '0 4px 4px 0',
+                        background: 'var(--brand-primary-light)',
+                        boxShadow: '0 0 8px rgba(16, 185, 129, 0.8)'
+                      }} />
+                    )}
                     {nav.icon(activeColor)}
                     {!isSidebarCollapsed ? (
-                      <span>{nav.label}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                        <span>{nav.label}</span>
+                        <span style={{ fontSize: 9, fontFamily: 'var(--font-mono)', color: isActive ? 'var(--brand-primary-light)' : 'var(--text-muted)', opacity: isActive ? 1 : 0.6, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                          {nav.tag}
+                        </span>
+                      </div>
                     ) : (
                       <span className="sidebar-tooltip">{nav.label}</span>
                     )}
@@ -530,13 +662,13 @@ function App() {
                   className="sidebar-nav-item"
                   style={{
                     width: 34, height: 34, borderRadius: '50%',
-                    background: 'linear-gradient(135deg, var(--accent-lavender), var(--accent-pink))',
+                    background: 'linear-gradient(135deg, #10B981, #059669)',
                     color: '#ffffff',
-                    border: currentPage === 'profile' ? '2.5px solid var(--text-primary)' : '1.5px solid var(--border-strong)',
+                    border: currentPage === 'profile' ? '2.5px solid var(--brand-primary-light)' : '1.5px solid var(--border-strong)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     cursor: 'pointer', padding: 0,
                     fontFamily: 'var(--font-heading)', fontSize: 13, fontWeight: 'bold',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)', transition: 'all 0.2s ease',
+                    boxShadow: '0 2px 10px rgba(16, 185, 129, 0.25)', transition: 'all 0.2s ease',
                     transform: currentPage === 'profile' ? 'scale(1.05)' : 'none',
                     outline: 'none'
                   }}
@@ -595,9 +727,9 @@ function App() {
           </aside>
 
           {/* MAIN PAGE LAYOUT */}
-          <div className="main-content-area">
+          <div className={`main-content-area ${workoutSession && workoutSession.isSessionActive && currentPage !== 'exercise' ? 'has-floating-workout' : ''}`}>
             {/* Page Content */}
-            <main style={{ flex: 1 }}>
+            <main style={{ flex: 1, minHeight: 'calc(100vh - 200px)' }}>
               <div key={currentPage} className="fadeInUp" style={{ animationDuration: '0.6s' }}>
                 {currentPage === 'profile' && user && !isEditingProfile && (
                   <UserProfileDetails 
@@ -638,158 +770,70 @@ function App() {
           </div>
 
           {/* MOBILE BOTTOM NAVIGATION */}
-          <nav className="mobile-bottom-nav">
-            {[
-              { key: 'dashboard', label: 'Dashboard', icon: (color) => (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="3" width="7" height="9" /><rect x="14" y="3" width="7" height="5" />
-                  <rect x="14" y="12" width="7" height="9" /><rect x="3" y="16" width="7" height="5" />
-                </svg>
-              )},
-              { key: 'food-log', label: 'Food Log', icon: (color) => (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                </svg>
-              )},
-              { key: 'meal-planner', label: 'Planner', icon: (color) => (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                  <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-                </svg>
-              )},
-              { key: 'exercise', label: 'Workout', icon: (color) => (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="6" y1="12" x2="18" y2="12" /><line x1="6" y1="7" x2="6" y2="17" /><line x1="18" y1="7" x2="18" y2="17" />
-                  <rect x="2" y="9" width="4" height="6" /><rect x="18" y="9" width="4" height="6" />
-                </svg>
-              )}
-            ].map(nav => {
-              const isActive = currentPage === nav.key;
-              const activeColor = isActive ? 'var(--accent-lavender-text)' : 'var(--text-muted)';
-              return (
-                <button
-                  key={nav.key}
-                  onClick={() => setCurrentPage(nav.key)}
-                  className={`mobile-nav-btn ${isActive ? 'active' : ''}`}
-                >
-                  {nav.icon(activeColor)}
-                  <span>{nav.label}</span>
-                </button>
-              );
-            })}
-          </nav>
+          {!(workoutSession && workoutSession.isSessionActive && workoutSession.isInsideConsole && currentPage === 'exercise') && (
+            <nav className="mobile-bottom-nav">
+              {[
+                { key: 'dashboard', label: 'Home', icon: (color) => (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="7" height="9" /><rect x="14" y="3" width="7" height="5" />
+                    <rect x="14" y="12" width="7" height="9" /><rect x="3" y="16" width="7" height="5" />
+                  </svg>
+                )},
+                { key: 'food-log', label: 'Food', icon: (color) => (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                  </svg>
+                )},
+                { key: 'meal-planner', label: 'Meals', icon: (color) => (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                )},
+                { key: 'exercise', label: 'Workouts', icon: (color) => (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="6" y1="12" x2="18" y2="12" /><line x1="6" y1="7" x2="6" y2="17" /><line x1="18" y1="7" x2="18" y2="17" />
+                    <rect x="2" y="9" width="4" height="6" /><rect x="18" y="9" width="4" height="6" />
+                  </svg>
+                )}
+              ].map(nav => {
+                const isActive = currentPage === nav.key;
+                const activeColor = isActive ? 'var(--brand-primary-light)' : 'var(--text-muted)';
+                return (
+                  <button
+                    key={nav.key}
+                    onClick={() => handleNavigate(nav.key)}
+                    className={`mobile-nav-btn ${isActive ? 'active' : ''}`}
+                  >
+                    {nav.icon(activeColor)}
+                    <span>{nav.label}</span>
+                    {isActive && <div className="mobile-nav-dot" />}
+                  </button>
+                );
+              })}
+            </nav>
+          )}
         </div>
       )}
 
-      {/* Floating AI Health Assistant - Rendered outside transformed container to ensure true fixed positioning */}
-      {/* {user && <AIChatbot user={user} setCurrentPage={setCurrentPage} />} */}
-
-      {/* Floating Active Workout Banner (Vercel-like Premium Style) */}
-      {user && workoutSession && workoutSession.isConsoleMode && currentPage !== 'exercise' && (
-        <div style={{
-          position: 'fixed',
-          bottom: 24,
-          left: 24,
-          right: 24,
-          maxWidth: 500,
-          margin: '0 auto',
-          background: 'var(--bg-surface)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          border: '1px solid var(--border-strong)',
-          borderRadius: 16,
-          padding: '12px 20px',
-          boxShadow: '0 12px 40px rgba(0, 0, 0, 0.4)',
-          zIndex: 4000,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 16,
-          animation: 'fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both'
-        }}>
-          {/* Left section: Live Indicator, Title, Timer */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-            {/* Pulsing neon lime/warning dot */}
-            <div style={{
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              background: workoutSession.restActive ? 'var(--accent-warning-text)' : 'var(--accent-lime-text)',
-              boxShadow: workoutSession.restActive ? '0 0 8px var(--accent-warning-text)' : '0 0 8px var(--accent-lime-text)',
-              flexShrink: 0
-            }} />
-            <div style={{ minWidth: 0 }}>
-              <span style={{ 
-                display: 'block', 
-                fontSize: 10, 
-                fontWeight: 700, 
-                color: 'var(--text-muted)', 
-                textTransform: 'uppercase', 
-                letterSpacing: '0.05em' 
-              }}>
-                Active Workout {workoutSession.restActive ? '· Rest Phase' : ''}
-              </span>
-              <span style={{ 
-                fontSize: 13, 
-                fontWeight: 800, 
-                color: 'var(--text-primary)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                display: 'block'
-              }}>
-                {workoutSession.workoutName} · {workoutSession.currentExerciseName || 'Ready'}
-              </span>
-            </div>
-          </div>
-
-          {/* Right section: Timers + Actions */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
-            <div style={{ textAlign: 'right' }}>
-              <span style={{ 
-                display: 'block', 
-                fontSize: 10, 
-                fontWeight: 700, 
-                color: 'var(--text-muted)', 
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em'
-              }}>
-                {workoutSession.restActive ? 'Rest Left' : 'Time'}
-              </span>
-              <span style={{ 
-                fontSize: 14, 
-                fontWeight: 800, 
-                fontFamily: 'var(--font-heading)',
-                color: workoutSession.restActive ? 'var(--accent-warning-text)' : 'var(--text-primary)'
-              }}>
-                {workoutSession.restActive 
-                  ? `${Math.floor(workoutSession.restRemaining / 60).toString().padStart(2, '0')}:${(workoutSession.restRemaining % 60).toString().padStart(2, '0')}`
-                  : `${Math.floor(workoutSession.elapsedSeconds / 60).toString().padStart(2, '0')}:${(workoutSession.elapsedSeconds % 60).toString().padStart(2, '0')}`
-                }
-              </span>
-            </div>
-
-            <button
-              onClick={() => setCurrentPage('exercise')}
-              style={{
-                background: 'var(--accent-lavender-text)',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 'var(--radius-pill)',
-                padding: '8px 18px',
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'opacity 0.15s'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.opacity = 0.9}
-              onMouseLeave={(e) => e.currentTarget.style.opacity = 1}
-            >
-              Resume
-            </button>
-          </div>
-        </div>
+      {/* Floating Active Workout Capsule (Elevated Obsidian Emerald Pill) */}
+      {user && workoutSession && workoutSession.isSessionActive && (currentPage !== 'exercise' || !workoutSession.isInsideConsole) && (
+        <FloatingWorkoutBar
+          workoutSession={workoutSession}
+          onNavigateToExercise={() => setCurrentPage('exercise')}
+        />
       )}
+
+      {/* GLOBAL UNIVERSAL SEARCH MODAL */}
+      <GlobalSearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        onNavigate={(page) => {
+          setCurrentPage(page);
+          setIsEditingProfile(false);
+        }}
+        user={user}
+      />
     </>
   );
 }

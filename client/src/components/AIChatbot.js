@@ -378,23 +378,23 @@ Ready to create your personalized weekly meal plan?`;
             width: '56px',
             height: '56px',
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, var(--brand-primary, #F59E0B), #ea580c)',
+            background: 'linear-gradient(135deg, #10B981, #059669)',
             border: 'none',
             color: '#ffffff',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
+            boxShadow: '0 8px 32px rgba(16, 185, 129, 0.35)',
             transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = 'scale(1.08) translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 12px 36px rgba(0, 0, 0, 0.45)';
+            e.currentTarget.style.boxShadow = '0 12px 36px rgba(16, 185, 129, 0.45)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = 'scale(1) translateY(0)';
-            e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.35)';
+            e.currentTarget.style.boxShadow = '0 8px 32px rgba(16, 185, 129, 0.35)';
           }}
         >
           <MessageSquare size={24} />
@@ -411,9 +411,9 @@ Ready to create your personalized weekly meal plan?`;
       width: '380px',
       height: '560px',
       background: 'var(--bg-surface)',
-      border: '1px solid var(--border-strong)',
+      border: '1px solid var(--border-subtle)',
       borderRadius: 'var(--radius-card)',
-      boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
+      boxShadow: 'var(--shadow-overlay)',
       zIndex: 1000,
       display: 'flex',
       flexDirection: 'column',
@@ -431,7 +431,7 @@ Ready to create your personalized weekly meal plan?`;
         borderBottom: '1px solid var(--border-subtle)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--brand-primary, #F59E0B)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--brand-primary-subtle)', color: 'var(--brand-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Bot size={18} />
           </div>
           <div>
@@ -487,14 +487,14 @@ Ready to create your personalized weekly meal plan?`;
                 padding: '12px 16px',
                 borderRadius: message.type === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
                 background: message.type === 'user' 
-                  ? 'var(--brand-primary, #F59E0B)' 
+                  ? 'var(--brand-primary)' 
                   : 'var(--bg-surface-raised)',
-                color: message.type === 'user' ? '#000000' : 'var(--text-primary)',
+                color: message.type === 'user' ? '#ffffff' : 'var(--text-primary)',
                 fontSize: '13px',
                 lineHeight: '1.5',
                 whiteSpace: 'pre-line',
                 border: message.type === 'user' ? 'none' : '1px solid var(--border-subtle)',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                boxShadow: 'var(--shadow-card)'
               }}
             >
               {message.content}
@@ -514,9 +514,9 @@ Ready to create your personalized weekly meal plan?`;
 
         {isLoading && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', background: 'var(--bg-surface-raised)', borderRadius: '16px 16px 16px 4px', width: 'fit-content' }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--brand-primary, #F59E0B)', animation: 'bounce 1s infinite' }} />
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--brand-primary, #F59E0B)', animation: 'bounce 1s infinite 0.2s' }} />
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--brand-primary, #F59E0B)', animation: 'bounce 1s infinite 0.4s' }} />
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--brand-primary)', animation: 'bounce 1s infinite' }} />
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--brand-primary)', animation: 'bounce 1s infinite 0.2s' }} />
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--brand-primary)', animation: 'bounce 1s infinite 0.4s' }} />
           </div>
         )}
         <div ref={messagesEndRef} />
@@ -543,9 +543,9 @@ Ready to create your personalized weekly meal plan?`;
                 style={{
                   background: 'var(--bg-surface-raised)',
                   border: '1px solid var(--border-subtle)',
-                  borderRadius: '12px',
-                  padding: '4px 10px',
-                  fontSize: '11px',
+                  borderRadius: 'var(--radius-pill)',
+                  padding: '5px 12px',
+                  fontSize: '11.5px',
                   color: 'var(--text-secondary)',
                   cursor: 'pointer',
                   textAlign: 'left'
@@ -576,7 +576,7 @@ Ready to create your personalized weekly meal plan?`;
           style={{
             flex: 1,
             padding: '10px 14px',
-            borderRadius: '12px',
+            borderRadius: 'var(--radius-sm)',
             background: 'var(--bg-input)',
             border: '1px solid var(--border-subtle)',
             color: 'var(--text-primary)',
@@ -592,10 +592,10 @@ Ready to create your personalized weekly meal plan?`;
             height: '38px',
             borderRadius: '50%',
             background: inputMessage.trim() && !isLoading 
-              ? 'var(--brand-primary, #F59E0B)' 
+              ? 'var(--brand-primary)' 
               : 'var(--bg-surface-raised)',
             border: 'none',
-            color: inputMessage.trim() && !isLoading ? '#000000' : 'var(--text-muted)',
+            color: inputMessage.trim() && !isLoading ? '#ffffff' : 'var(--text-muted)',
             cursor: inputMessage.trim() && !isLoading ? 'pointer' : 'not-allowed',
             display: 'flex',
             alignItems: 'center',

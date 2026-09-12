@@ -1,14 +1,165 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { 
-  Calculator, Disc, Info, Check, Plus, ArrowLeft, ArrowRight, 
-  RotateCcw, Sparkles, Trophy, Flame, Shield, Clock, Dumbbell, 
-  ChevronDown, X, Play, RefreshCw, AlertCircle, Award, Activity, Search
+  Calculator, Disc, Info, Check, Plus, ArrowLeft, ArrowRight, ChevronLeft,
+  Sparkles, Trophy, Flame, Shield, Clock, Dumbbell, Layers, Timer,
+  ChevronDown, X, Play, RefreshCw, AlertCircle, Award, Activity, Search,
+  Target, Trash2, Sliders, MoreVertical,
+  SlidersHorizontal, RotateCw, Repeat, Droplets, Footprints
 } from 'lucide-react';
-import { generateProgram, formatRPE } from '../utils/programEngine';
+import { generateProgram, getSmartAlternatives } from '../utils/programEngine';
+import StrengthTrendChart from '../components/StrengthTrendChart';
+import { ActiveExerciseView } from '../components/ActiveExerciseView';
+
+export { ActiveExerciseView };
+
+// Helper to shorten target muscle descriptions to concise text (e.g., Target: Quads • Glutes • Core)
+export const formatConciseTarget = (ex) => {
+  if (!ex) return 'Full Body';
+  const text = `${ex.muscleGroup || ''} ${ex.targetAnatomy || ''} ${ex.category || ''}`.toLowerCase();
+  const parts = [];
+
+  if (text.includes('quad')) parts.push('Quads');
+  if (text.includes('glute')) parts.push('Glutes');
+  if (text.includes('hamstring')) parts.push('Hamstrings');
+  if (text.includes('chest') || text.includes('pectoral')) parts.push('Chest');
+  if (text.includes('lat') || text.includes('back')) {
+    if (!parts.includes('Back')) parts.push('Back');
+  }
+  if (text.includes('deltoid') || text.includes('shoulder')) parts.push('Shoulders');
+  if (text.includes('tricep')) parts.push('Triceps');
+  if (text.includes('bicep')) parts.push('Biceps');
+  if (text.includes('core') || text.includes('abs') || text.includes('abdominal') || text.includes('erector')) parts.push('Core');
+  if (text.includes('calf') || text.includes('calves')) parts.push('Calves');
+
+  const unique = [...new Set(parts)];
+  if (unique.length > 0) {
+    return unique.slice(0, 3).join(' • ');
+  }
+
+  const base = ex.muscleGroup || ex.targetAnatomy || 'Full Body';
+  return base
+    .replace(/\(.*?\)/g, '')
+    .replace(/&/g, '•')
+    .replace(/\//g, '•')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
+export const WEEKS_METADATA = [
+  { num: 0, label: 'Week 1', phase: 'Base Calibration', shortPhase: 'Base', rpe: '7.0', tag: 'Base Load', purpose: 'Base Calibration & Load Setting' },
+  { num: 1, label: 'Week 2', phase: 'Progressive Overload', shortPhase: 'Overload', rpe: '8.0', tag: 'Overload', purpose: 'Progressive Overload & Volume Push' },
+  { num: 2, label: 'Week 3', phase: 'Peak Hypertrophy', shortPhase: 'Peak', rpe: '9.0', tag: 'Peak Effort', purpose: 'Peak Hypertrophy & Maximum Effort' },
+  { num: 3, label: 'Week 4', phase: 'Active Deload', shortPhase: 'Deload', rpe: '6.0', tag: 'Deload', purpose: 'Active Deload & Tissue Recovery' }
+];
+
+export const WEEK_PHASE_CONCISE = [
+  'Target Intensity: RPE 7.0 • Base Load',
+  'Target Intensity: RPE 8.0 • Overload',
+  'Target Intensity: RPE 9.0 • Peak Effort',
+  'Target Intensity: RPE 6.0 • Deload'
+];
+
+
+
+export const formatConciseAnatomyTarget = (text, ex) => {
+  if (!text) return 'Full Body';
+
+  // Direct pattern mappings for user-specified examples
+  if (/transverse abdominis.*rectus abdominis|deep core bracing|abs & core & rectus abdominis/i.test(text)) {
+    return 'Core Bracing • Abs';
+  }
+  if (/anterior deltoids.*medial deltoids|front shoulders.*medial deltoids/i.test(text)) {
+    return 'Shoulders • Triceps';
+  }
+  if (/front thighs.*glutes|quadriceps.*gluteus maximus/i.test(text)) {
+    return 'Quads • Glutes';
+  }
+  if (/latissimus dorsi.*rhomboids|lats.*back.*rhomboids|mid.*upper back.*traps/i.test(text)) {
+    return 'Lats • Upper Back';
+  }
+
+  // Systematic cleaning & stripping parenthetical medical terms
+  let cleaned = text
+    .replace(/Pectoralis Major/gi, 'Chest')
+    .replace(/Quadriceps/gi, 'Quads')
+    .replace(/Gluteus Maximus/gi, 'Glutes')
+    .replace(/Gluteus Medius/gi, 'Glutes')
+    .replace(/Latissimus Dorsi/gi, 'Lats')
+    .replace(/Trapezius/gi, 'Upper Back')
+    .replace(/Rhomboids/gi, 'Upper Back')
+    .replace(/Anterior Deltoids/gi, 'Shoulders')
+    .replace(/Lateral Deltoids/gi, 'Shoulders')
+    .replace(/Posterior Deltoids/gi, 'Rear Delts')
+    .replace(/Infraspinatus/gi, 'Rotator Cuff')
+    .replace(/Triceps Brachii/gi, 'Triceps')
+    .replace(/Biceps Brachii/gi, 'Biceps')
+    .replace(/Rectus Abdominis/gi, 'Abs')
+    .replace(/Transverse Abdominis/gi, 'Core')
+    .replace(/Gastrocnemius|Soleus/gi, 'Calves')
+    .replace(/Biceps Femoris/gi, 'Hamstrings')
+    .replace(/Posterior Chain/gi, 'Glutes • Hamstrings')
+    .replace(/\(.*?\)/g, '')
+    .replace(/&/g, '•')
+    .replace(/\//g, '•')
+    .replace(/,/g, '•')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const tokens = cleaned
+    .split(/[•·]/)
+    .map(t => t.trim())
+    .filter(Boolean)
+    .map(t => {
+      if (/quad/i.test(t)) return 'Quads';
+      if (/glute/i.test(t)) return 'Glutes';
+      if (/hamstring/i.test(t)) return 'Hamstrings';
+      if (/chest/i.test(t)) return 'Chest';
+      if (/lat/i.test(t)) return 'Lats';
+      if (/back/i.test(t) || /trap/i.test(t) || /rhomboid/i.test(t)) return 'Upper Back';
+      if (/shoulder/i.test(t) || /delt/i.test(t)) return 'Shoulders';
+      if (/tricep/i.test(t)) return 'Triceps';
+      if (/bicep/i.test(t)) return 'Biceps';
+      if (/core/i.test(t)) return 'Core';
+      if (/abs/i.test(t)) return 'Abs';
+      if (/calf|calves/i.test(t)) return 'Calves';
+      return t;
+    })
+    .filter(t => !/rotator cuff/i.test(t));
+
+  const unique = [...new Set(tokens)];
+  if (unique.length > 0) {
+    return unique.slice(0, 3).join(' • ');
+  }
+  return cleaned || 'Full Body';
+};
+
+export const formatVolumeRepBadge = (ex) => {
+  if (!ex) return '3 Sets × 8–12 Reps';
+  const isIsometric = /plank|hold|wall sit/i.test(ex.name);
+  const sets = ex.sets || 3;
+  if (isIsometric) {
+    return `${sets} Sets × 45–60s Hold`;
+  }
+  return `${sets} Sets × ${ex.repRange || '8–12'} Reps`;
+};
+
+export const formatRestIntervalBadge = (restSec) => {
+  const s = parseInt(restSec, 10);
+  if (!s || isNaN(s)) return '1:30 Rest';
+  const mins = Math.floor(s / 60);
+  const remainder = s % 60;
+  if (mins > 0 && remainder > 0) {
+    return `${mins}:${remainder < 10 ? '0' : ''}${remainder} Rest`;
+  }
+  if (mins > 0 && remainder === 0) {
+    return `${mins}:00 Rest`;
+  }
+  return `${s}s Rest`;
+};
 
 // ===== PRESET EXERCISE DATABASE WITH PRECISE ANATOMY (38 exercises) =====
-const PRESET_EXERCISES = [
+export const PRESET_EXERCISES = [
   {
     name: 'Barbell Back Squat',
     category: 'Squat',
@@ -502,6 +653,747 @@ const PRESET_EXERCISES = [
       'Squeeze glutes and abs to keep body in a rigid straight line.',
       'Breathe steadily; do not allow lower back to sag.'
     ]
+  },
+  {
+    name: 'Incline Machine Chest Press',
+    category: 'Horizontal Push',
+    muscleGroup: 'Chest (Upper / Clavicular)',
+    targetAnatomy: 'Pectoralis Major (Clavicular Head · Upper Chest)',
+    synergists: 'Anterior Deltoids, Triceps Brachii',
+    movementPlane: 'Fixed Incline Guided Press',
+    cues: [
+      'Set seat so upper handles align with upper chest.',
+      'Drive upwards smoothly and lock out without jarring.',
+      'Control the eccentric lowering phase to a deep chest stretch.'
+    ]
+  },
+  {
+    name: 'Decline Barbell Bench Press',
+    category: 'Horizontal Push',
+    muscleGroup: 'Chest (Lower / Costal)',
+    targetAnatomy: 'Pectoralis Major (Costal Head · Lower Chest)',
+    synergists: 'Triceps Brachii, Anterior Deltoids',
+    movementPlane: 'Decline Barbell Press',
+    cues: [
+      'Hook legs securely into decline bench supports.',
+      'Lower bar to lower chest / upper abdomen line.',
+      'Press up explosively while keeping shoulder blades pinned.'
+    ]
+  },
+  {
+    name: 'Decline Dumbbell Press',
+    category: 'Horizontal Push',
+    muscleGroup: 'Chest (Lower / Costal)',
+    targetAnatomy: 'Pectoralis Major (Costal Head · Lower Chest)',
+    synergists: 'Triceps Brachii, Anterior Deltoids',
+    movementPlane: 'Decline Converging Dumbbell Press',
+    cues: [
+      'Lie back on decline bench with dumbbells at ribs.',
+      'Press upward in a slight converging arc over lower chest.',
+      'Control the descent to full stretch.'
+    ]
+  },
+  {
+    name: 'Dumbbell Fly',
+    category: 'Horizontal Push',
+    muscleGroup: 'Chest (Mid / Sternal)',
+    targetAnatomy: 'Pectoralis Major (Sternal & Costal Fibers · Stretch Tension)',
+    synergists: 'Anterior Deltoids, Coracobrachialis',
+    movementPlane: 'Horizontal Dumbbell Fly',
+    cues: [
+      'Maintain a slight 15° bend in elbows throughout.',
+      'Lower dumbbells wide until feeling a deep pectoral stretch.',
+      'Bring weights together smoothly, squeezing chest at top.'
+    ]
+  },
+  {
+    name: 'Low-to-High Cable Fly',
+    category: 'Horizontal Push',
+    muscleGroup: 'Chest (Upper / Clavicular)',
+    targetAnatomy: 'Pectoralis Major (Clavicular Head · Upper Chest Squeeze)',
+    synergists: 'Anterior Deltoids, Serratus Anterior',
+    movementPlane: 'Low-to-High Converging Fly',
+    cues: [
+      'Set pulleys low. Stand staggered for core balance.',
+      'Bring handles upward and inward across chest to chin level.',
+      'Squeeze upper chest firmly at peak contraction.'
+    ]
+  },
+  {
+    name: 'Standard Push-Up',
+    category: 'Horizontal Push',
+    muscleGroup: 'Chest & Core',
+    targetAnatomy: 'Pectoralis Major (Overall Mass) & Core Stabilizers',
+    synergists: 'Triceps Brachii, Anterior Deltoids, Serratus Anterior',
+    movementPlane: 'Bodyweight Prone Horizontal Push',
+    cues: [
+      'Place hands slightly wider than shoulder-width with fingers spread.',
+      'Brace core and glutes into a rigid plank position.',
+      'Lower chest to 2 inches from floor with elbows at 45 degrees.'
+    ]
+  },
+  {
+    name: 'Incline Push-Up',
+    category: 'Horizontal Push',
+    muscleGroup: 'Chest (Lower / Costal)',
+    targetAnatomy: 'Pectoralis Major (Lower Fibers · Reduced Resistance)',
+    synergists: 'Triceps Brachii, Anterior Deltoids',
+    movementPlane: 'Hands-Elevated Bodyweight Push',
+    cues: [
+      'Place hands on sturdy bench or bar elevated 18-24 inches.',
+      'Keep body rigid in a straight line.',
+      'Lower lower-chest to bench edge and push up.'
+    ]
+  },
+  {
+    name: 'Decline Push-Up',
+    category: 'Horizontal Push',
+    muscleGroup: 'Chest (Upper / Clavicular)',
+    targetAnatomy: 'Pectoralis Major (Clavicular Fibers) & Anterior Deltoids',
+    synergists: 'Triceps Brachii, Serratus Anterior',
+    movementPlane: 'Feet-Elevated Bodyweight Push',
+    cues: [
+      'Place feet on bench or plyo box with hands flat on ground.',
+      'Maintain strong pelvic tilt to avoid lower back arching.',
+      'Lower upper chest smoothly towards floor and press up.'
+    ]
+  },
+  {
+    name: 'Chest Dips',
+    category: 'Horizontal Push',
+    muscleGroup: 'Chest (Lower) & Triceps',
+    targetAnatomy: 'Pectoralis Major (Costal Head) & Triceps Brachii',
+    synergists: 'Anterior Deltoids, Rhomboids',
+    movementPlane: 'Forward-Leaning Parallel Bar Dip',
+    cues: [
+      'Lean torso 30 degrees forward with flared elbows.',
+      'Lower body until shoulders are below elbows.',
+      'Drive upwards through palms, squeezing lower chest.'
+    ]
+  },
+  {
+    name: 'Chin-Up',
+    category: 'Vertical Pull',
+    muscleGroup: 'Back (Lats & Biceps)',
+    targetAnatomy: 'Latissimus Dorsi & Biceps Brachii (Short Head)',
+    synergists: 'Brachialis, Teres Major, Lower Trapezius',
+    movementPlane: 'Supinated Vertical Pull',
+    cues: [
+      'Grip bar with underhand palms-facing-you grip shoulder-width.',
+      'Drive elbows down and back to pull chest up to bar.',
+      'Lower with strict control to full dead-hang stretch.'
+    ]
+  },
+  {
+    name: 'Close-Grip Lat Pulldown',
+    category: 'Vertical Pull',
+    muscleGroup: 'Back (Lower Lats)',
+    targetAnatomy: 'Latissimus Dorsi (Lower Insertion & Thoracolumbar Fibers)',
+    synergists: 'Biceps Brachii, Brachialis, Rhomboids',
+    movementPlane: 'V-Bar Close-Grip Vertical Pull',
+    cues: [
+      'Attach V-bar handle. Sit upright with slight 10° backward lean.',
+      'Pull handle to upper chest, driving elbows down to ribs.',
+      'Extend arms fully at top to feel full lat stretch.'
+    ]
+  },
+  {
+    name: 'Reverse-Grip Lat Pulldown',
+    category: 'Vertical Pull',
+    muscleGroup: 'Back (Lats & Biceps)',
+    targetAnatomy: 'Latissimus Dorsi & Biceps Brachii',
+    synergists: 'Teres Major, Mid Trapezius',
+    movementPlane: 'Supinated Lat Pulldown',
+    cues: [
+      'Grip straight bar with underhand shoulder-width grip.',
+      'Pull bar down smoothly to upper sternum.',
+      'Control eccentric ascent without letting shoulders shrug up.'
+    ]
+  },
+  {
+    name: 'Pendlay Row',
+    category: 'Horizontal Pull',
+    muscleGroup: 'Back (Upper & Mid)',
+    targetAnatomy: 'Mid Trapezius, Rhomboids & Latissimus Dorsi',
+    synergists: 'Rear Deltoids, Erector Spinae, Biceps',
+    movementPlane: 'Dead-Stop Barbell Row from Floor',
+    cues: [
+      'Torso strictly parallel to floor on every single rep.',
+      'Explosively pull bar from floor to lower chest.',
+      'Return bar to complete dead stop on floor between reps.'
+    ]
+  },
+  {
+    name: 'Inverted Row',
+    category: 'Horizontal Pull',
+    muscleGroup: 'Back (Mid Back)',
+    targetAnatomy: 'Middle Trapezius, Rhomboids & Posterior Deltoids',
+    synergists: 'Biceps Brachii, Core Stabilizers',
+    movementPlane: 'Bodyweight Horizontal Pull',
+    cues: [
+      'Hang underneath bar or suspension trainer with heels on ground.',
+      'Keep body in a rigid straight plank line.',
+      'Pull chest up to touch the bar, squeezing shoulder blades.'
+    ]
+  },
+  {
+    name: 'Straight-Arm Cable Pullover',
+    category: 'Vertical Pull',
+    muscleGroup: 'Back (Lats Isolation)',
+    targetAnatomy: 'Latissimus Dorsi (Outer Flare & Width Isolation)',
+    synergists: 'Teres Major, Triceps Long Head',
+    movementPlane: 'Shoulder Extension in Sagittal Plane',
+    cues: [
+      'Grip straight or wide bar with straight arms and slight hip hinge.',
+      'Sweep bar down in an arc until touching upper thighs.',
+      'Squeeze lats hard at bottom; slowly raise bar back up.'
+    ]
+  },
+  {
+    name: 'Dumbbell Pullover',
+    category: 'Vertical Pull',
+    muscleGroup: 'Lats & Serratus Anterior',
+    targetAnatomy: 'Latissimus Dorsi, Serratus Anterior & Clavicular Pectoralis',
+    synergists: 'Triceps Long Head, Teres Major',
+    movementPlane: 'Transverse-Bench Overhead Arc',
+    cues: [
+      'Lie perpendicular across bench with upper back supported.',
+      'Hold single dumbbell overhead with palms flat against underside of plate.',
+      'Lower weight behind head in an arc until feeling lat stretch.'
+    ]
+  },
+  {
+    name: 'Trap Bar Deadlift',
+    category: 'Hinge',
+    muscleGroup: 'Posterior Chain & Quads',
+    targetAnatomy: 'Quadriceps, Gluteus Maximus & Erector Spinae',
+    synergists: 'Trapezius, Latissimus Dorsi, Soleus',
+    movementPlane: 'Neutral-Grip Bilateral Floor Pull',
+    cues: [
+      'Stand in center of trap bar with neutral palms facing inward.',
+      'Hinge hips back, grip handles, and push through heels.',
+      'Stand tall and squeeze glutes at lockout.'
+    ]
+  },
+  {
+    name: 'Rack Pull',
+    category: 'Hinge',
+    muscleGroup: 'Upper Back & Traps',
+    targetAnatomy: 'Trapezius (Upper & Mid), Erector Spinae & Lats',
+    synergists: 'Gluteus Maximus, Forearm Grip',
+    movementPlane: 'Partial-Range Concentric Pull from Knee Height',
+    cues: [
+      'Set bar on safety pins just below knee caps.',
+      'Brace spine firmly, pull shoulder blades back, and drive hips forward.',
+      'Lock out at top without over-arching lumbar.'
+    ]
+  },
+  {
+    name: 'Barbell Shrug',
+    category: 'Horizontal Pull',
+    muscleGroup: 'Traps (Upper)',
+    targetAnatomy: 'Trapezius (Upper Clavicular Fibers)',
+    synergists: 'Levator Scapulae, Forearm Flexors',
+    movementPlane: 'Scapular Elevation',
+    cues: [
+      'Hold barbell shoulder-width with an overhand grip.',
+      'Shrug shoulders straight up towards ears without rolling.',
+      'Hold peak squeeze for 1 second, then lower under control.'
+    ]
+  },
+  {
+    name: 'Hack Squat',
+    category: 'Squat',
+    muscleGroup: 'Quads (Isolation)',
+    targetAnatomy: 'Quadriceps (Vastus Lateralis, Medialis, Rectus Femoris)',
+    synergists: 'Gluteus Maximus, Adductor Magnus',
+    movementPlane: 'Guided 45° Incline Quad Squat',
+    cues: [
+      'Position back flat against pad with feet shoulder-width on platform.',
+      'Release safeties and lower down until knees reach 90 degrees.',
+      'Drive upwards through heels and mid-foot, emphasizing quads.'
+    ]
+  },
+  {
+    name: 'Walking Lunges',
+    category: 'Squat',
+    muscleGroup: 'Quads & Glutes',
+    targetAnatomy: 'Quadriceps, Gluteus Maximus & Hamstrings',
+    synergists: 'Adductor Magnus, Calves, Core Stabilizers',
+    movementPlane: 'Unilateral Forward Step Locomotion',
+    cues: [
+      'Take a controlled step forward, lowering trailing knee to 1 inch from floor.',
+      'Keep front knee tracking over toes and torso upright.',
+      'Drive off front heel to step directly into next forward lunge.'
+    ]
+  },
+  {
+    name: 'Reverse Lunges',
+    category: 'Squat',
+    muscleGroup: 'Quads & Glutes (Knee-Friendly)',
+    targetAnatomy: 'Gluteus Maximus & Quadriceps (Reduced Shear Force)',
+    synergists: 'Hamstrings, Core Stabilizers',
+    movementPlane: 'Unilateral Backward Step Lunge',
+    cues: [
+      'Step backwards with one leg, lowering hips until front thigh is parallel.',
+      'Keep weight focused on front heel.',
+      'Push through front foot to return to standing.'
+    ]
+  },
+  {
+    name: 'Barbell Step-Ups',
+    category: 'Squat',
+    muscleGroup: 'Quads & Glutes',
+    targetAnatomy: 'Quadriceps & Gluteus Maximus (Unilateral Power)',
+    synergists: 'Hamstrings, Calves, Core',
+    movementPlane: 'Unilateral Vertical Step Elevation',
+    cues: [
+      'Place entire foot firmly on 16-20 inch box or bench.',
+      'Drive through front heel to step up without pushing off back toe.',
+      'Lower trailing foot down with 2-second eccentric control.'
+    ]
+  },
+  {
+    name: 'Sissy Squat',
+    category: 'Squat',
+    muscleGroup: 'Quads (Rectus Femoris)',
+    targetAnatomy: 'Quadriceps (Rectus Femoris in Lengthened Position)',
+    synergists: 'Core Stabilizers, Calves',
+    movementPlane: 'Extreme Knee Flexion Quad Isolation',
+    cues: [
+      'Lean torso back in line with thighs while bending knees forward.',
+      'Lower until feeling maximum stretch in front of thighs.',
+      'Push back up by contracting quadriceps.'
+    ]
+  },
+  {
+    name: 'Bodyweight Air Squat',
+    category: 'Squat',
+    muscleGroup: 'Quads & Glutes',
+    targetAnatomy: 'Quadriceps, Gluteus Maximus & Hip Mobility',
+    synergists: 'Adductors, Hamstrings, Core',
+    movementPlane: 'Bilateral Bodyweight Squat',
+    cues: [
+      'Stand feet shoulder-width, toes angled 15 degrees out.',
+      'Squat down until hips dip below knee crease.',
+      'Drive upwards through heels to full standing lockout.'
+    ]
+  },
+  {
+    name: 'Dumbbell Romanian Deadlift',
+    category: 'Hinge',
+    muscleGroup: 'Hamstrings & Glutes',
+    targetAnatomy: 'Hamstrings (Biceps Femoris) & Gluteus Maximus',
+    synergists: 'Erector Spinae, Forearm Grip',
+    movementPlane: 'Standing Dumbbell Hip Hinge',
+    cues: [
+      'Hold dumbbells in front of thighs with soft knees.',
+      'Push hips straight backward until weights pass knee height.',
+      'Drive hips forward to return to standing, squeezing glutes.'
+    ]
+  },
+  {
+    name: 'Stiff-Legged Deadlift',
+    category: 'Hinge',
+    muscleGroup: 'Hamstrings (Deep Stretch)',
+    targetAnatomy: 'Hamstrings (Proximal Tendon & Muscle Belly)',
+    synergists: 'Erector Spinae, Gluteus Maximus',
+    movementPlane: 'Nearly-Straight Leg Hip Hinge',
+    cues: [
+      'Keep knees nearly locked with minimal knee bend throughout.',
+      'Hinge at hips, lowering bar along shins until maximum stretch.',
+      'Contract hamstrings to stand tall.'
+    ]
+  },
+  {
+    name: 'Dumbbell Hip Thrust',
+    category: 'Hinge',
+    muscleGroup: 'Glutes (Maximus)',
+    targetAnatomy: 'Gluteus Maximus (Peak Contraction & Shortened Position)',
+    synergists: 'Hamstrings, Adductors',
+    movementPlane: 'Horizontal Hip Extension from Bench',
+    cues: [
+      'Rest upper back on bench, place heavy dumbbell across hips.',
+      'Drive through heels to bridge hips up until thighs align with torso.',
+      'Hold 1 second squeeze at top, chin tucked forward.'
+    ]
+  },
+  {
+    name: 'Single-Leg Hip Thrust',
+    category: 'Hinge',
+    muscleGroup: 'Glutes & Stability',
+    targetAnatomy: 'Gluteus Maximus & Gluteus Medius (Unilateral Balance)',
+    synergists: 'Hamstrings, Core Stabilizers',
+    movementPlane: 'Unilateral Horizontal Hip Extension',
+    cues: [
+      'Lift one leg off ground with knee bent at 90 degrees.',
+      'Drive working heel into floor to lift hips fully.',
+      'Squeeze glute at top; avoid hip tilting.'
+    ]
+  },
+  {
+    name: 'Cable Glute Kickback',
+    category: 'Hinge',
+    muscleGroup: 'Glutes (Isolation)',
+    targetAnatomy: 'Gluteus Maximus (Upper Fibers & Shelf)',
+    synergists: 'Hamstrings, Core',
+    movementPlane: 'Hip Extension in Sagittal Plane',
+    cues: [
+      'Attach ankle cuff to low cable pulley.',
+      'Kick leg backward and slightly upward in a smooth arc.',
+      'Squeeze glute hard for 1 second at top; return under control.'
+    ]
+  },
+  {
+    name: 'Hyperextension / Back Extension',
+    category: 'Hinge',
+    muscleGroup: 'Hamstrings & Lower Back',
+    targetAnatomy: 'Hamstrings, Gluteus Maximus & Erector Spinae',
+    synergists: 'Latissimus Dorsi',
+    movementPlane: '45° Bench Hip Extension',
+    cues: [
+      'Set pad just below hip crease for hamstring/glute focus.',
+      'Hinge forward at hips with flat back, then raise torso in line with legs.',
+      'Squeeze glutes at top without hyperextending lumbar.'
+    ]
+  },
+  {
+    name: 'Seated Leg Curl',
+    category: 'Hinge',
+    muscleGroup: 'Hamstrings (Lengthened)',
+    targetAnatomy: 'Hamstrings (Semitendinosus, Semimembranosus, Biceps Femoris)',
+    synergists: 'Gastrocnemius, Gracilis',
+    movementPlane: 'Seated Open-Chain Knee Flexion',
+    cues: [
+      'Adjust back pad so knees align with machine pivot axis.',
+      'Curl heels under smoothly as far as possible.',
+      'Control the return to full knee extension for 2-3 seconds.'
+    ]
+  },
+  {
+    name: 'Nordic Hamstring Curl',
+    category: 'Hinge',
+    muscleGroup: 'Hamstrings (Eccentric Power)',
+    targetAnatomy: 'Hamstrings (Biceps Femoris Eccentric Overload)',
+    synergists: 'Gastrocnemius, Glutes, Core',
+    movementPlane: 'Bodyweight Kneeling Knee Extension Control',
+    cues: [
+      'Kneel with ankles anchored under sturdy pad or partner.',
+      'Lower torso forward as slowly as possible using hamstrings.',
+      'Catch yourself with hands and push back up.'
+    ]
+  },
+  {
+    name: 'Good Mornings',
+    category: 'Hinge',
+    muscleGroup: 'Hamstrings & Spinal Erectors',
+    targetAnatomy: 'Hamstrings, Erector Spinae & Gluteus Maximus',
+    synergists: 'Adductor Magnus, Core',
+    movementPlane: 'Standing Barbell Hip Hinge',
+    cues: [
+      'Hold barbell securely across upper traps.',
+      'Hinge hips backward with flat back until torso is 15° above parallel.',
+      'Drive hips forward to stand up tall.'
+    ]
+  },
+  {
+    name: 'Seated Dumbbell Shoulder Press',
+    category: 'Shoulders',
+    muscleGroup: 'Shoulders (Anterior & Medial)',
+    targetAnatomy: 'Anterior Deltoids & Lateral Deltoids',
+    synergists: 'Triceps Brachii, Upper Trapezius',
+    movementPlane: 'Seated Overhead Dumbbell Press',
+    cues: [
+      'Sit on upright bench with dumbbells at shoulder height.',
+      'Press dumbbells overhead in a slight inward arc.',
+      'Lower under control until upper arms are parallel to floor.'
+    ]
+  },
+  {
+    name: 'Arnold Press',
+    category: 'Shoulders',
+    muscleGroup: 'Shoulders (3D Rotational)',
+    targetAnatomy: 'Anterior Deltoid, Lateral Deltoid & Rotator Cuff',
+    synergists: 'Triceps Brachii, Serratus Anterior',
+    movementPlane: 'Rotational Overhead Press',
+    cues: [
+      'Start with dumbbells in front of chest, palms facing your face.',
+      'Rotate wrists outward as you press overhead, finishing with palms forward.',
+      'Reverse motion smoothly on descent.'
+    ]
+  },
+  {
+    name: 'Cable Lateral Raise',
+    category: 'Shoulders',
+    muscleGroup: 'Shoulders (Side Delts · Constant Tension)',
+    targetAnatomy: 'Lateral Deltoids (Continuous Resistance Curve)',
+    synergists: 'Supraspinatus, Trapezius',
+    movementPlane: 'Coronal Plane Abduction',
+    cues: [
+      'Set low pulley. Stand side-on holding handle with outer hand.',
+      'Raise arm out to the side until parallel to floor.',
+      'Pause 1 second, then control weight down without resting.'
+    ]
+  },
+  {
+    name: 'Behind-the-Back Cable Lateral Raise',
+    category: 'Shoulders',
+    muscleGroup: 'Shoulders (Side Delts)',
+    targetAnatomy: 'Lateral Deltoid (Maximum Stretch at Initiation)',
+    synergists: 'Supraspinatus',
+    movementPlane: 'Behind-Torso Cable Abduction',
+    cues: [
+      'Set low cable behind back, grip handle with working hand.',
+      'Raise arm out and slightly forward in the scapular plane.',
+      'Lower under control behind torso to full medial delt stretch.'
+    ]
+  },
+  {
+    name: 'Reverse Pec Deck Fly',
+    category: 'Shoulders',
+    muscleGroup: 'Shoulders (Rear Delts)',
+    targetAnatomy: 'Posterior Deltoids, Rhomboids & Infraspinatus',
+    synergists: 'Middle Trapezius, Teres Minor',
+    movementPlane: 'Transverse Horizontal Abduction',
+    cues: [
+      'Sit facing machine pad with chest supported.',
+      'Pull handles back in a wide arc leading with elbows.',
+      'Squeeze rear deltoids hard at full retraction.'
+    ]
+  },
+  {
+    name: 'Bent-Over Dumbbell Rear Delt Fly',
+    category: 'Shoulders',
+    muscleGroup: 'Shoulders (Rear Delts)',
+    targetAnatomy: 'Posterior Deltoids & Rhomboids',
+    synergists: 'Infraspinatus, Mid Traps',
+    movementPlane: 'Prone Horizontal Abduction',
+    cues: [
+      'Hinge at hips until torso is nearly parallel to floor.',
+      'Raise dumbbells out to sides with slight elbow bend.',
+      'Focus on rear delt contraction; avoid excessive trap shrugging.'
+    ]
+  },
+  {
+    name: 'Incline Dumbbell Curl',
+    category: 'Arms',
+    muscleGroup: 'Biceps (Long Head Stretch)',
+    targetAnatomy: 'Biceps Brachii (Long Head · Bicep Peak Stretch)',
+    synergists: 'Brachialis, Anterior Deltoid',
+    movementPlane: 'Incline Supinated Elbow Flexion',
+    cues: [
+      'Set bench to 45-60 degrees. Let arms hang straight down behind torso.',
+      'Curl dumbbells up while keeping upper arms pinned in place.',
+      'Lower slowly to feel a deep stretch in the long head.'
+    ]
+  },
+  {
+    name: 'Preacher Curl',
+    category: 'Arms',
+    muscleGroup: 'Biceps (Short Head)',
+    targetAnatomy: 'Biceps Brachii (Short Head · Inner Mass)',
+    synergists: 'Brachialis, Brachioradialis',
+    movementPlane: 'Preacher Bench Isolated Elbow Flexion',
+    cues: [
+      'Rest upper arms flat against preacher pad, armpits over top edge.',
+      'Curl EZ bar or dumbbells up towards face.',
+      'Lower under control to 95% extension; avoid hyper-extending elbows.'
+    ]
+  },
+  {
+    name: 'Concentration Curl',
+    category: 'Arms',
+    muscleGroup: 'Biceps (Peak Squeeze)',
+    targetAnatomy: 'Biceps Brachii (Peak Contraction & Shortened Position)',
+    synergists: 'Brachialis',
+    movementPlane: 'Seated Braced Unilateral Curl',
+    cues: [
+      'Sit on bench, brace tricep against inner thigh.',
+      'Curl dumbbell towards face with complete isolation.',
+      'Squeeze bicep peak for 1 second at top.'
+    ]
+  },
+  {
+    name: 'Cable Bicep Curl',
+    category: 'Arms',
+    muscleGroup: 'Biceps (Constant Tension)',
+    targetAnatomy: 'Biceps Brachii (Short & Long Heads)',
+    synergists: 'Brachialis, Forearms',
+    movementPlane: 'Low-Pulley Supinated Curl',
+    cues: [
+      'Attach straight or EZ bar to low pulley.',
+      'Curl bar to upper chest, pinning elbows to sides.',
+      'Lower with continuous resistance through full range.'
+    ]
+  },
+  {
+    name: 'Straight-Bar Cable Pushdown',
+    category: 'Arms',
+    muscleGroup: 'Triceps (Lateral & Medial)',
+    targetAnatomy: 'Triceps Brachii (Lateral Head & Medial Head Overload)',
+    synergists: 'Anconeus',
+    movementPlane: 'Pronated Cable Elbow Extension',
+    cues: [
+      'Grip straight bar with overhand grip, elbows at sides.',
+      'Push bar down to full extension, locking out triceps.',
+      'Control return to 90 degrees without letting elbows drift forward.'
+    ]
+  },
+  {
+    name: 'Single-Arm Cable Tricep Extension',
+    category: 'Arms',
+    muscleGroup: 'Triceps (Isolation)',
+    targetAnatomy: 'Triceps Brachii (Lateral & Long Heads)',
+    synergists: 'Anconeus',
+    movementPlane: 'Unilateral Cable Elbow Extension',
+    cues: [
+      'Hold bare cable ball or single D-handle at shoulder height.',
+      'Extend arm straight down, squeezing tricep at lockout.',
+      'Control the return without body momentum.'
+    ]
+  },
+  {
+    name: 'Dips (Triceps Focus)',
+    category: 'Arms',
+    muscleGroup: 'Triceps (Overall Mass)',
+    targetAnatomy: 'Triceps Brachii (All 3 Heads)',
+    synergists: 'Anterior Deltoids, Clavicular Pectoralis',
+    movementPlane: 'Upright Parallel Bar Dip',
+    cues: [
+      'Keep torso upright and elbows tucked close to body.',
+      'Lower until elbows are at 90 degrees.',
+      'Press upward powerfully, squeezing triceps at top.'
+    ]
+  },
+  {
+    name: 'Standing Barbell Calf Raise',
+    category: 'Calves',
+    muscleGroup: 'Calves (Gastrocnemius)',
+    targetAnatomy: 'Gastrocnemius (Lateral & Medial Heads · Diamond Shape)',
+    synergists: 'Soleus, Plantaris',
+    movementPlane: 'Plantarflexion under Axial Barbell Load',
+    cues: [
+      'Place balls of feet on calf block with barbell across traps.',
+      'Lower heels as low as possible for deep calf stretch.',
+      'Drive onto balls of feet and pause 1 second at peak contraction.'
+    ]
+  },
+  {
+    name: 'Standing Dumbbell Calf Raise',
+    category: 'Calves',
+    muscleGroup: 'Calves (Gastrocnemius)',
+    targetAnatomy: 'Gastrocnemius & Soleus',
+    synergists: 'Plantaris, Forearm Grip',
+    movementPlane: 'Dumbbell-Loaded Plantarflexion',
+    cues: [
+      'Hold dumbbells at sides with balls of feet on elevated edge.',
+      'Sink heels down for full 2-second stretch.',
+      'Explode upward onto big toes and hold peak squeeze.'
+    ]
+  },
+  {
+    name: 'Leg Press Calf Press',
+    category: 'Calves',
+    muscleGroup: 'Calves (Gastrocnemius)',
+    targetAnatomy: 'Gastrocnemius (Heavy Machine Overload)',
+    synergists: 'Soleus',
+    movementPlane: 'Incline Machine Plantarflexion',
+    cues: [
+      'Place balls of feet on lower edge of leg press carriage with knees soft.',
+      'Let carriage sink back for deep calf stretch.',
+      'Press sled forward using calf extension only; never lock knees.'
+    ]
+  },
+  {
+    name: 'Hanging Leg Raise',
+    category: 'Core',
+    muscleGroup: 'Abs (Lower Rectus)',
+    targetAnatomy: 'Rectus Abdominis (Lower & Mid Fibers)',
+    synergists: 'Iliopsoas, Obliques, Forearm Grip',
+    movementPlane: 'Straight-Leg Hanging Pelvic Tilt',
+    cues: [
+      'Hang from bar with straight legs.',
+      'Raise straight legs until parallel to floor or higher.',
+      'Control descent slowly without swinging.'
+    ]
+  },
+  {
+    name: 'Cable Crunch',
+    category: 'Core',
+    muscleGroup: 'Abs (Upper & Mid)',
+    targetAnatomy: 'Rectus Abdominis (Upper Fibers & Thickness)',
+    synergists: 'Obliques',
+    movementPlane: 'Kneeling Loaded Spinal Flexion',
+    cues: [
+      'Kneel holding rope attachment next to ears.',
+      'Crunch down, curling elbows toward knees by flexing spine.',
+      'Do not sit back on heels; keep hips high and stationary.'
+    ]
+  },
+  {
+    name: 'Side Plank',
+    category: 'Core',
+    muscleGroup: 'Core (Obliques)',
+    targetAnatomy: 'Internal & External Obliques, Quadratus Lumborum',
+    synergists: 'Gluteus Medius, Deltoids',
+    movementPlane: 'Isometric Lateral Anti-Lateral Flexion',
+    cues: [
+      'Lie on side, propping upper body on elbow directly below shoulder.',
+      'Lift hips until body forms a straight line from ankles to shoulders.',
+      'Hold position, engaging lower obliques and glutes.'
+    ]
+  },
+  {
+    name: 'Cable Woodchoppers',
+    category: 'Core',
+    muscleGroup: 'Core (Rotational Power)',
+    targetAnatomy: 'Internal & External Obliques & Transverse Abdominis',
+    synergists: 'Deltoids, Glutes',
+    movementPlane: 'High-to-Low or Low-to-High Diagonal Rotation',
+    cues: [
+      'Grip cable handle with both hands, arms extended.',
+      'Rotate torso across body, pivoting on rear foot.',
+      'Control the return against cable resistance.'
+    ]
+  },
+  {
+    name: 'Bird Dog',
+    category: 'Core',
+    muscleGroup: 'Core (Posterior Prehab)',
+    targetAnatomy: 'Erector Spinae, Multifidus & Gluteus Maximus',
+    synergists: 'Shoulder Stabilizers, Hamstrings',
+    movementPlane: 'Quadruped Cross-Body Extension',
+    cues: [
+      'Start on hands and knees with neutral spine.',
+      'Extend right arm forward and left leg backward simultaneously.',
+      'Hold 2 seconds, maintaining level hips without arching lower back.'
+    ]
+  },
+  {
+    name: 'Dead Bug',
+    category: 'Core',
+    muscleGroup: 'Core (Deep Transverse)',
+    targetAnatomy: 'Transverse Abdominis & Pelvic Floor Stabilizers',
+    synergists: 'Rectus Abdominis, Hip Flexors',
+    movementPlane: 'Supine Anti-Extension Cross-Body Pattern',
+    cues: [
+      'Lie on back with knees at 90 degrees and arms pointing to ceiling.',
+      'Flatten lower back firmly against floor.',
+      'Lower opposite arm and leg slowly toward floor without letting lower back lift.'
+    ]
+  },
+  {
+    name: 'Mountain Climbers',
+    category: 'Core',
+    muscleGroup: 'Core & Conditioning',
+    targetAnatomy: 'Rectus Abdominis, Hip Flexors & Cardiovascular Density',
+    synergists: 'Anterior Deltoids, Quadriceps, Calves',
+    movementPlane: 'Dynamic Alternating Prone Knee Drives',
+    cues: [
+      'Start in high push-up plank position.',
+      'Drive one knee toward chest, then quickly switch legs.',
+      'Maintain flat hips and tight core bracing throughout.'
+    ]
   }
 ];
 
@@ -596,19 +1488,19 @@ const WORKOUT_SPLITS = [
 
 // ===== SPLIT CATEGORY METADATA =====
 const SPLIT_CATEGORIES = {
-  'Push Day (PPL)':             { color: '#F59E0B', label: 'Push / Pull / Legs' },
+  'Push Day (PPL)':             { color: 'var(--brand-primary-light)', label: 'Push / Pull / Legs' },
   'Pull Day (PPL)':             { color: '#38BDF8', label: 'Push / Pull / Legs' },
   'Legs Day (PPL)':             { color: '#10B981', label: 'Push / Pull / Legs' },
-  'Arnold Split (Chest & Back)':   { color: '#C4B5FD', label: 'Arnold Split' },
-  'Arnold Split (Shoulders & Arms)':{ color: '#C4B5FD', label: 'Arnold Split' },
-  'Arnold Split (Legs & Lower)':   { color: '#C4B5FD', label: 'Arnold Split' },
+  'Arnold Split (Chest & Back)':   { color: '#818CF8', label: 'Arnold Split' },
+  'Arnold Split (Shoulders & Arms)':{ color: '#818CF8', label: 'Arnold Split' },
+  'Arnold Split (Legs & Lower)':   { color: '#10B981', label: 'Arnold Split' },
   'Upper Body A':               { color: '#818CF8', label: 'Upper / Lower' },
   'Upper Body B':               { color: '#818CF8', label: 'Upper / Lower' },
-  'Lower Body A':               { color: '#34D399', label: 'Upper / Lower' },
-  'Lower Body B':               { color: '#34D399', label: 'Upper / Lower' },
-  'Torso Hypertrophy':          { color: '#F472B6', label: 'Hypertrophy Split' },
-  'Limbs Hypertrophy':          { color: '#F472B6', label: 'Hypertrophy Split' },
-  'Arms & Core Focus':          { color: '#FCD34D', label: 'Accessory & Core' },
+  'Lower Body A':               { color: '#10B981', label: 'Upper / Lower' },
+  'Lower Body B':               { color: '#10B981', label: 'Upper / Lower' },
+  'Torso Hypertrophy':          { color: '#FB923C', label: 'Hypertrophy Split' },
+  'Limbs Hypertrophy':          { color: '#FB923C', label: 'Hypertrophy Split' },
+  'Arms & Core Focus':          { color: 'var(--brand-primary-light)', label: 'Accessory & Core' },
   'Powerlifting Squat Day':     { color: '#F87171', label: 'Powerlifting' },
   'Powerlifting Bench Day':     { color: '#F87171', label: 'Powerlifting' },
   'Powerlifting Deadlift Day':  { color: '#F87171', label: 'Powerlifting' },
@@ -616,13 +1508,6 @@ const SPLIT_CATEGORIES = {
 };
 
 const ROUTINE_SPLITS = WORKOUT_SPLITS;
-
-const TIER_COLORS = {
-  1: '#F59E0B',
-  2: '#818CF8',
-  3: '#10B981',
-  4: '#F472B6'
-};
 
 const PR_PATTERNS = [
   { key: 'squat', label: 'Squat (1RM)' },
@@ -634,21 +1519,77 @@ const PR_PATTERNS = [
 const MOTIVATIONAL_PR_QUOTES = [
   "Unstoppable! Every single kilo is proof of your hard work and discipline.",
   "New strength unlocked! You're operating on a whole new level today.",
-  "Monumental lift! Progressive overload is turning you into a powerhouse.",
   "Crushed it! Champions are built one personal record at a time.",
   "Pure power! That weight didn't stand a chance.",
   "Look at that progress! Your consistency is truly paying off."
 ];
 
+function formatCleanAnatomy(text) {
+  if (!text) return 'Full Body';
+  return text
+    .replace(/Pectoralis Major \(Clavicular Head · Upper Chest\)/gi, 'Upper Chest')
+    .replace(/Pectoralis Major \(Sternal & Mid-Costal Head · Mid Chest\)/gi, 'Mid Chest')
+    .replace(/Pectoralis Major \(Sternal Fibers · Mid Chest\)/gi, 'Mid Chest')
+    .replace(/Pectoralis Major/gi, 'Chest')
+    .replace(/Quadriceps \(Rectus Femoris, Vastus Lateralis\/Medialis\) & Gluteus Maximus/gi, 'Front Thighs (Quads) & Glutes')
+    .replace(/Quadriceps \(Rectus Femoris, Vastus Lateralis\/Medialis\)/gi, 'Front Thighs (Quads)')
+    .replace(/Quadriceps/gi, 'Quads')
+    .replace(/Latissimus Dorsi/gi, 'Lats (Back)')
+    .replace(/Trapezius/gi, 'Upper Back & Traps')
+    .replace(/Posterior Chain \(Erector Spinae, Gluteus Maximus, Hamstrings\)/gi, 'Lower Back, Glutes & Hamstrings')
+    .replace(/Posterior Chain/gi, 'Glutes & Hamstrings')
+    .replace(/Biceps Femoris/gi, 'Hamstrings')
+    .replace(/Gluteus Maximus/gi, 'Glutes')
+    .replace(/Anterior Deltoids/gi, 'Front Shoulders')
+    .replace(/Lateral Deltoids/gi, 'Side Shoulders')
+    .replace(/Posterior Deltoids/gi, 'Rear Shoulders')
+    .replace(/Triceps Brachii/gi, 'Triceps')
+    .replace(/Biceps Brachii/gi, 'Biceps')
+    .replace(/Transverse Abdominis/gi, 'Abs & Core')
+    .replace(/Gastrocnemius/gi, 'Calves')
+    .replace(/Soleus/gi, 'Calves')
+    .replace(/[·•]/g, '·')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function formatCleanSplitName(name) {
+  if (!name) return 'Muscle Building Plan';
+  let cleaned = name.replace(/\(Variant\s+[A-Z]\)/gi, '').trim();
+  if (cleaned.includes('Chest-Triceps') || cleaned.includes('Back-Biceps') || cleaned.includes('Shoulders-Abs')) {
+    return '5-Day Body-Part Split';
+  }
+  if (cleaned.includes('Push / Pull / Legs') || cleaned.includes('PPL')) {
+    return 'Push / Pull / Legs Routine';
+  }
+  if (cleaned.includes('Upper / Lower') || cleaned.includes('Upper Body')) {
+    return 'Upper / Lower Split';
+  }
+  if (cleaned.includes('Full Body')) {
+    return 'Full Body Routine';
+  }
+  return cleaned;
+}
+
 export default function ExerciseTracker({ user, setCurrentPage, onSessionStateChange }) {
   // Navigation & View Modes
   const [isConsoleMode, setIsConsoleMode] = useState(false);
+  const [isSessionActive, setIsSessionActive] = useState(false);
   const [programView, setProgramView] = useState('hub'); // 'hub' | 'program'
   const [activeTab, setActiveTab] = useState('console'); // 'console' | 'heatmap' | 'prs' | 'history'
+
+  // Responsive Viewport Breakpoint Detection (Stop rendering desktop tables on mobile)
+  const [isMobileViewport, setIsMobileViewport] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth <= 768;
+    }
+    return false;
+  });
 
   // Data persistence
   const [workoutHistory, setWorkoutHistory] = useState([]);
   const [generatedProgram, setGeneratedProgram] = useState(null);
+  const [selectedPrLift, setSelectedPrLift] = useState('bench');
 
   // Active workout console states
   const [workoutName, setWorkoutName] = useState('Push Day');
@@ -656,6 +1597,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
   const [currentExIndex, setCurrentExIndex] = useState(0);
   const [activeDrawer, setActiveDrawer] = useState(null); // null | 'anatomy' | 'warmup' | 'plates' | 'cues' | 'swap'
   const [openRpePicker, setOpenRpePicker] = useState(null); // { exIdx, setIdx }
+  const [showConsoleOverflow, setShowConsoleOverflow] = useState(false);
 
   // Rest Timer States
   const [restRemaining, setRestRemaining] = useState(0);
@@ -665,6 +1607,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
   // Active Duration Timer
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const elapsedTimerRef = useRef(null);
+  const carouselTrackRef = useRef(null);
 
   // Streak & Shield
   const [streak, setStreak] = useState(0);
@@ -690,18 +1633,24 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
   // Program Mesocycle Viewer States
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [selectedDay, setSelectedDay] = useState(0);
+  const [weekDropdownOpen, setWeekDropdownOpen] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState(null);
 
   const [showExerciseSearchModal, setShowExerciseSearchModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMuscleFilter, setSelectedMuscleFilter] = useState('all');
 
+  // Smart Trainer & Exercise Switcher States
+  const [smartAltTarget, setSmartAltTarget] = useState(null); // { ex, weekIdx, dayIdx, exIdx, isConsole }
+  const [smartAltSearch, setSmartAltSearch] = useState('');
+  const [variantSeed, setVariantSeed] = useState(0);
+
   const activeUserId = user?.id || 'demo';
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   // Body scroll lock effect whenever any modal is open
   useEffect(() => {
-    if (showIntakeModal || showCancelConfirm || completedSummary || previewTemplate || prCelebration || showExerciseSearchModal) {
+    if (showIntakeModal || showCancelConfirm || completedSummary || previewTemplate || prCelebration || showExerciseSearchModal || smartAltTarget) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -709,7 +1658,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
     return () => {
       document.body.style.overflow = '';
     };
-  }, [showIntakeModal, showCancelConfirm, completedSummary, previewTemplate, prCelebration, showExerciseSearchModal]);
+  }, [showIntakeModal, showCancelConfirm, completedSummary, previewTemplate, prCelebration, showExerciseSearchModal, smartAltTarget]);
 
   // Close RPE picker on outside click
   useEffect(() => {
@@ -717,6 +1666,26 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
     window.addEventListener('click', handleGlobalClick);
     return () => window.removeEventListener('click', handleGlobalClick);
   }, []);
+
+  // Update viewport mode dynamically on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileViewport(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Auto-scroll active exercise chip into view in mobile carousel
+  useEffect(() => {
+    if (carouselTrackRef.current && carouselTrackRef.current.children[currentExIndex]) {
+      carouselTrackRef.current.children[currentExIndex].scrollIntoView({
+        behavior: 'smooth',
+        inline: 'center',
+        block: 'nearest'
+      });
+    }
+  }, [currentExIndex]);
 
   // Load training profile, generated program, active session, and history on mount
   useEffect(() => {
@@ -760,12 +1729,13 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
     if (savedActive) {
       try {
         const parsed = JSON.parse(savedActive);
-        if (parsed && parsed.isConsoleMode && parsed.activeExercises?.length && (Date.now() - (parsed.timestamp || 0) < 6 * 3600 * 1000)) {
+        if (parsed && (parsed.isSessionActive || parsed.isConsoleMode) && parsed.activeExercises?.length && (Date.now() - (parsed.timestamp || 0) < 6 * 3600 * 1000)) {
           setWorkoutName(parsed.workoutName || 'Push Day');
           setActiveExercises(parsed.activeExercises);
           setCurrentExIndex(parsed.currentExIndex || 0);
           setElapsedSeconds(parsed.elapsedSeconds || 0);
-          setIsConsoleMode(true);
+          setIsSessionActive(true);
+          setIsConsoleMode(parsed.isConsoleMode !== undefined ? parsed.isConsoleMode : true);
         }
       } catch (e) {}
     }
@@ -773,9 +1743,10 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
 
   // Auto-persist active workout session on any state change
   useEffect(() => {
-    if (isConsoleMode && activeExercises.length > 0) {
+    if (isSessionActive && activeExercises.length > 0) {
       const payload = {
-        isConsoleMode: true,
+        isSessionActive: true,
+        isConsoleMode,
         workoutName,
         activeExercises,
         currentExIndex,
@@ -783,21 +1754,40 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
         timestamp: Date.now()
       };
       localStorage.setItem(`nutribuddy_active_workout_${activeUserId}`, JSON.stringify(payload));
-    } else if (!isConsoleMode) {
+    } else if (!isSessionActive) {
       localStorage.removeItem(`nutribuddy_active_workout_${activeUserId}`);
     }
-  }, [isConsoleMode, workoutName, activeExercises, currentExIndex, elapsedSeconds, activeUserId]);
+  }, [isSessionActive, isConsoleMode, workoutName, activeExercises, currentExIndex, elapsedSeconds, activeUserId]);
 
-  // Notify parent of session state changes
+  // Notify parent of session state changes with full telemetry
   useEffect(() => {
     if (onSessionStateChange) {
-      onSessionStateChange(isConsoleMode);
+      if (isSessionActive) {
+        onSessionStateChange({
+          isSessionActive: true,
+          isInsideConsole: isConsoleMode,
+          workoutName,
+          elapsedSeconds,
+          restActive,
+          restRemaining,
+          currentExerciseName: activeExercises[currentExIndex]?.name || '',
+          completedSets: activeExercises.reduce((acc, ex) => acc + (ex.sets || []).filter(s => s.completed).length, 0),
+          totalSets: activeExercises.reduce((acc, ex) => acc + (ex.sets || []).length, 0),
+          onResume: () => {
+            setIsConsoleMode(true);
+            setProgramView('hub');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        });
+      } else {
+        onSessionStateChange(null);
+      }
     }
-  }, [isConsoleMode, onSessionStateChange]);
+  }, [isSessionActive, isConsoleMode, workoutName, elapsedSeconds, restActive, restRemaining, activeExercises, currentExIndex, onSessionStateChange]);
 
-  // Elapsed Timer for active console
+  // Elapsed Timer for active workout (continues running even if minimized)
   useEffect(() => {
-    if (isConsoleMode) {
+    if (isSessionActive) {
       elapsedTimerRef.current = setInterval(() => {
         setElapsedSeconds(prev => prev + 1);
       }, 1000);
@@ -806,7 +1796,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
       setElapsedSeconds(0);
     }
     return () => clearInterval(elapsedTimerRef.current);
-  }, [isConsoleMode]);
+  }, [isSessionActive]);
 
   // Rest Countdown Timer
   useEffect(() => {
@@ -892,6 +1882,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
     setActiveExercises(exercises);
     setCurrentExIndex(0);
     setActiveDrawer(null);
+    setIsSessionActive(true);
     setIsConsoleMode(true);
     scrollToTop();
   };
@@ -924,6 +1915,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
     setActiveExercises(exercises);
     setCurrentExIndex(0);
     setActiveDrawer(null);
+    setIsSessionActive(true);
     setIsConsoleMode(true);
     scrollToTop();
   };
@@ -1031,19 +2023,6 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
     setActiveExercises(updated);
   };
 
-  const handleSwapExercise = (newExName) => {
-    const dbEntry = PRESET_EXERCISES.find(p => p.name === newExName);
-    if (!dbEntry || !activeExercises[currentExIndex]) return;
-    const currentEx = activeExercises[currentExIndex];
-    const updated = [...activeExercises];
-    updated[currentExIndex] = {
-      ...dbEntry,
-      sets: createInitialSets(dbEntry.name)
-    };
-    setActiveExercises(updated);
-    setActiveDrawer(null);
-    showNotification('success', `Swapped ${currentEx.name} for ${newExName}!`);
-  };
 
   const handleFinishWorkout = () => {
     const completedSets = activeExercises.flatMap(ex => ex.sets || []).filter(s => s.completed);
@@ -1096,6 +2075,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
       newPrs: newPrsDetected
     });
 
+    setIsSessionActive(false);
     setIsConsoleMode(false);
     showNotification('success', `Workout completed! ${totalSetsCount} sets logged (${Math.round(totalVolume)} kg total volume).`);
   };
@@ -1117,26 +2097,131 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
     });
   };
 
-  const handleGenerateProgram = () => {
+  const handleGenerateProgram = (seed = 0) => {
+    const safeSeed = typeof seed === 'number' ? seed : (parseInt(seed, 10) || 0);
     try {
       const program = generateProgram({
         gender: user?.gender || 'male',
+        age: user?.age || 25,
+        profession: user?.profession || '',
         gymDays: user?.gymDays || 4,
-        trainingExperience: intakeForm.trainingExperience || 'beginner',
-        trainingGoal: intakeForm.trainingGoal || 'hypertrophy',
-        equipment: intakeForm.equipment || 'full_gym',
-        injuries: intakeForm.trainingInjuries || [],
-        sessionTime: intakeForm.sessionTime || 60,
-      }, PRESET_EXERCISES);
+        trainingExperience: intakeForm.trainingExperience || user?.trainingExperience || 'beginner',
+        trainingGoal: intakeForm.trainingGoal || user?.trainingGoal || 'hypertrophy',
+        equipment: intakeForm.equipment || user?.equipment || 'full_gym',
+        injuries: intakeForm.trainingInjuries || user?.trainingInjuries || [],
+        sessionTime: intakeForm.sessionTime || user?.sessionTime || 60,
+      }, PRESET_EXERCISES, safeSeed);
+
       setGeneratedProgram(program);
       localStorage.setItem(`nutribuddy_program_${activeUserId}`, JSON.stringify(program));
       setShowIntakeModal(false);
       setProgramView('program');
-      showNotification('success', 'Personalized 4-week mesocycle generated successfully!');
+      showNotification('success', `Personalized 4-week training mesocycle generated successfully (${program.trainerMatchScore?.overallScore || 98}% match)!`);
     } catch (e) {
       console.error('Error generating program:', e);
       showNotification('error', 'Could not generate program. Please try again.');
     }
+  };
+
+  const handleRegenerateProgram = () => {
+    const nextSeed = (variantSeed || 0) + 1;
+    setVariantSeed(nextSeed);
+    handleGenerateProgram(nextSeed);
+  };
+
+  const handleSwitchExercise = (newEx, overrideTarget = null) => {
+    const targetCtx = overrideTarget || smartAltTarget;
+    if (!newEx) return;
+
+    // Handle Active Workout Console Switch
+    if (isConsoleMode || targetCtx?.isConsole) {
+      const dbEntry = PRESET_EXERCISES.find(p => p.name === newEx.name) || newEx;
+      setActiveExercises(prev => {
+        const updated = [...prev];
+        const curr = updated[currentExIndex];
+        if (curr) {
+          const oldName = curr.name;
+          const numSets = (curr.sets && curr.sets.length > 0) ? curr.sets.length : 3;
+          const newSets = [];
+          for (let i = 0; i < numSets; i++) {
+            const lastLog = retrieveLastLogForExercise(dbEntry.name, i);
+            const prevSet = curr.sets && curr.sets[i];
+            newSets.push({
+              id: i + 1,
+              weight: prevSet?.weight || lastLog?.weight || '',
+              reps: prevSet?.reps || lastLog?.reps || '',
+              rpe: prevSet?.rpe || '8',
+              completed: prevSet?.completed || false,
+              isWarmup: prevSet?.isWarmup || false,
+              notes: prevSet?.notes || ''
+            });
+          }
+
+          updated[currentExIndex] = {
+            ...dbEntry,
+            category: dbEntry.category || curr.category,
+            muscleGroup: dbEntry.muscleGroup || curr.muscleGroup,
+            targetAnatomy: dbEntry.targetAnatomy || curr.targetAnatomy,
+            synergists: dbEntry.synergists || curr.synergists,
+            movementPlane: dbEntry.movementPlane || curr.movementPlane,
+            cues: dbEntry.cues || curr.cues || [],
+            sets: newSets
+          };
+          showNotification('success', `Swapped ${oldName} → ${dbEntry.name}!`);
+        }
+        return updated;
+      });
+      setActiveDrawer(null);
+      setSmartAltTarget(null);
+      setSmartAltSearch('');
+      return;
+    }
+
+    // Handle 4-Week Mesocycle Program Switch
+    if (generatedProgram && targetCtx?.ex) {
+      const oldName = targetCtx.ex.name;
+      const dbEntry = PRESET_EXERCISES.find(p => p.name === newEx.name) || newEx;
+
+      const updatedWeeks = generatedProgram.weeks.map((wk, wI) => {
+        const updatedDays = (wk.days || []).map((dy, dI) => {
+          const updatedExs = (dy.exercises || []).map((e, eI) => {
+            // Swap if name matches or exact slot matches
+            const isMatch = e.name === oldName || (wI === targetCtx.weekIdx && dI === targetCtx.dayIdx && eI === targetCtx.exIdx);
+            if (isMatch) {
+              return {
+                ...e,
+                ...dbEntry,
+                name: dbEntry.name,
+                category: dbEntry.category || e.category,
+                muscleGroup: dbEntry.muscleGroup || e.muscleGroup,
+                targetAnatomy: dbEntry.targetAnatomy || e.targetAnatomy,
+                cues: dbEntry.cues || e.cues || [],
+                tier: e.tier || 2,
+                sets: e.sets || 3,
+                repRange: e.repRange || '8-12',
+                rpeTarget: e.rpeTarget || 8,
+                restSec: e.restSec || 90
+              };
+            }
+            return e;
+          });
+          return { ...dy, exercises: updatedExs };
+        });
+        return { ...wk, days: updatedDays };
+      });
+
+      const updatedProgram = {
+        ...generatedProgram,
+        weeks: updatedWeeks
+      };
+
+      setGeneratedProgram(updatedProgram);
+      localStorage.setItem(`nutribuddy_program_${activeUserId}`, JSON.stringify(updatedProgram));
+      showNotification('success', `Swapped ${oldName} → ${dbEntry.name} across your training schedule!`);
+    }
+
+    setSmartAltTarget(null);
+    setSmartAltSearch('');
   };
 
   const checkIfWeightIsPR = (exName, weight) => {
@@ -1249,7 +2334,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
   };
 
   return (
-    <div style={{ maxWidth: 1160, margin: '0 auto', padding: '16px 20px', fontFamily: 'var(--font-body)', position: 'relative' }}>
+    <div className="exercise-tracker-page-container" style={{ maxWidth: 1200, margin: '0 auto', fontFamily: 'var(--font-body)', position: 'relative', width: '100%', boxSizing: 'border-box' }}>
       
       {/* Toast Notification Banner */}
       {notification && (
@@ -1295,13 +2380,13 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                 <X size={14} />
               </button>
 
-              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--brand-primary, #F59E0B)', letterSpacing: '0.12em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Sparkles size={13} /> CERTIFIED EXERCISE DATABASE
               </span>
               <h2 style={{ fontSize: 20, fontWeight: 800, margin: '4px 0 2px', color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
                 Search & Add Exercise
               </h2>
-              <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0 }}>
+              <p style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: 0 }}>
                 Filter 80+ certified movements by muscle group and anatomical target
               </p>
 
@@ -1334,15 +2419,16 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                     key={m}
                     onClick={() => setSelectedMuscleFilter(m)}
                     style={{
-                      padding: '4px 10px',
-                      borderRadius: 14,
-                      fontSize: 11,
+                      padding: '4px 12px',
+                      borderRadius: 'var(--radius-pill)',
+                      fontSize: 11.5,
                       fontWeight: 700,
                       cursor: 'pointer',
-                      border: selectedMuscleFilter === m ? '1.5px solid var(--brand-primary, #F59E0B)' : '1px solid var(--border-subtle)',
-                      background: selectedMuscleFilter === m ? 'rgba(245,158,11,0.14)' : 'var(--bg-surface-raised)',
-                      color: selectedMuscleFilter === m ? 'var(--brand-primary, #F59E0B)' : 'var(--text-muted)',
-                      whiteSpace: 'nowrap'
+                      border: selectedMuscleFilter === m ? '1px solid var(--border-focus)' : '1px solid var(--border-subtle)',
+                      background: selectedMuscleFilter === m ? 'var(--brand-primary-subtle)' : 'var(--bg-surface-raised)',
+                      color: selectedMuscleFilter === m ? 'var(--brand-primary-light)' : 'var(--text-muted)',
+                      whiteSpace: 'nowrap',
+                      transition: 'all 0.15s ease'
                     }}
                   >
                     {m === 'all' ? 'All Muscles' : m}
@@ -1390,7 +2476,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                         padding: '14px 16px',
                         background: 'var(--bg-surface-raised)',
                         border: '1px solid var(--border-subtle)',
-                        borderRadius: 14,
+                        borderRadius: 'var(--radius-panel)',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
@@ -1399,15 +2485,15 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                     >
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                          <span style={{ fontSize: 14, fontWeight: 900, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
+                          <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
                             {ex.name}
                           </span>
-                          <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 6, background: 'rgba(245,158,11,0.12)', color: 'var(--brand-primary, #F59E0B)' }}>
+                          <span style={{ fontSize: 10.5, fontWeight: 800, padding: '2px 8px', borderRadius: 6, background: 'var(--brand-primary-subtle)', color: 'var(--brand-primary-light)' }}>
                             {ex.muscleGroup}
                           </span>
                         </div>
                         {ex.targetAnatomy && (
-                          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                          <div style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
                             Target: {ex.targetAnatomy}
                           </div>
                         )}
@@ -1422,26 +2508,188 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                           setShowExerciseSearchModal(false);
                           showNotification('success', `Added ${ex.name} to active session!`);
                         }}
+                        className={isAlreadyInSession ? "btn btn-secondary" : "btn btn-primary"}
                         style={{
-                          padding: '8px 16px',
-                          borderRadius: 10,
+                          padding: '7px 14px',
                           fontSize: 12,
                           fontWeight: 800,
-                          cursor: 'pointer',
-                          background: isAlreadyInSession ? 'var(--bg-surface)' : 'var(--brand-primary, #F59E0B)',
-                          color: isAlreadyInSession ? 'var(--text-muted)' : '#000',
-                          border: isAlreadyInSession ? '1px solid var(--border-subtle)' : 'none',
                           display: 'flex',
                           alignItems: 'center',
                           gap: 4
                         }}
                       >
-                        <Plus size={14} strokeWidth={3} /> {isAlreadyInSession ? 'Add Again' : 'Add to Session'}
+                        <Plus size={14} strokeWidth={2.5} /> {isAlreadyInSession ? 'Add Again' : 'Add to Session'}
                       </button>
                     </div>
                   );
                 });
               })()}
+            </div>
+
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* SMART ALTERNATIVES SWITCHER MODAL (via React Portal) */}
+      {smartAltTarget && createPortal(
+        <div className="app-modal-backdrop" onClick={() => { setSmartAltTarget(null); setSmartAltSearch(''); }}>
+          <div className="app-modal-dialog" style={{ maxWidth: 640 }} onClick={e => e.stopPropagation()}>
+            
+            {/* Modal Header */}
+            <div className="app-modal-header">
+              <button 
+                onClick={() => { setSmartAltTarget(null); setSmartAltSearch(''); }}
+                style={{
+                  position: 'absolute', top: 16, right: 16, background: 'var(--bg-surface-raised)',
+                  border: '1px solid var(--border-subtle)', borderRadius: '50%', width: 30, height: 30,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                  color: 'var(--text-secondary)'
+                }}
+              >
+                <X size={14} />
+              </button>
+
+              <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Sparkles size={13} /> SMART EXERCISE ALTERNATIVE ENGINE
+              </span>
+              <h2 style={{ fontSize: 19, fontWeight: 800, margin: '4px 0 2px', color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
+                Target-Matched Replacements for {smartAltTarget.ex?.name}
+              </h2>
+              <p style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: 0 }}>
+                {smartAltTarget.ex?.targetAnatomy 
+                  ? `Biomechanical matches targeting: ${smartAltTarget.ex.targetAnatomy}`
+                  : `Select a certified biomechanical replacement for ${smartAltTarget.ex?.name}`}
+              </p>
+
+              {/* Search Bar inside Modal */}
+              <div style={{ position: 'relative', marginTop: 12 }}>
+                <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <input
+                  type="text"
+                  placeholder="Filter alternatives by name, equipment, or muscle..."
+                  value={smartAltSearch}
+                  onChange={e => setSmartAltSearch(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px 8px 34px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'var(--bg-input)',
+                    border: '1px solid var(--border-subtle)',
+                    color: 'var(--text-primary)',
+                    fontSize: 12,
+                    outline: 'none'
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Modal Body: Matching Exercise Cards */}
+            <div className="app-modal-body" style={{ maxHeight: '60vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, padding: 16 }}>
+              {(() => {
+                const baseAlts = getSmartAlternatives(
+                  smartAltTarget.ex?.name,
+                  PRESET_EXERCISES,
+                  user?.equipment || 'full_gym',
+                  user?.trainingInjuries || []
+                );
+
+                const q = smartAltSearch.trim().toLowerCase();
+                const filtered = baseAlts.filter(ex => {
+                  if (!q) return true;
+                  return (
+                    ex.name.toLowerCase().includes(q) ||
+                    (ex.muscleGroup || '').toLowerCase().includes(q) ||
+                    (ex.category || '').toLowerCase().includes(q) ||
+                    (ex.targetAnatomy || '').toLowerCase().includes(q)
+                  );
+                });
+
+                if (filtered.length === 0) {
+                  return (
+                    <div style={{ textAlign: 'center', padding: '36px 20px', color: 'var(--text-muted)' }}>
+                      <p style={{ margin: 0, fontSize: 13, fontWeight: 700 }}>No exact matches found for "{smartAltSearch}".</p>
+                      <p style={{ margin: '4px 0 0', fontSize: 11 }}>Try clearing the search or browse all exercises in the library.</p>
+                    </div>
+                  );
+                }
+
+                return filtered.map((altEx, aIdx) => (
+                  <div
+                    key={aIdx}
+                    style={{
+                      background: 'var(--bg-surface-raised)',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: 'var(--radius-panel)',
+                      padding: 14,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: 12,
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
+                          {altEx.name}
+                        </span>
+                        <span style={{ fontSize: 10.5, fontWeight: 800, padding: '2px 8px', borderRadius: 6, background: 'var(--brand-primary-subtle)', color: 'var(--brand-primary-light)' }}>
+                          {altEx.muscleGroup}
+                        </span>
+                        {altEx.movementPlane && (
+                          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)' }}>
+                            • {altEx.movementPlane}
+                          </span>
+                        )}
+                      </div>
+                      {altEx.targetAnatomy && (
+                        <div style={{ fontSize: 11.5, color: 'var(--brand-primary-light)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
+                          <Target size={12} /> Target: {formatCleanAnatomy(altEx.targetAnatomy)}
+                        </div>
+                      )}
+                      {altEx.cues && altEx.cues.length > 0 && (
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: 5 }}>
+                          <Info size={11} /> Cue: {altEx.cues[0]}
+                        </div>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleSwitchExercise(altEx)}
+                      className="btn btn-primary"
+                      style={{
+                        padding: '8px 16px',
+                        fontSize: 12,
+                        fontWeight: 800,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        flexShrink: 0,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <Check size={13} strokeWidth={2.5} /> Switch Exercise
+                    </button>
+                  </div>
+                ));
+              })()}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="app-modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                Target muscle activation and total mesocycle volume are preserved.
+              </span>
+              <button
+                type="button"
+                onClick={() => { setSmartAltTarget(null); setSmartAltSearch(''); }}
+                className="btn btn-secondary"
+                style={{ padding: '7px 16px', borderRadius: 8, fontSize: 11, fontWeight: 700 }}
+              >
+                Cancel
+              </button>
             </div>
 
           </div>
@@ -1468,7 +2716,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                 <X size={14} />
               </button>
 
-              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--brand-primary, #F59E0B)', letterSpacing: '0.12em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--brand-primary-light)', letterSpacing: '0.12em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Sparkles size={13} /> PERSONALIZED PROGRAM BUILDER
               </span>
               <h2 style={{ fontSize: 20, fontWeight: 800, margin: '4px 0 2px', color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
@@ -1486,7 +2734,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                   <div key={step} style={{
                     height: 3,
                     borderRadius: 2,
-                    background: intakeStep >= step ? 'var(--brand-primary, #F59E0B)' : 'var(--bg-surface-raised)',
+                    background: intakeStep >= step ? 'var(--brand-primary-light)' : 'var(--bg-surface-raised)',
                     transition: 'background 0.3s ease'
                   }} />
                 ))}
@@ -1516,13 +2764,13 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                           style={{
                             padding: 12,
                             borderRadius: 12,
-                            background: active ? 'rgba(245, 158, 11, 0.08)' : 'var(--bg-surface-raised)',
-                            border: `1.5px solid ${active ? 'var(--brand-primary, #F59E0B)' : 'var(--border-subtle)'}`,
+                            background: active ? 'var(--brand-primary-subtle)' : 'var(--bg-surface-raised)',
+                            border: `1.5px solid ${active ? 'var(--brand-primary-light)' : 'var(--border-subtle)'}`,
                             cursor: 'pointer',
                             transition: 'all 0.2s ease'
                           }}
                         >
-                          <h4 style={{ margin: '0 0 2px', fontSize: 12, fontWeight: 800, color: active ? 'var(--brand-primary, #F59E0B)' : 'var(--text-primary)' }}>{opt.label}</h4>
+                          <h4 style={{ margin: '0 0 2px', fontSize: 12, fontWeight: 800, color: active ? 'var(--brand-primary-light)' : 'var(--text-primary)' }}>{opt.label}</h4>
                           <p style={{ margin: 0, fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.3 }}>{opt.desc}</p>
                         </div>
                       );
@@ -1582,21 +2830,21 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                           style={{
                             padding: 12,
                             borderRadius: 12,
-                            background: active ? 'rgba(245, 158, 11, 0.08)' : 'var(--bg-surface-raised)',
-                            border: `1.5px solid ${active ? 'var(--brand-primary, #F59E0B)' : 'var(--border-subtle)'}`,
+                            background: active ? 'var(--brand-primary-subtle)' : 'var(--bg-surface-raised)',
+                            border: `1.5px solid ${active ? 'var(--brand-primary-light)' : 'var(--border-subtle)'}`,
                             cursor: 'pointer',
                             textAlign: 'center',
                             transition: 'all 0.2s ease'
                           }}
                         >
-                          <h4 style={{ margin: '0 0 2px', fontSize: 12, fontWeight: 800, color: active ? 'var(--brand-primary, #F59E0B)' : 'var(--text-primary)' }}>{opt.label}</h4>
+                          <h4 style={{ margin: '0 0 2px', fontSize: 12, fontWeight: 800, color: active ? 'var(--brand-primary-light)' : 'var(--text-primary)' }}>{opt.label}</h4>
                           <p style={{ margin: 0, fontSize: 10, color: 'var(--text-muted)' }}>{opt.desc}</p>
                         </div>
                       );
                     })}
                   </div>
                   <div style={{ padding: 10, background: 'rgba(255,255,255,0.03)', borderRadius: 10, border: '1px solid var(--border-subtle)', fontSize: 11, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Info size={13} color="var(--brand-primary, #F59E0B)" />
+                    <Info size={13} color="var(--brand-primary-light)" />
                     <span>Exercises automatically map to available gear without volume loss.</span>
                   </div>
                 </div>
@@ -1655,9 +2903,9 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                             flex: 1,
                             padding: '8px 4px',
                             borderRadius: 8,
-                            background: active ? 'rgba(245, 158, 11, 0.12)' : 'var(--bg-surface-raised)',
-                            border: `1.5px solid ${active ? 'var(--brand-primary, #F59E0B)' : 'var(--border-subtle)'}`,
-                            color: active ? 'var(--brand-primary, #F59E0B)' : 'var(--text-secondary)',
+                            background: active ? 'var(--brand-primary-subtle)' : 'var(--bg-surface-raised)',
+                            border: `1.5px solid ${active ? 'var(--brand-primary-light)' : 'var(--border-subtle)'}`,
+                            color: active ? 'var(--brand-primary-light)' : 'var(--text-secondary)',
                             fontWeight: 800,
                             fontSize: 11,
                             cursor: 'pointer'
@@ -1694,9 +2942,9 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                 </button>
               ) : (
                 <button
-                  onClick={handleGenerateProgram}
+                  onClick={() => handleGenerateProgram(0)}
                   className="btn btn-primary"
-                  style={{ padding: '8px 20px', borderRadius: 10, fontWeight: 800, fontSize: 12, background: 'var(--brand-primary, #F59E0B)', color: '#000', display: 'flex', alignItems: 'center', gap: 6 }}
+                  style={{ padding: '8px 20px', borderRadius: 'var(--radius-sm)', fontWeight: 800, fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}
                 >
                   <Sparkles size={13} /> Build 4-Week Plan
                 </button>
@@ -1710,55 +2958,83 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
 
       {/* Completed Workout Summary Modal (via React Portal) */}
       {completedSummary && createPortal(
-        <div className="app-modal-backdrop">
-          <div className="app-modal-dialog" style={{ maxWidth: 420, textAlign: 'center' }}>
-            <div className="app-modal-body" style={{ padding: '28px 20px' }}>
-              <div style={{ width: 50, height: 50, borderRadius: '50%', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--brand-primary, #F59E0B)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-                <Award size={26} />
-              </div>
-              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--brand-primary, #F59E0B)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                SESSION COMPLETED
-              </span>
-              <h2 style={{ fontSize: 18, fontWeight: 900, margin: '4px 0 14px', color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
-                {completedSummary.name}
-              </h2>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 16 }}>
-                <div style={{ background: 'var(--bg-surface-raised)', padding: 10, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
-                  <span style={{ fontSize: 9, color: 'var(--text-muted)', display: 'block' }}>DURATION</span>
-                  <span style={{ fontSize: 14, fontWeight: 900, color: 'var(--text-primary)' }}>{formatMMSS(completedSummary.duration)}</span>
-                </div>
-                <div style={{ background: 'var(--bg-surface-raised)', padding: 10, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
-                  <span style={{ fontSize: 9, color: 'var(--text-muted)', display: 'block' }}>SETS</span>
-                  <span style={{ fontSize: 14, fontWeight: 900, color: 'var(--text-primary)' }}>{completedSummary.totalSets}</span>
-                </div>
-                <div style={{ background: 'var(--bg-surface-raised)', padding: 10, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
-                  <span style={{ fontSize: 9, color: 'var(--text-muted)', display: 'block' }}>VOLUME</span>
-                  <span style={{ fontSize: 14, fontWeight: 900, color: 'var(--brand-primary, #F59E0B)' }}>{Math.round(completedSummary.totalVolume)} kg</span>
-                </div>
-              </div>
-
-              {completedSummary.newPrs && completedSummary.newPrs.length > 0 && (
-                <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: 10, padding: 10, marginBottom: 16, textAlign: 'left' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, fontSize: 11, fontWeight: 900, color: 'var(--brand-primary, #F59E0B)' }}>
-                    <Trophy size={12} /> NEW PERSONAL RECORDS!
-                  </div>
-                  {completedSummary.newPrs.map((pr, i) => (
-                    <div key={i} style={{ fontSize: 11, color: 'var(--text-primary)', padding: '2px 0' }}>
-                      • <strong>{pr.exercise}</strong>: {pr.weight} kg × {pr.reps} reps
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <button
-                onClick={() => setCompletedSummary(null)}
-                className="btn btn-primary"
-                style={{ width: '100%', padding: '10px 0', borderRadius: 10, fontWeight: 800, fontSize: 12, background: 'var(--brand-primary, #F59E0B)', color: '#000' }}
-              >
-                Done & Save to Archive
-              </button>
+        <div
+          onClick={() => setCompletedSummary(null)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.8)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            zIndex: 999999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+            animation: 'fadeIn 0.2s ease'
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: 440,
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-modal)',
+              padding: '28px 24px',
+              textAlign: 'center',
+              boxShadow: 'var(--shadow-overlay)'
+            }}
+          >
+            <div style={{ width: 50, height: 50, borderRadius: '50%', background: 'var(--brand-primary-subtle)', color: 'var(--brand-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+              <Award size={26} />
             </div>
+            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              SESSION COMPLETED
+            </span>
+            <h2 style={{ fontSize: 19, fontWeight: 800, margin: '4px 0 16px', color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
+              {completedSummary.name}
+            </h2>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 16 }}>
+              <div style={{ background: 'var(--bg-surface-raised)', padding: 10, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                <span style={{ fontSize: 9.5, color: 'var(--text-muted)', display: 'block' }}>DURATION</span>
+                <span className="tabular-nums" style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-primary)' }}>{formatMMSS(completedSummary.duration)}</span>
+              </div>
+              <div style={{ background: 'var(--bg-surface-raised)', padding: 10, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                <span style={{ fontSize: 9.5, color: 'var(--text-muted)', display: 'block' }}>SETS</span>
+                <span className="tabular-nums" style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-primary)' }}>{completedSummary.totalSets}</span>
+              </div>
+              <div style={{ background: 'var(--bg-surface-raised)', padding: 10, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                <span style={{ fontSize: 9.5, color: 'var(--text-muted)', display: 'block' }}>VOLUME</span>
+                <span className="tabular-nums" style={{ fontSize: 14, fontWeight: 800, color: 'var(--brand-primary-light)' }}>{Math.round(completedSummary.totalVolume)} kg</span>
+              </div>
+            </div>
+
+            {completedSummary.newPrs && completedSummary.newPrs.length > 0 && (
+              <div style={{ background: 'var(--brand-primary-subtle)', border: '1px solid var(--border-focus)', borderRadius: 'var(--radius-panel)', padding: 12, marginBottom: 16, textAlign: 'left' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 11, fontWeight: 800, color: 'var(--brand-primary-light)' }}>
+                  <Trophy size={13} /> NEW PERSONAL RECORDS!
+                </div>
+                {completedSummary.newPrs.map((pr, i) => (
+                  <div key={i} className="tabular-nums" style={{ fontSize: 11.5, color: 'var(--text-primary)', padding: '2px 0' }}>
+                    • <strong>{pr.exercise}</strong>: {pr.weight} kg × {pr.reps} reps
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <button
+              onClick={() => setCompletedSummary(null)}
+              className="btn btn-primary"
+              style={{ width: '100%', padding: '11px 0', fontSize: 13, fontWeight: 800 }}
+            >
+              Done & Save to Archive
+            </button>
           </div>
         </div>,
         document.body
@@ -1766,19 +3042,37 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
 
       {/* Real-Time PR Celebration Modal (via React Portal) */}
       {prCelebration && createPortal(
-        <div className="app-modal-backdrop" onClick={() => setPrCelebration(null)}>
+        <div
+          onClick={() => setPrCelebration(null)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            zIndex: 999999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+            animation: 'fadeIn 0.2s ease'
+          }}
+        >
           <div className="pr-celebration-dialog" onClick={e => e.stopPropagation()} style={{ padding: '36px 28px' }}>
             
             {/* Confetti Particles */}
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none', overflow: 'hidden' }}>
               {[
-                { tx: '-120px', ty: '-160px', rot: '280deg', col: '#F59E0B', delay: '0ms' },
-                { tx: '130px', ty: '-170px', rot: '320deg', col: '#10B981', delay: '50ms' },
+                { tx: '-120px', ty: '-160px', rot: '280deg', col: '#10B981', delay: '0ms' },
+                { tx: '130px', ty: '-170px', rot: '320deg', col: '#059669', delay: '50ms' },
                 { tx: '-70px', ty: '-200px', rot: '180deg', col: '#818CF8', delay: '100ms' },
-                { tx: '80px', ty: '-190px', rot: '220deg', col: '#F472B6', delay: '120ms' },
-                { tx: '-150px', ty: '-90px', rot: '140deg', col: '#FCD34D', delay: '80ms' },
+                { tx: '80px', ty: '-190px', rot: '220deg', col: '#38BDF8', delay: '120ms' },
+                { tx: '-150px', ty: '-90px', rot: '140deg', col: '#34D399', delay: '80ms' },
                 { tx: '160px', ty: '-80px', rot: '260deg', col: '#38BDF8', delay: '40ms' },
-                { tx: '0px', ty: '-220px', rot: '360deg', col: '#F59E0B', delay: '150ms' },
+                { tx: '0px', ty: '-220px', rot: '360deg', col: '#10B981', delay: '150ms' },
               ].map((c, i) => (
                 <div
                   key={i}
@@ -1804,30 +3098,30 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
               width: 76,
               height: 76,
               borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(245, 158, 11, 0.25) 0%, rgba(245, 158, 11, 0.04) 70%)',
-              border: '2px solid rgba(245, 158, 11, 0.5)',
+              background: 'radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, rgba(16, 185, 129, 0.04) 70%)',
+              border: '2px solid rgba(16, 185, 129, 0.5)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 16px',
               animation: 'trophyFloat 3s ease-in-out infinite',
-              boxShadow: '0 0 30px rgba(245, 158, 11, 0.3)'
+              boxShadow: '0 0 30px rgba(16, 185, 129, 0.3)'
             }}>
-              <Trophy size={40} color="#F59E0B" />
+              <Trophy size={40} color="#10B981" />
             </div>
 
-            <span style={{ fontSize: 11, fontWeight: 900, color: 'var(--brand-primary, #F59E0B)', letterSpacing: '0.12em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-              <Flame size={14} fill="#F59E0B" /> NEW PERSONAL RECORD!
+            <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              <Flame size={14} fill="var(--brand-primary-light)" /> NEW PERSONAL RECORD!
             </span>
 
-            <h2 style={{ fontSize: 24, fontWeight: 900, color: '#ffffff', margin: '6px 0 2px', fontFamily: 'var(--font-heading)' }}>
+            <h2 style={{ fontSize: 24, fontWeight: 800, color: '#ffffff', margin: '6px 0 2px', fontFamily: 'var(--font-heading)' }}>
               {prCelebration.exercise}
             </h2>
 
-            <div style={{
+            <div className="tabular-nums" style={{
               fontSize: 32,
-              fontWeight: 900,
-              color: 'var(--brand-primary, #F59E0B)',
+              fontWeight: 800,
+              color: 'var(--brand-primary-light)',
               margin: '12px 0 6px',
               fontFamily: 'var(--font-heading)',
               letterSpacing: '-0.02em'
@@ -1837,11 +3131,11 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
 
             <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
               {prCelebration.delta && (
-                <span style={{ fontSize: 12, fontWeight: 800, background: 'rgba(16, 185, 129, 0.15)', color: '#10B981', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '4px 12px', borderRadius: 20 }}>
+                <span className="tabular-nums" style={{ fontSize: 12, fontWeight: 800, background: 'var(--brand-primary-subtle)', color: 'var(--brand-primary-light)', border: '1px solid var(--border-focus)', padding: '4px 12px', borderRadius: 20 }}>
                   +{prCelebration.delta} kg over previous best
                 </span>
               )}
-              <span style={{ fontSize: 12, fontWeight: 800, background: 'rgba(255,255,255,0.06)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)', padding: '4px 12px', borderRadius: 20 }}>
+              <span className="tabular-nums" style={{ fontSize: 12, fontWeight: 800, background: 'rgba(255,255,255,0.06)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)', padding: '4px 12px', borderRadius: 20 }}>
                 Est. 1RM: ~{prCelebration.est1RM} kg
               </span>
             </div>
@@ -1849,13 +3143,13 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
             {/* Motivational Quote Box */}
             <div style={{
               background: 'rgba(255, 255, 255, 0.03)',
-              border: '1px solid rgba(245, 158, 11, 0.2)',
-              borderRadius: 16,
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-panel)',
               padding: '14px 18px',
               marginBottom: 22,
               fontStyle: 'italic',
               fontSize: 13,
-              color: 'rgba(255, 255, 255, 0.9)',
+              color: 'var(--text-secondary)',
               lineHeight: 1.5
             }}>
               "{prCelebration.quote}"
@@ -1867,12 +3161,8 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
               style={{
                 width: '100%',
                 padding: '13px 0',
-                borderRadius: 14,
-                fontWeight: 900,
                 fontSize: 14,
-                background: 'var(--brand-primary, #F59E0B)',
-                color: '#000',
-                boxShadow: '0 4px 20px rgba(245, 158, 11, 0.35)'
+                fontWeight: 800
               }}
             >
               Keep Crushing It →
@@ -1884,32 +3174,100 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
 
       {/* Discard Workout Confirmation Modal (via React Portal) */}
       {showCancelConfirm && createPortal(
-        <div className="app-modal-backdrop" onClick={() => setShowCancelConfirm(false)}>
-          <div className="app-modal-dialog" style={{ maxWidth: 340, textAlign: 'center' }} onClick={e => e.stopPropagation()}>
-            <div className="app-modal-body" style={{ padding: '24px 20px' }}>
-              <h3 style={{ fontSize: 16, fontWeight: 800, margin: '0 0 6px', color: 'var(--text-primary)' }}>Discard Active Session?</h3>
-              <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '0 0 16px', lineHeight: 1.4 }}>
-                Current set progress and timer will be cancelled.
+        <div
+          onClick={() => setShowCancelConfirm(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.82)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            zIndex: 999999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+            animation: 'fadeIn 0.15s ease'
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: 380,
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-modal)',
+              padding: '26px 22px',
+              textAlign: 'center',
+              boxShadow: 'var(--shadow-overlay)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 12
+            }}
+          >
+            <div style={{
+              width: 48,
+              height: 48,
+              borderRadius: '50%',
+              background: 'rgba(239, 68, 68, 0.12)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              color: '#EF4444',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <Trash2 size={22} />
+            </div>
+
+            <div>
+              <h3 style={{ fontSize: 17, fontWeight: 900, margin: '0 0 6px', color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
+                Discard Active Workout?
+              </h3>
+              <p style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: 0, lineHeight: 1.45 }}>
+                Current set progress and elapsed timer will be cancelled and permanently discarded.
               </p>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button
-                  onClick={() => setShowCancelConfirm(false)}
-                  className="btn btn-secondary"
-                  style={{ flex: 1, padding: '8px 0', borderRadius: 8, fontWeight: 700, fontSize: 11 }}
-                >
-                  Keep Lifting
-                </button>
-                <button
-                  onClick={() => {
-                    setIsConsoleMode(false);
-                    setShowCancelConfirm(false);
-                  }}
-                  className="btn btn-primary"
-                  style={{ flex: 1, padding: '8px 0', borderRadius: 8, fontWeight: 700, fontSize: 11, background: '#EF4444', color: '#fff' }}
-                >
-                  Discard
-                </button>
-              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, width: '100%', marginTop: 8 }}>
+              <button
+                type="button"
+                onClick={() => setShowCancelConfirm(false)}
+                className="btn btn-secondary"
+                style={{ flex: 1, padding: '10px 0', fontSize: 12.5, fontWeight: 700, borderRadius: 10 }}
+              >
+                Keep Lifting
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSessionActive(false);
+                  setIsConsoleMode(false);
+                  setShowCancelConfirm(false);
+                  localStorage.removeItem(`nutribuddy_active_workout_${activeUserId}`);
+                  if (onSessionStateChange) {
+                    onSessionStateChange(null);
+                  }
+                }}
+                style={{
+                  flex: 1,
+                  padding: '10px 0',
+                  fontSize: 12.5,
+                  fontWeight: 800,
+                  borderRadius: 10,
+                  background: '#EF4444',
+                  color: '#ffffff',
+                  border: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(239, 68, 68, 0.35)'
+                }}
+              >
+                Discard
+              </button>
             </div>
           </div>
         </div>,
@@ -1937,7 +3295,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
               background: 'var(--bg-surface)',
               borderLeft: '1px solid var(--border-subtle)',
               display: 'flex', flexDirection: 'column',
-              boxShadow: '-10px 0 40px rgba(0,0,0,0.5)',
+              boxShadow: 'var(--shadow-overlay)',
               position: 'relative'
             }}
           >
@@ -1956,8 +3314,8 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
               </button>
 
               <span style={{
-                fontSize: 10, fontWeight: 900,
-                color: SPLIT_CATEGORIES[previewTemplate.name]?.color || 'var(--brand-primary, #F59E0B)',
+                fontSize: 10, fontWeight: 800,
+                color: 'var(--brand-primary-light)',
                 textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 4
               }}>
                 {SPLIT_CATEGORIES[previewTemplate.name]?.label || 'ROUTINE SPLIT'}
@@ -1982,22 +3340,22 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                   <div key={idx} style={{
                     background: 'var(--bg-surface-raised)',
                     border: '1px solid var(--border-subtle)',
-                    borderRadius: 12,
+                    borderRadius: 'var(--radius-panel)',
                     padding: 14
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                      <h4 style={{ margin: 0, fontSize: 13, fontWeight: 800, color: 'var(--text-primary)' }}>{exName}</h4>
-                      <span style={{ fontSize: 9, fontWeight: 800, background: 'rgba(255,255,255,0.06)', padding: '2px 6px', borderRadius: 6, color: 'var(--text-secondary)' }}>
+                      <h4 style={{ margin: 0, fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>{exName}</h4>
+                      <span style={{ fontSize: 9.5, fontWeight: 800, background: 'var(--brand-primary-subtle)', color: 'var(--brand-primary-light)', padding: '2px 8px', borderRadius: 6 }}>
                         {dbEntry.muscleGroup || 'Compound'}
                       </span>
                     </div>
                     {dbEntry.targetAnatomy && (
-                      <div style={{ fontSize: 10, color: 'var(--brand-primary, #F59E0B)', fontWeight: 700, marginBottom: 2 }}>
+                      <div style={{ fontSize: 11, color: 'var(--brand-primary-light)', fontWeight: 600, marginBottom: 2 }}>
                         Target: {dbEntry.targetAnatomy}
                       </div>
                     )}
                     {dbEntry.cues && dbEntry.cues.length > 0 && (
-                      <p style={{ margin: '2px 0 0', fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.3, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <p style={{ margin: '2px 0 0', fontSize: 10.5, color: 'var(--text-muted)', lineHeight: 1.3, display: 'flex', alignItems: 'center', gap: 4 }}>
                         <Info size={11} /> {dbEntry.cues[0]}
                       </p>
                     )}
@@ -2015,8 +3373,8 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                 }}
                 className="btn btn-primary"
                 style={{
-                  width: '100%', padding: '12px 0', borderRadius: 12, fontWeight: 900, fontSize: 13,
-                  background: 'var(--brand-primary, #F59E0B)', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+                  width: '100%', padding: '12px 0', fontSize: 13, fontWeight: 800,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
                 }}
               >
                 <Play size={15} fill="currentColor" /> Start Workout Session
@@ -2038,88 +3396,390 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
         /* ==================== VIEW B: ACTIVE WORKOUT CONSOLE ==================== */
         <div className="fadeInUp" style={{
           background: 'var(--bg-surface)',
-          borderRadius: 24,
+          borderRadius: 'var(--radius-card)',
           border: '1px solid var(--border-subtle)',
-          boxShadow: '0 16px 48px rgba(0, 0, 0, 0.3)',
+          boxShadow: 'var(--shadow-overlay)',
           overflow: 'hidden',
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
+          width: '100%',
+          maxWidth: '100%',
+          boxSizing: 'border-box'
         }}>
-          {/* SINGLE CLEAN STICKY FLOATING TOP BAR */}
-          <div style={{
-            position: 'sticky',
-            top: 0,
-            zIndex: 100,
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            background: 'rgba(10, 10, 16, 0.88)',
-            borderBottom: '1px solid var(--border-subtle)',
-            padding: '12px 24px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 16,
-            flexWrap: 'wrap'
-          }}>
-            {/* Left: Live Session Timer */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)',
-                padding: '6px 12px', borderRadius: 20
-              }}>
-                <span className="pulse-dot" style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444', display: 'inline-block' }} />
-                <span style={{ fontSize: 13, fontWeight: 900, color: '#EF4444', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em' }}>
+          {/* SINGLE CLEAN STICKY FLOATING TOP BAR (Tier 1: Global Session Controls) */}
+          <div className="workout-console-header" style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
+            {/* Desktop Top Bar */}
+            <div className="workout-console-header-desktop">
+              {/* Left: Digital Stopwatch + Workout Routine Title */}
+              <div className="workout-console-header-top">
+                <div className="console-stopwatch-pill">
+                  <span className="pulse-dot" style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--brand-primary-light)', display: 'inline-block' }} />
+                  <Clock size={14} color="var(--brand-primary-light)" />
+                  <span className="tabular-nums console-stopwatch-time">
+                    {formatMMSS(elapsedSeconds)}
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                  <span style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)', letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {workoutName}
+                  </span>
+                  <span className="tabular-nums" style={{ fontSize: 10.5, fontWeight: 800, background: 'var(--bg-surface-raised)', color: 'var(--text-secondary)', padding: '3px 8px', borderRadius: 6, border: '1px solid var(--border-subtle)', flexShrink: 0 }}>
+                    {activeExercises.reduce((acc, ex) => acc + (ex.sets || []).filter(s => s.completed).length, 0)} / {activeExercises.reduce((acc, ex) => acc + (ex.sets || []).length, 0)} Sets
+                  </span>
+                </div>
+              </div>
+
+              {/* Desktop Actions */}
+              <div className="workout-console-header-actions desktop-header-actions" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowCancelConfirm(true)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--text-muted)',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    padding: '6px 8px',
+                    textDecoration: 'underline',
+                    opacity: 0.75
+                  }}
+                >
+                  Discard Session
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsConsoleMode(false);
+                    scrollToTop();
+                  }}
+                  className="btn btn-secondary"
+                  style={{ padding: '8px 14px', fontSize: 12, borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800 }}
+                  title="Browse other tabs while your workout stays active in the background"
+                >
+                  <ArrowLeft size={13} /> Minimize
+                </button>
+
+                <button
+                  onClick={handleFinishWorkout}
+                  className="btn btn-primary"
+                  style={{ padding: '8px 18px', fontSize: 12, borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 900, background: 'var(--brand-primary-light)', color: '#000' }}
+                >
+                  <Check size={14} strokeWidth={2.5} /> Finish Workout
+                </button>
+              </div>
+            </div>
+
+            {/* Mobile Sticky Top Bar (Tier 1: Global Session Controls) */}
+            <div
+              className="workout-console-header-mobile h-12 px-4 flex items-center justify-between"
+              style={{
+                height: 48,
+                padding: '0 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                width: '100%',
+                boxSizing: 'border-box',
+                position: 'relative'
+              }}
+            >
+              {/* Left: Minimize Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsConsoleMode(false);
+                  scrollToTop();
+                }}
+                className="console-mobile-minimize-btn h-8 px-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-zinc-300 flex items-center gap-1 shrink-0 cursor-pointer active:scale-95"
+                style={{
+                  height: 32,
+                  padding: '0 10px',
+                  backgroundColor: '#18181b',
+                  border: '1px solid #27272a',
+                  borderRadius: 8,
+                  fontSize: 12,
+                  color: '#d4d4d8',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  cursor: 'pointer',
+                  flexShrink: 0
+                }}
+                aria-label="Minimize workout console"
+                title="Minimize"
+              >
+                <ChevronDown size={14} />
+                <span>Minimize</span>
+              </button>
+
+              {/* Center: Live Timer & Pacer */}
+              <div
+                className="text-xs font-mono font-semibold text-zinc-300 flex items-center gap-1.5 min-w-0"
+                style={{
+                  fontSize: 12,
+                  fontFamily: 'var(--font-mono)',
+                  fontWeight: 600,
+                  color: '#d4d4d8',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  minWidth: 0,
+                  justifyContent: 'center'
+                }}
+              >
+                <span className="pulse-dot" style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', display: 'inline-block', flexShrink: 0 }} />
+                <span className="tabular-nums" style={{ color: '#10B981', fontWeight: 800 }}>
                   {formatMMSS(elapsedSeconds)}
+                </span>
+                <span style={{ fontSize: 10, color: '#71717a' }}>•</span>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 110 }}>
+                  {workoutName}
                 </span>
               </div>
 
-              {/* Workout Routine Title Badge */}
-              <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
-                {workoutName}
-              </span>
+              {/* Right: Pinned Finish Button + Overflow Menu */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                <button
+                  type="button"
+                  onClick={handleFinishWorkout}
+                  className="h-8 px-3.5 bg-[#10B981] text-black font-bold text-xs rounded-lg active:scale-95 flex items-center gap-1 cursor-pointer"
+                  style={{
+                    height: 32,
+                    padding: '0 14px',
+                    backgroundColor: '#10B981',
+                    border: 'none',
+                    borderRadius: 8,
+                    color: '#000000',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 10px rgba(16, 185, 129, 0.35)',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  <Check size={13} strokeWidth={3} color="#000000" />
+                  <span>Finish</span>
+                </button>
+
+                {/* Overflow Trigger for Discard Session */}
+                <div style={{ position: 'relative' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowConsoleOverflow(prev => !prev)}
+                    className="h-8 w-8 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 flex items-center justify-center active:scale-95 cursor-pointer"
+                    style={{
+                      width: 32,
+                      height: 32,
+                      padding: 0,
+                      backgroundColor: '#18181b',
+                      border: '1px solid #27272a',
+                      borderRadius: 8,
+                      color: '#a1a1aa',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer'
+                    }}
+                    aria-label="Workout session options"
+                  >
+                    <MoreVertical size={14} />
+                  </button>
+
+                  {showConsoleOverflow && (
+                    <>
+                      <div
+                        style={{ position: 'fixed', inset: 0, zIndex: 190 }}
+                        onClick={() => setShowConsoleOverflow(false)}
+                      />
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: 'calc(100% + 6px)',
+                          right: 0,
+                          backgroundColor: '#12141A',
+                          border: '1px solid #27272A',
+                          borderRadius: 12,
+                          padding: 6,
+                          boxShadow: '0 10px 30px rgba(0,0,0,0.8)',
+                          zIndex: 200,
+                          minWidth: 150
+                        }}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowConsoleOverflow(false);
+                            setShowCancelConfirm(true);
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-rose-400 hover:bg-zinc-800/80 cursor-pointer"
+                          style={{
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            padding: '8px 12px',
+                            borderRadius: 8,
+                            backgroundColor: 'transparent',
+                            border: 'none',
+                            color: '#EF4444',
+                            fontSize: 12,
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            textAlign: 'left'
+                          }}
+                        >
+                          <Trash2 size={13} color="#EF4444" />
+                          <span>Discard Workout</span>
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
 
-            {/* Right: Actions */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {/* Mobile-Only Interactive Exercise Switcher Track (Directly Underneath Top Bar) */}
+            <div
+              ref={carouselTrackRef}
+              className="console-mobile-chips-track flex md:hidden overflow-x-auto no-scrollbar gap-1.5 py-2 px-3 bg-[#09090C] border-b border-zinc-800/80 mb-3"
+              style={{
+                display: 'flex',
+                overflowX: 'auto',
+                gap: 6,
+                padding: '8px 12px',
+                backgroundColor: '#09090C',
+                borderBottom: '1px solid rgba(39, 39, 42, 0.8)',
+                marginBottom: 12,
+                boxSizing: 'border-box',
+                width: '100%',
+                WebkitOverflowScrolling: 'touch',
+                scrollBehavior: 'smooth'
+              }}
+            >
+              {activeExercises.map((ex, idx) => {
+                const doneCount = (ex.sets || []).filter(s => s.completed).length;
+                const totCount = (ex.sets || []).length;
+                const isCurrent = idx === currentExIndex;
+                const isAllDone = totCount > 0 && doneCount === totCount;
+
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      setCurrentExIndex(idx);
+                      setActiveDrawer(null);
+                    }}
+                    className={`h-8 text-xs px-3 rounded-xl shrink-0 flex items-center gap-1.5 cursor-pointer transition-all active:scale-95 border ${
+                      isCurrent
+                        ? 'bg-zinc-800 border-[#10B981] text-white font-bold'
+                        : isAllDone
+                        ? 'bg-zinc-900 border-emerald-500/40 text-emerald-400 font-medium'
+                        : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 font-medium'
+                    }`}
+                    style={{
+                      height: 32,
+                      fontSize: 12,
+                      padding: '0 12px',
+                      borderRadius: 12,
+                      flexShrink: 0,
+                      whiteSpace: 'nowrap',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      cursor: 'pointer',
+                      ...(isCurrent ? {
+                        backgroundColor: '#27272a',
+                        borderColor: '#10B981',
+                        color: '#ffffff',
+                        fontWeight: 700,
+                        boxShadow: '0 0 10px rgba(16, 185, 129, 0.25)'
+                      } : isAllDone ? {
+                        backgroundColor: '#18181b',
+                        borderColor: 'rgba(16, 185, 129, 0.4)',
+                        color: '#34d399',
+                        fontWeight: 500
+                      } : {
+                        backgroundColor: 'rgba(24, 24, 27, 0.6)',
+                        borderColor: '#27272a',
+                        color: '#a1a1aa',
+                        fontWeight: 500
+                      })
+                    }}
+                  >
+                    <span>{ex.name}</span>
+                    <span style={{
+                      fontSize: 10.5,
+                      fontWeight: isCurrent ? 800 : 700,
+                      padding: '1px 5px',
+                      borderRadius: 5,
+                      background: isAllDone
+                        ? 'rgba(16, 185, 129, 0.2)'
+                        : isCurrent
+                        ? 'rgba(16, 185, 129, 0.2)'
+                        : 'rgba(255, 255, 255, 0.06)',
+                      color: isAllDone
+                        ? '#34d399'
+                        : isCurrent
+                        ? '#34d399'
+                        : '#a1a1aa'
+                    }}>
+                      {isAllDone ? `${doneCount}/${totCount} ✓` : `${doneCount}/${totCount}`}
+                    </span>
+                  </button>
+                );
+              })}
               <button
-                onClick={handleFinishWorkout}
+                type="button"
+                onClick={() => setShowExerciseSearchModal(true)}
+                className="h-8 text-xs px-2.5 rounded-xl bg-zinc-900/40 border border-zinc-800 text-zinc-400 shrink-0 flex items-center gap-1 cursor-pointer hover:text-white transition-all active:scale-95"
                 style={{
-                  padding: '8px 20px', fontSize: 12, borderRadius: 12,
-                  background: 'var(--brand-primary, #F59E0B)', color: '#000', border: 'none',
-                  fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
-                  boxShadow: '0 4px 16px rgba(245,158,11,0.3)'
+                  height: 32,
+                  fontSize: 12,
+                  padding: '0 10px',
+                  borderRadius: 12,
+                  flexShrink: 0,
+                  whiteSpace: 'nowrap',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  backgroundColor: 'rgba(24, 24, 27, 0.4)',
+                  border: '1px dashed #3f3f46',
+                  color: '#a1a1aa',
+                  cursor: 'pointer'
                 }}
               >
-                <Check size={14} strokeWidth={3} /> Finish Workout
-              </button>
-              
-              <button
-                onClick={() => setShowCancelConfirm(true)}
-                style={{
-                  background: 'transparent', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#EF4444',
-                  padding: '8px 14px', fontSize: 12, borderRadius: 12, cursor: 'pointer', fontWeight: 700
-                }}
-              >
-                Cancel
+                <Plus size={12} color="#10B981" />
+                <span>Add</span>
               </button>
             </div>
           </div>
 
-          {/* ACTIVE REST TIMER BANNER */}
+
+
+          {/* ACTIVE REST TIMER BANNER (DESKTOP) */}
           {restActive && (
-            <div style={{
-              background: restRemaining <= 10 ? 'rgba(239, 68, 68, 0.12)' : 'rgba(245, 158, 11, 0.1)',
-              borderBottom: `1px solid ${restRemaining <= 10 ? 'rgba(239, 68, 68, 0.3)' : 'rgba(245, 158, 11, 0.25)'}`,
-              padding: '10px 24px',
+            <div className="desktop-rest-banner" style={{
+              background: restRemaining <= 10 ? 'rgba(239, 68, 68, 0.12)' : 'var(--brand-primary-subtle)',
+              borderBottom: `1px solid ${restRemaining <= 10 ? 'rgba(239, 68, 68, 0.3)' : 'var(--border-focus)'}`,
+              padding: '10px 20px',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              animation: 'fadeIn 0.2s ease'
+              animation: 'fadeIn 0.2s ease',
+              flexWrap: 'wrap',
+              gap: 8
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Clock size={16} color={restRemaining <= 10 ? '#EF4444' : 'var(--brand-primary, #F59E0B)'} />
-                <span style={{ fontSize: 13, fontWeight: 800, color: restRemaining <= 10 ? '#EF4444' : 'var(--brand-primary, #F59E0B)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Clock size={15} color={restRemaining <= 10 ? '#EF4444' : 'var(--brand-primary-light)'} />
+                <span style={{ fontSize: 12.5, fontWeight: 800, color: restRemaining <= 10 ? '#EF4444' : 'var(--brand-primary-light)' }}>
                   Resting: {restRemaining}s remaining
                 </span>
               </div>
@@ -2147,12 +3807,211 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
             </div>
           )}
 
-          {/* TWO-COLUMN CONSOLE WORKSPACE */}
-          <div className="workout-console-layout">
-            
-            {/* LEFT COLUMN: Exercise Navigator */}
-            <div className="workout-console-left">
-              <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4 }}>
+          {/* TOOL BOTTOM SHEET MODAL (PORTAL) - Accessible by both Desktop and Mobile */}
+          {/* TOOL BOTTOM SHEET MODAL (PORTAL) */}
+                  {activeDrawer && createPortal(
+                    <div className="app-modal-backdrop" onClick={() => setActiveDrawer(null)} style={{ zIndex: 1150 }}>
+                      <div
+                        className="native-bottom-sheet fadeInUp"
+                        onClick={e => e.stopPropagation()}
+                        style={{
+                          position: 'fixed',
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          background: 'var(--bg-surface)',
+                          borderTop: '1px solid var(--border-subtle)',
+                          borderTopLeftRadius: 20,
+                          borderTopRightRadius: 20,
+                          padding: '20px 20px calc(24px + env(safe-area-inset-bottom, 16px))',
+                          boxShadow: '0 -10px 40px rgba(0,0,0,0.6)',
+                          maxHeight: '82vh',
+                          overflowY: 'auto',
+                          maxWidth: 540,
+                          margin: '0 auto'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
+                          <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border-subtle)' }} />
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                          <span style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            {activeDrawer === 'warmup' && <><Flame size={15} color="#10B981" /> <span>Warm-Up Ramp Protocol</span></>}
+                            {activeDrawer === 'plates' && <><Disc size={15} color="#10B981" /> <span>Barbell Plate Calculator</span></>}
+                            {activeDrawer === 'cues' && <><Sparkles size={15} color="#10B981" /> <span>Form & Execution Cues</span></>}
+                            {activeDrawer === 'swap' && <><Repeat size={15} color="#10B981" /> <span>Smart Exercise Alternatives</span></>}
+                            {activeDrawer === 'anatomy' && <><Activity size={15} color="#10B981" /> <span>Muscle & Anatomy Profile</span></>}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setActiveDrawer(null)}
+                            style={{ background: 'var(--bg-surface-raised)', border: 'none', borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}
+                          >
+                            <X size={15} />
+                          </button>
+                        </div>
+
+                        {activeDrawer === 'anatomy' && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                            <div style={{ background: 'var(--bg-surface-raised)', padding: 12, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
+                              <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 800 }}>PRIMARY MOVER</span>
+                              <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{currentActiveEx.targetAnatomy || currentActiveEx.muscleGroup}</span>
+                            </div>
+                            <div style={{ background: 'var(--bg-surface-raised)', padding: 12, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
+                              <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 800 }}>ASSISTING SYNERGISTS</span>
+                              <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>{currentActiveEx.synergists || 'Stabilizing Core'}</span>
+                            </div>
+                            <div style={{ background: 'var(--bg-surface-raised)', padding: 12, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
+                              <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 800 }}>MOVEMENT PLANE</span>
+                              <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>{currentActiveEx.movementPlane || currentActiveEx.category}</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {activeDrawer === 'cues' && (
+                          <div>
+                            {currentActiveEx.cues && currentActiveEx.cues.length > 0 ? (
+                              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.8 }}>
+                                {currentActiveEx.cues.map((c, i) => <li key={i}>{c}</li>)}
+                              </ul>
+                            ) : (
+                              <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted)' }}>Focus on controlled eccentric lowering and explosive contraction.</p>
+                            )}
+                          </div>
+                        )}
+
+                        {activeDrawer === 'warmup' && (
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                              <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--brand-primary-light)', textTransform: 'uppercase' }}>
+                                Target Working Load
+                              </span>
+                              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                                Working Weight: <strong>{currentActiveEx.sets[0]?.weight || 60} kg</strong>
+                              </span>
+                            </div>
+                            {(() => {
+                              const target = parseFloat(currentActiveEx.sets[0]?.weight) || 60;
+                              const w1 = Math.round(target * 0.5);
+                              const w2 = Math.round(target * 0.7);
+                              const w3 = Math.round(target * 0.85);
+                              return (
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 10 }}>
+                                  <div style={{ background: 'var(--bg-surface-raised)', padding: 12, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
+                                    <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block' }}>Bar / Light (50%)</span>
+                                    <span style={{ fontSize: 15, fontWeight: 900, color: 'var(--text-primary)' }}>{w1} kg × 10</span>
+                                  </div>
+                                  <div style={{ background: 'var(--bg-surface-raised)', padding: 12, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
+                                    <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block' }}>Feeder (70%)</span>
+                                    <span style={{ fontSize: 15, fontWeight: 900, color: 'var(--text-primary)' }}>{w2} kg × 5</span>
+                                  </div>
+                                  <div style={{ background: 'var(--bg-surface-raised)', padding: 12, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
+                                    <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block' }}>Primer (85%)</span>
+                                    <span style={{ fontSize: 15, fontWeight: 900, color: 'var(--text-primary)' }}>{w3} kg × 2</span>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        )}
+
+                        {activeDrawer === 'plates' && (
+                          <div>
+                            {(() => {
+                              const target = parseFloat(currentActiveEx.sets[0]?.weight) || 60;
+                              const plates = calculatePlates(target);
+                              return (
+                                <div>
+                                  <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 12 }}>
+                                    Load per side for <strong>{target} kg</strong> (on standard 20 kg Olympic barbell):
+                                  </div>
+                                  {plates.length > 0 ? (
+                                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                      {plates.map((p, pIdx) => (
+                                        <span key={pIdx} style={{
+                                          background: p >= 20 ? '#2563EB' : p >= 10 ? '#16A34A' : '#D97706',
+                                          color: '#fff', padding: '8px 14px', borderRadius: 8, fontWeight: 900, fontSize: 13
+                                        }}>
+                                          {p} kg
+                                        </span>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Load empty bar (20 kg) or use dumbbells.</span>
+                                  )}
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        )}
+
+                        {activeDrawer === 'swap' && (
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 6 }}>
+                              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                                Pick a replacement movement:
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveDrawer(null);
+                                  setSmartAltTarget({ ex: currentActiveEx, isConsole: true });
+                                }}
+                                style={{
+                                  padding: '4px 10px', borderRadius: 8, background: 'rgba(16, 185, 129, 0.1)',
+                                  border: '1px solid rgba(16, 185, 129, 0.3)', color: '#10B981',
+                                  fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                                  display: 'inline-flex', alignItems: 'center', gap: 4
+                                }}
+                              >
+                                <span>Full Exercise Library</span>
+                                <ArrowRight size={11} />
+                              </button>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 8 }}>
+                              {(() => {
+                                const alts = getSmartAlternatives(currentActiveEx.name, PRESET_EXERCISES);
+                                const list = alts.length > 0 ? alts : PRESET_EXERCISES.filter(p => p.name !== currentActiveEx.name && p.category === currentActiveEx.category).slice(0, 6);
+                                return list.slice(0, 6).map(subEx => (
+                                  <button
+                                    key={subEx.name}
+                                    type="button"
+                                    onClick={() => {
+                                      handleSwitchExercise(subEx, { isConsole: true, ex: currentActiveEx });
+                                      setActiveDrawer(null);
+                                    }}
+                                    style={{
+                                      padding: '10px 14px', borderRadius: 10, background: 'var(--bg-surface-raised)',
+                                      border: '1px solid var(--border-subtle)', color: 'var(--text-primary)',
+                                      fontSize: 12, fontWeight: 700, textAlign: 'left', cursor: 'pointer',
+                                      display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                    }}
+                                  >
+                                    <div>
+                                      <span style={{ display: 'block', fontWeight: 800 }}>{subEx.name}</span>
+                                      <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{subEx.muscleGroup || subEx.category}</span>
+                                    </div>
+                                    <span style={{ fontSize: 10, color: 'var(--brand-primary-light)', display: 'flex', alignItems: 'center', gap: 2 }}>
+                                      Swap <ArrowRight size={10} />
+                                    </span>
+                                  </button>
+                                ));
+                              })()}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>,
+                    document.body
+                  )}
+
+          {/* DESKTOP CONSOLE WORKSPACE (2-COLUMN OBSIDIAN EMERALD GRID) */}
+          {!isMobileViewport && (
+            <div className="hidden md:grid workout-console-layout" style={{ display: 'grid', gridTemplateColumns: '290px 1fr', minHeight: 640, background: 'var(--bg-surface)' }}>
+              <div className="workout-console-left">
+                <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4 }}>
                 EXERCISES IN WORKOUT ({activeExercises.length})
               </span>
 
@@ -2173,8 +4032,8 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                       style={{
                         padding: '12px 14px',
                         borderRadius: 12,
-                        border: isCurrent ? '1.5px solid var(--brand-primary, #F59E0B)' : '1px solid var(--border-subtle)',
-                        background: isCurrent ? 'rgba(245, 158, 11, 0.08)' : 'var(--bg-surface-raised)',
+                        border: isCurrent ? '1.5px solid var(--brand-primary-light)' : '1px solid var(--border-subtle)',
+                        background: isCurrent ? 'var(--brand-primary-subtle)' : 'var(--bg-surface-raised)',
                         textAlign: 'left',
                         cursor: 'pointer',
                         transition: 'all 0.15s ease',
@@ -2187,7 +4046,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                         <span style={{
                           width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
-                          background: isAllDone ? '#10B981' : isCurrent ? 'var(--brand-primary, #F59E0B)' : 'var(--text-muted)'
+                          background: isAllDone ? '#10B981' : isCurrent ? 'var(--brand-primary-light)' : 'var(--text-muted)'
                         }} />
                         <span style={{
                           fontSize: 13,
@@ -2247,688 +4106,1320 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
               </div>
             </div>
 
-            {/* RIGHT COLUMN: Active Exercise Logging Workspace */}
-            <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
-              {currentActiveEx ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  
-                  {/* Exercise Header Card with Precise Anatomy Strip */}
-                  <div style={{
-                    background: 'var(--bg-surface-raised)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: 18,
-                    padding: '20px 24px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 14
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                          <h2 style={{ fontSize: 20, fontWeight: 900, margin: 0, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
-                            {currentActiveEx.name}
-                          </h2>
-                          <span style={{ fontSize: 10, fontWeight: 800, background: 'rgba(245,158,11,0.12)', color: 'var(--brand-primary, #F59E0B)', padding: '3px 8px', borderRadius: 6 }}>
-                            {currentActiveEx.category || 'Compound'}
-                          </span>
+              {/* RIGHT COLUMN: Desktop Active Exercise Workspace */}
+              <div className="workout-console-right" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20, minWidth: 0 }}>
+                {currentActiveEx ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {/* Exercise Header Card with Precise Anatomy Strip */}
+                      <div className="console-ex-summary-card">
+                        {/* Top Row: Title & Category on Left, PR Badge fixed on Right */}
+                        <div className="console-ex-header-row">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', minWidth: 0 }}>
+                            <h2 style={{ fontSize: 20, fontWeight: 900, margin: 0, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)', letterSpacing: '-0.01em' }}>
+                              {currentActiveEx.name}
+                            </h2>
+                            <span style={{ fontSize: 10.5, fontWeight: 800, background: 'var(--brand-primary-subtle)', color: 'var(--brand-primary-light)', padding: '3px 10px', borderRadius: 8, border: '1px solid var(--border-focus)' }}>
+                              {currentActiveEx.category || 'Compound'}
+                            </span>
+                          </div>
+    
+                          {/* Personal Record Badge (Permanently Anchored on Right) */}
+                          <div style={{
+                            background: 'var(--brand-primary-subtle)',
+                            border: '1px solid var(--border-focus)',
+                            borderRadius: 12,
+                            padding: '7px 16px',
+                            textAlign: 'right',
+                            flexShrink: 0
+                          }}>
+                            <span style={{ fontSize: 9.5, fontWeight: 900, color: 'var(--brand-primary-light)', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+                              <Trophy size={11} /> PERSONAL RECORD
+                            </span>
+                            <span className="tabular-nums" style={{ fontSize: 13.5, fontWeight: 900, color: 'var(--text-primary)', display: 'block', marginTop: 1 }}>
+                              {activeExPR ? `${activeExPR.weight} kg × ${activeExPR.reps}` : 'No record logged'}
+                            </span>
+                          </div>
                         </div>
-
-                        {/* Exact Muscle Anatomy & Targeting Subtitle */}
+    
+                        {/* Subtitle Row: Exact Muscle Anatomy & Targeting Strip */}
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-                          <span style={{ fontSize: 12, color: 'var(--text-primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <Activity size={13} color="var(--brand-primary, #F59E0B)" />
-                            {currentActiveEx.targetAnatomy || currentActiveEx.muscleGroup}
+                          <span style={{ fontSize: 12, color: 'var(--brand-primary-light)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
+                            <Activity size={13} />
+                            Target: {currentActiveEx.targetAnatomy || currentActiveEx.muscleGroup}
                           </span>
                           {currentActiveEx.synergists && (
-                            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                            <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
                               • Synergists: {currentActiveEx.synergists}
                             </span>
                           )}
                         </div>
-                      </div>
-
-                      {/* Personal Record Badge */}
-                      <div style={{
-                        background: 'rgba(245, 158, 11, 0.08)',
-                        border: '1px solid rgba(245, 158, 11, 0.25)',
-                        borderRadius: 12,
-                        padding: '8px 16px',
-                        textAlign: 'right'
-                      }}>
-                        <span style={{ fontSize: 9, fontWeight: 900, color: 'var(--brand-primary, #F59E0B)', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
-                          <Trophy size={11} /> PERSONAL RECORD
-                        </span>
-                        <span style={{ fontSize: 14, fontWeight: 900, color: 'var(--text-primary)' }}>
-                          {activeExPR ? `${activeExPR.weight} kg × ${activeExPR.reps}` : 'No record logged'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Quick Tools Strip */}
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      {[
-                        { key: 'anatomy', label: 'Anatomy Guide', icon: <Activity size={13} /> },
-                        { key: 'warmup', label: 'Warm-Up Calc', icon: <Calculator size={13} /> },
-                        { key: 'plates', label: 'Plate Loader', icon: <Disc size={13} /> },
-                        { key: 'cues', label: 'Form Cues', icon: <Info size={13} /> },
-                        { key: 'swap', label: 'Swap Exercise', icon: <RefreshCw size={13} /> }
-                      ].map(btn => {
-                        const active = activeDrawer === btn.key;
-                        return (
-                          <button
-                            key={btn.key}
-                            onClick={() => setActiveDrawer(active ? null : btn.key)}
-                            style={{
-                              padding: '6px 14px',
-                              borderRadius: 20,
-                              background: active ? 'rgba(245, 158, 11, 0.15)' : 'var(--bg-surface)',
-                              border: `1px solid ${active ? 'var(--brand-primary, #F59E0B)' : 'var(--border-subtle)'}`,
-                              color: active ? 'var(--brand-primary, #F59E0B)' : 'var(--text-secondary)',
-                              fontSize: 11,
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 6,
-                              transition: 'all 0.15s ease'
-                            }}
-                          >
-                            {btn.icon}
-                            {btn.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* TOOL ACCORDION DRAWERS */}
-                  {activeDrawer === 'anatomy' && (
-                    <div className="fadeInUp" style={{ padding: 18, background: 'var(--bg-surface-raised)', border: '1px solid var(--border-subtle)', borderRadius: 16 }}>
-                      <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--brand-primary, #F59E0B)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: 8 }}>
-                        Detailed Biomechanical & Muscle Targeting Profile
-                      </span>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, fontSize: 12 }}>
-                        <div style={{ background: 'var(--bg-surface)', padding: 12, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
-                          <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 800 }}>PRIMARY MOVER</span>
-                          <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{currentActiveEx.targetAnatomy || currentActiveEx.muscleGroup}</span>
-                        </div>
-                        <div style={{ background: 'var(--bg-surface)', padding: 12, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
-                          <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 800 }}>ASSISTING SYNERGISTS</span>
-                          <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>{currentActiveEx.synergists || 'Stabilizing Core'}</span>
-                        </div>
-                        <div style={{ background: 'var(--bg-surface)', padding: 12, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
-                          <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 800 }}>MOVEMENT PLANE</span>
-                          <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>{currentActiveEx.movementPlane || currentActiveEx.category}</span>
+    
+                        {/* Quick Tools Strip (Horizontal Scroll, Zero Wrap) */}
+                        <div className="console-utility-track flex-nowrap overflow-x-auto" style={{
+                          display: 'flex',
+                          flexWrap: 'nowrap',
+                          overflowX: 'auto',
+                          gap: 8,
+                          paddingBottom: 4,
+                          WebkitOverflowScrolling: 'touch',
+                          scrollbarWidth: 'none',
+                          width: '100%',
+                          maxWidth: '100%',
+                          minWidth: 0,
+                          boxSizing: 'border-box'
+                        }}>
+                          {[
+                            { key: 'warmup', label: 'Warm-Up', icon: <Calculator size={13} /> },
+                            { key: 'plates', label: 'Plates', icon: <Disc size={13} /> },
+                            { key: 'cues', label: 'Form Cues', icon: <Info size={13} /> },
+                            { key: 'swap', label: 'Swap', icon: <RefreshCw size={13} /> }
+                          ].map(btn => {
+                            const active = activeDrawer === btn.key;
+                            return (
+                              <button
+                                key={btn.key}
+                                type="button"
+                                onClick={() => setActiveDrawer(active ? null : btn.key)}
+                                className={`console-utility-pill ${active ? 'active' : ''}`}
+                                style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
+                              >
+                                {btn.icon}
+                                <span>{btn.label}</span>
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
-                    </div>
-                  )}
 
-                  {activeDrawer === 'cues' && (
-                    <div className="fadeInUp" style={{ padding: 18, background: 'var(--bg-surface-raised)', border: '1px solid var(--border-subtle)', borderRadius: 16 }}>
-                      <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--brand-primary, #F59E0B)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: 8 }}>
-                        Key Coaching & Performance Cues
-                      </span>
-                      {currentActiveEx.cues && currentActiveEx.cues.length > 0 ? (
-                        <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.7 }}>
-                          {currentActiveEx.cues.map((c, i) => <li key={i}>{c}</li>)}
-                        </ul>
-                      ) : (
-                        <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted)' }}>Focus on controlled eccentric lowering and explosive contraction.</p>
-                      )}
-                    </div>
-                  )}
-
-                  {activeDrawer === 'warmup' && (
-                    <div className="fadeInUp" style={{ padding: 18, background: 'var(--bg-surface-raised)', border: '1px solid var(--border-subtle)', borderRadius: 16 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                        <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--brand-primary, #F59E0B)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                          Warm-Up Ramp Protocol
-                        </span>
-                        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                          Target Working Weight: <strong>{currentActiveEx.sets[0]?.weight || 60} kg</strong>
-                        </span>
-                      </div>
-                      {(() => {
-                        const target = parseFloat(currentActiveEx.sets[0]?.weight) || 60;
-                        const w1 = Math.round(target * 0.5);
-                        const w2 = Math.round(target * 0.7);
-                        const w3 = Math.round(target * 0.85);
-                        return (
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 10 }}>
-                            <div style={{ background: 'var(--bg-surface)', padding: 12, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
-                              <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block' }}>Bar / Light (50%)</span>
-                              <span style={{ fontSize: 14, fontWeight: 900, color: 'var(--text-primary)' }}>{w1} kg × 10</span>
-                            </div>
-                            <div style={{ background: 'var(--bg-surface)', padding: 12, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
-                              <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block' }}>Feeder (70%)</span>
-                              <span style={{ fontSize: 14, fontWeight: 900, color: 'var(--text-primary)' }}>{w2} kg × 5</span>
-                            </div>
-                            <div style={{ background: 'var(--bg-surface)', padding: 12, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
-                              <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block' }}>Primer (85%)</span>
-                              <span style={{ fontSize: 14, fontWeight: 900, color: 'var(--text-primary)' }}>{w3} kg × 2</span>
-                            </div>
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  )}
-
-                  {activeDrawer === 'plates' && (
-                    <div className="fadeInUp" style={{ padding: 18, background: 'var(--bg-surface-raised)', border: '1px solid var(--border-subtle)', borderRadius: 16 }}>
-                      <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--brand-primary, #F59E0B)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: 8 }}>
-                        Barbell Plate Stacker (Per Side on 20kg Bar)
-                      </span>
-                      {(() => {
-                        const target = parseFloat(currentActiveEx.sets[0]?.weight) || 60;
-                        const plates = calculatePlates(target);
-                        return (
-                          <div>
-                            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 10 }}>
-                              Load per side for <strong>{target} kg</strong>:
-                            </div>
-                            {plates.length > 0 ? (
-                              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                                {plates.map((p, pIdx) => (
-                                  <span key={pIdx} style={{
-                                    background: p >= 20 ? '#2563EB' : p >= 10 ? '#16A34A' : '#D97706',
-                                    color: '#fff', padding: '6px 12px', borderRadius: 8, fontWeight: 900, fontSize: 12
-                                  }}>
-                                    {p} kg
-                                  </span>
-                                ))}
-                              </div>
-                            ) : (
-                              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Load empty bar (20 kg) or dumbbells.</span>
-                            )}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  )}
-
-                  {activeDrawer === 'swap' && (
-                    <div className="fadeInUp" style={{ padding: 18, background: 'var(--bg-surface-raised)', border: '1px solid var(--border-subtle)', borderRadius: 16 }}>
-                      <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--brand-primary, #F59E0B)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: 10 }}>
-                        Substitute / Swap {currentActiveEx.name}
-                      </span>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8 }}>
-                        {PRESET_EXERCISES.filter(p => p.name !== currentActiveEx.name && p.category === currentActiveEx.category).slice(0, 6).map(subEx => (
-                          <button
-                            key={subEx.name}
-                            onClick={() => handleSwapExercise(subEx.name)}
-                            style={{
-                              padding: '10px 14px', borderRadius: 10, background: 'var(--bg-surface)',
-                              border: '1px solid var(--border-subtle)', color: 'var(--text-primary)',
-                              fontSize: 12, fontWeight: 700, textAlign: 'left', cursor: 'pointer',
-                              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                            }}
-                          >
-                            <span>{subEx.name}</span>
-                            <span style={{ fontSize: 10, color: 'var(--brand-primary, #F59E0B)', display: 'flex', alignItems: 'center', gap: 2 }}>
-                              Swap <ArrowRight size={10} />
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* SET MATRIX TABLE */}
-                  <div style={{
-                    background: 'var(--bg-surface-raised)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: 18,
-                    padding: 20,
-                    overflowX: 'auto'
-                  }}>
-                    {/* Column Headers */}
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: '50px 120px 130px 100px 100px 70px',
-                      gap: 12,
-                      paddingBottom: 10,
-                      borderBottom: '1px solid var(--border-subtle)',
-                      marginBottom: 12,
-                      alignItems: 'center'
-                    }}>
-                      <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase' }}>SET</span>
-                      <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase' }}>PREVIOUS</span>
-                      <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase' }}>WEIGHT (KG)</span>
-                      <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase' }}>REPS</span>
-                      <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase' }}>RPE</span>
-                      <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase', textAlign: 'center' }}>DONE</span>
-                    </div>
-
-                    {/* Sets Rows */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      {currentActiveEx.sets.map((set, setIdx) => {
-                        const prevFormatted = formatPreviousSet(currentActiveEx.name, setIdx);
-                        const isPr = checkIfWeightIsPR(currentActiveEx.name, set.weight);
-
-                        return (
-                          <div
-                            key={set.id}
-                            style={{
+                      {/* SET MATRIX TABLE */}
+                      <div className="set-matrix-table-container" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
+                        <div className="hidden md:block desktop-set-matrix-view">
+                            {/* Column Headers */}
+                            <div style={{
                               display: 'grid',
                               gridTemplateColumns: '50px 120px 130px 100px 100px 70px',
                               gap: 12,
-                              alignItems: 'center',
-                              background: set.completed ? 'rgba(16, 185, 129, 0.12)' : 'var(--bg-surface)',
-                              border: set.completed ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid var(--border-subtle)',
-                              borderLeft: set.completed ? '4px solid #10B981' : '4px solid transparent',
-                              borderRadius: 12,
-                              padding: '8px 8px',
-                              transition: 'all 0.18s ease'
+                              paddingBottom: 10,
+                              borderBottom: '1px solid var(--border-subtle)',
+                              marginBottom: 12,
+                              alignItems: 'center'
+                            }}>
+                              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase' }}>SET</span>
+                              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase' }}>PREVIOUS</span>
+                              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase' }}>WEIGHT (KG)</span>
+                              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase' }}>REPS</span>
+                              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase' }}>EFFORT (1-10)</span>
+                              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase', textAlign: 'center' }}>DONE</span>
+                            </div>
+    
+                            {/* Sets Rows */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                              {currentActiveEx.sets.map((set, setIdx) => {
+                                const prevFormatted = formatPreviousSet(currentActiveEx.name, setIdx);
+                                const isPr = checkIfWeightIsPR(currentActiveEx.name, set.weight);
+    
+                                return (
+                                  <div
+                                    key={set.id}
+                                    style={{
+                                      display: 'grid',
+                                      gridTemplateColumns: '50px 120px 130px 100px 100px 70px',
+                                      gap: 12,
+                                      alignItems: 'center',
+                                      padding: '10px 12px',
+                                      borderRadius: 12,
+                                      background: set.completed ? 'rgba(16, 185, 129, 0.04)' : 'var(--bg-surface)',
+                                      border: `1px solid ${set.completed ? 'rgba(16, 185, 129, 0.2)' : 'var(--border-subtle)'}`,
+                                      transition: 'all 0.15s ease'
+                                    }}
+                                  >
+                                    {/* Set Number */}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                      <span style={{
+                                        width: 26, height: 26, borderRadius: 6,
+                                        background: set.isWarmup ? 'rgba(129, 140, 248, 0.15)' : 'var(--bg-surface-raised)',
+                                        color: set.isWarmup ? '#818CF8' : 'var(--text-secondary)',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        fontSize: 11, fontWeight: 900
+                                      }}>
+                                        {set.isWarmup ? 'W' : set.id}
+                                      </span>
+                                    </div>
+    
+                                    {/* Previous Best */}
+                                    <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>
+                                      {prevFormatted || '—'}
+                                    </div>
+    
+                                    {/* Weight Input */}
+                                    <div style={{ position: 'relative' }}>
+                                      <input
+                                        type="number"
+                                        placeholder="0"
+                                        value={set.weight || ''}
+                                        disabled={set.completed}
+                                        onChange={(e) => handleUpdateSetField(currentExIndex, setIdx, 'weight', e.target.value)}
+                                        style={{
+                                          width: '100%',
+                                          padding: '8px 10px',
+                                          fontSize: 13,
+                                          fontWeight: 800,
+                                          textAlign: 'center',
+                                          background: set.completed ? 'rgba(16, 185, 129, 0.05)' : 'var(--bg-input)',
+                                          border: `1px solid ${set.completed ? 'rgba(16, 185, 129, 0.4)' : isPr ? 'var(--brand-primary-light)' : 'var(--border-subtle)'}`,
+                                          borderRadius: 10,
+                                          color: 'var(--text-primary)',
+                                          outline: 'none'
+                                        }}
+                                      />
+                                    </div>
+    
+                                    {/* Reps Input */}
+                                    <div>
+                                      <input
+                                        type="number"
+                                        placeholder="0"
+                                        value={set.reps || ''}
+                                        disabled={set.completed}
+                                        onChange={(e) => handleUpdateSetField(currentExIndex, setIdx, 'reps', e.target.value)}
+                                        style={{
+                                          width: '100%',
+                                          padding: '8px 10px',
+                                          fontSize: 13,
+                                          fontWeight: 800,
+                                          textAlign: 'center',
+                                          background: set.completed ? 'rgba(16, 185, 129, 0.05)' : 'var(--bg-input)',
+                                          border: `1px solid ${set.completed ? 'rgba(16, 185, 129, 0.4)' : 'var(--border-subtle)'}`,
+                                          borderRadius: 10,
+                                          color: 'var(--text-primary)',
+                                          outline: 'none'
+                                        }}
+                                      />
+                                    </div>
+    
+                                    {/* Effort Selector */}
+                                    <div>
+                                      <button
+                                        type="button"
+                                        disabled={set.completed}
+                                        onClick={() => setOpenRpePicker({ exIdx: currentExIndex, setIdx })}
+                                        style={{
+                                          width: '100%',
+                                          padding: '8px 10px',
+                                          background: set.completed ? 'rgba(16, 185, 129, 0.05)' : 'var(--bg-input)',
+                                          border: `1px solid ${set.completed ? 'rgba(16, 185, 129, 0.4)' : 'var(--border-subtle)'}`,
+                                          borderRadius: 10,
+                                          color: 'var(--text-primary)',
+                                          fontSize: 11,
+                                          fontWeight: 800,
+                                          cursor: set.completed ? 'default' : 'pointer',
+                                          display: 'flex',
+                                          justifyContent: 'space-between',
+                                          alignItems: 'center'
+                                        }}
+                                      >
+                                        <span>{set.rpe}/10</span>
+                                        <ChevronDown size={12} color="var(--text-muted)" />
+                                      </button>
+                                    </div>
+    
+                                    {/* CLEAR TACTILE DONE BUTTON WITH INSTANT FEEDBACK */}
+                                    <button
+                                      type="button"
+                                      onClick={() => handleCheckoffSet(currentExIndex, setIdx)}
+                                      style={{
+                                        width: 44, height: 44, borderRadius: 12,
+                                        background: set.completed ? '#10B981' : 'rgba(16, 185, 129, 0.08)',
+                                        border: `2px solid ${set.completed ? '#10B981' : 'rgba(16, 185, 129, 0.35)'}`,
+                                        color: set.completed ? '#ffffff' : '#10B981',
+                                        cursor: 'pointer',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        margin: '0 auto', transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                                        boxShadow: set.completed ? '0 0 18px rgba(16, 185, 129, 0.45)' : 'none',
+                                        transform: set.completed ? 'scale(1.05)' : 'scale(1)'
+                                      }}
+                                      title={set.completed ? 'Completed! Click to undo' : 'Click to log set as done'}
+                                    >
+                                      <Check size={22} strokeWidth={set.completed ? 3.5 : 2.5} />
+                                    </button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                        {/* Add & Remove Set Actions: One expanded Add Set button + One compact Remove Set icon button */}
+                        <div className="console-set-action-bar">
+                          <button
+                            type="button"
+                            onClick={() => handleAddSet(false)}
+                            className="btn btn-secondary console-add-set-expanded-btn"
+                          >
+                            <Plus size={15} /> Add Set
+                          </button>
+                          {currentActiveEx.sets.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveSet(currentActiveEx.sets.length - 1)}
+                              className="btn btn-secondary console-remove-set-icon-btn"
+                              title="Remove Last Set"
+                              aria-label="Remove Last Set"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* DESKTOP BOTTOM EXERCISE PAGINATION NAVIGATION */}
+                      <div className="desktop-bottom-nav" style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginTop: 16,
+                        paddingTop: 16,
+                        borderTop: '1px solid var(--border-subtle)',
+                        gap: 12,
+                        flexWrap: 'wrap'
+                      }}>
+                        {currentExIndex > 0 ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCurrentExIndex(prev => prev - 1);
+                              setActiveDrawer(null);
+                              scrollToTop();
+                            }}
+                            className="btn btn-secondary"
+                            style={{ padding: '10px 18px', fontSize: 12.5, borderRadius: 12, display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700 }}
+                          >
+                            <ArrowLeft size={15} /> Previous Exercise
+                          </button>
+                        ) : <div />}
+    
+                        <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>
+                          Exercise {currentExIndex + 1} of {activeExercises.length}
+                        </div>
+    
+                        {currentExIndex < activeExercises.length - 1 ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCurrentExIndex(prev => prev + 1);
+                              setActiveDrawer(null);
+                              scrollToTop();
+                            }}
+                            className="btn btn-primary"
+                            style={{
+                              padding: '10px 22px', fontSize: 12.5, borderRadius: 12,
+                              background: 'var(--brand-primary-light)', color: '#000',
+                              fontWeight: 900, display: 'flex', alignItems: 'center', gap: 8
                             }}
                           >
-                            {/* Set Number / Warmup Badge with check indicator */}
-                            <div style={{
-                              width: 32, height: 32, borderRadius: '50%',
-                              background: set.completed ? 'rgba(16, 185, 129, 0.25)' : set.isWarmup ? 'rgba(129, 140, 248, 0.15)' : 'var(--bg-surface-raised)',
-                              border: `1.5px solid ${set.completed ? '#10B981' : set.isWarmup ? '#818CF8' : 'var(--border-subtle)'}`,
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              fontSize: 11, fontWeight: 900, color: set.completed ? '#10B981' : set.isWarmup ? '#818CF8' : 'var(--text-primary)'
-                            }}>
-                              {set.completed ? <Check size={14} strokeWidth={3.5} /> : set.isWarmup ? `W${set.id}` : set.id}
-                            </div>
-
-                            {/* Previous Session Value */}
-                            <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>
-                              {prevFormatted}
-                            </span>
-
-                            {/* Weight Input */}
-                            <div style={{ position: 'relative' }}>
-                              <input
-                                type="number"
-                                step="0.5"
-                                placeholder="0.0"
-                                value={set.weight}
-                                disabled={set.completed}
-                                onChange={(e) => handleUpdateSetField(currentExIndex, setIdx, 'weight', e.target.value)}
-                                style={{
-                                  width: '100%',
-                                  padding: '8px 10px',
-                                  fontSize: 13,
-                                  fontWeight: 800,
-                                  textAlign: 'center',
-                                  background: set.completed ? 'rgba(16, 185, 129, 0.05)' : 'var(--bg-input)',
-                                  border: `1px solid ${set.completed ? 'rgba(16, 185, 129, 0.4)' : isPr ? 'var(--brand-primary, #F59E0B)' : 'var(--border-subtle)'}`,
-                                  borderRadius: 10,
-                                  color: 'var(--text-primary)',
-                                  outline: 'none'
-                                }}
-                              />
-                              {(set.isPR || isPr) && (
-                                <div className="pr-badge-shine" style={{
-                                  position: 'absolute', top: -9, right: -4,
-                                  color: '#000', fontSize: 9, fontWeight: 900,
-                                  padding: '1px 6px', borderRadius: 4, display: 'flex', alignItems: 'center', gap: 3,
-                                  boxShadow: '0 2px 6px rgba(0,0,0,0.3)', pointerEvents: 'none', zIndex: 5
-                                }}>
-                                  <Trophy size={10} /> PR
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Reps Input */}
-                            <div>
-                              <input
-                                type="number"
-                                placeholder="0"
-                                value={set.reps}
-                                disabled={set.completed}
-                                onChange={(e) => handleUpdateSetField(currentExIndex, setIdx, 'reps', e.target.value)}
-                                style={{
-                                  width: '100%',
-                                  padding: '8px 10px',
-                                  fontSize: 13,
-                                  fontWeight: 800,
-                                  textAlign: 'center',
-                                  background: set.completed ? 'rgba(16, 185, 129, 0.05)' : 'var(--bg-input)',
-                                  border: `1px solid ${set.completed ? 'rgba(16, 185, 129, 0.4)' : 'var(--border-subtle)'}`,
-                                  borderRadius: 10,
-                                  color: 'var(--text-primary)',
-                                  outline: 'none'
-                                }}
-                              />
-                            </div>
-
-                            {/* RPE Selector */}
-                            <div style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
-                              <button
-                                disabled={set.completed}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  setOpenRpePicker(
-                                    openRpePicker?.exIdx === currentExIndex && openRpePicker?.setIdx === setIdx
-                                      ? null
-                                      : { exIdx: currentExIndex, setIdx }
-                                  );
-                                }}
-                                style={{
-                                  width: '100%',
-                                  padding: '8px 10px',
-                                  background: set.completed ? 'rgba(16, 185, 129, 0.05)' : 'var(--bg-input)',
-                                  border: `1px solid ${set.completed ? 'rgba(16, 185, 129, 0.4)' : 'var(--border-subtle)'}`,
-                                  borderRadius: 10,
-                                  color: 'var(--text-primary)',
-                                  fontSize: 12,
-                                  fontWeight: 800,
-                                  cursor: set.completed ? 'default' : 'pointer',
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  alignItems: 'center'
-                                }}
-                              >
-                                <span>RPE {set.rpe}</span>
-                                <ChevronDown size={12} color="var(--text-muted)" />
-                              </button>
-
-                              {/* RPE Floating Popover */}
-                              {openRpePicker?.exIdx === currentExIndex && openRpePicker?.setIdx === setIdx && (
-                                <div style={{
-                                  position: 'absolute', bottom: '115%', left: '50%', transform: 'translateX(-50%)',
-                                  background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)',
-                                  borderRadius: 14, padding: 8, display: 'flex', gap: 6, zIndex: 200,
-                                  boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
-                                }}>
-                                  {['6', '7', '8', '9', '10'].map(val => (
-                                    <button
-                                      key={val}
-                                      onClick={() => {
-                                        handleUpdateSetField(currentExIndex, setIdx, 'rpe', val);
-                                        setOpenRpePicker(null);
-                                      }}
-                                      style={{
-                                        width: 32, height: 32, borderRadius: 8,
-                                        background: set.rpe === val ? 'var(--brand-primary, #F59E0B)' : 'var(--bg-surface-raised)',
-                                        color: set.rpe === val ? '#000' : 'var(--text-primary)',
-                                        fontWeight: 900, fontSize: 12, border: 'none', cursor: 'pointer'
-                                      }}
-                                    >
-                                      {val}
-                                    </button>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* CLEAR TACTILE DONE BUTTON WITH INSTANT FEEDBACK */}
-                            <button
-                              onClick={() => handleCheckoffSet(currentExIndex, setIdx)}
-                              style={{
-                                width: 44, height: 44, borderRadius: 12,
-                                background: set.completed ? '#10B981' : 'rgba(16, 185, 129, 0.08)',
-                                border: `2px solid ${set.completed ? '#10B981' : 'rgba(16, 185, 129, 0.35)'}`,
-                                color: set.completed ? '#ffffff' : '#10B981',
-                                cursor: 'pointer',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                margin: '0 auto', transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                                boxShadow: set.completed ? '0 0 18px rgba(16, 185, 129, 0.45)' : 'none',
-                                transform: set.completed ? 'scale(1.05)' : 'scale(1)'
-                              }}
-                              title={set.completed ? 'Completed! Click to undo' : 'Click to log set as done'}
-                            >
-                              <Check size={22} strokeWidth={set.completed ? 3.5 : 2.5} />
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Add Set & Remove Set Actions */}
-                    <div style={{ display: 'flex', gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
-                      <button
-                        onClick={() => handleAddSet(false)}
-                        className="btn btn-secondary"
-                        style={{ padding: '8px 16px', fontSize: 12, borderRadius: 10, display: 'flex', alignItems: 'center', gap: 6 }}
-                      >
-                        <Plus size={14} /> Add Set
-                      </button>
-                      <button
-                        onClick={() => handleAddSet(true)}
-                        className="btn btn-secondary"
-                        style={{ padding: '8px 16px', fontSize: 12, borderRadius: 10, display: 'flex', alignItems: 'center', gap: 6, color: '#818CF8' }}
-                      >
-                        + Add Warm-Up Set
-                      </button>
-                      {currentActiveEx.sets.length > 1 && (
-                        <button
-                          onClick={() => handleRemoveSet(currentActiveEx.sets.length - 1)}
-                          className="btn btn-secondary"
-                          style={{ padding: '8px 14px', fontSize: 12, borderRadius: 10, display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)' }}
-                        >
-                          - Remove Last Set
-                        </button>
-                      )}
-                    </div>
+                            Next Exercise <ArrowRight size={15} />
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={handleFinishWorkout}
+                            className="btn btn-primary"
+                            style={{
+                              padding: '10px 24px', fontSize: 13, borderRadius: 12,
+                              background: '#10B981', color: '#000000', fontWeight: 700,
+                              display: 'flex', alignItems: 'center', gap: 6,
+                              boxShadow: '0 4px 16px rgba(16,185,129,0.35)'
+                            }}
+                          >
+                            <Check size={15} strokeWidth={3} color="#000000" /> Complete Workout
+                          </button>
+                        )}
+                      </div>
                   </div>
-
-                  {/* BOTTOM EXERCISE PAGINATION NAVIGATION */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, gap: 12 }}>
-                    {currentExIndex > 0 ? (
-                      <button
-                        onClick={() => {
-                          setCurrentExIndex(prev => prev - 1);
-                          setActiveDrawer(null);
-                          scrollToTop();
-                        }}
-                        className="btn btn-secondary"
-                        style={{ padding: '10px 18px', fontSize: 12, borderRadius: 12, display: 'flex', alignItems: 'center', gap: 6 }}
-                      >
-                        <ArrowLeft size={14} /> Previous: {activeExercises[currentExIndex - 1]?.name}
-                      </button>
-                    ) : <div />}
-
-                    {currentExIndex < activeExercises.length - 1 ? (
-                      <button
-                        onClick={() => {
-                          setCurrentExIndex(prev => prev + 1);
-                          setActiveDrawer(null);
-                          scrollToTop();
-                        }}
-                        className="btn btn-primary"
-                        style={{ padding: '10px 22px', fontSize: 13, borderRadius: 12, display: 'flex', alignItems: 'center', gap: 6 }}
-                      >
-                        Next: {activeExercises[currentExIndex + 1]?.name} <ArrowRight size={14} />
-                      </button>
-                    ) : (
-                      <button
-                        onClick={handleFinishWorkout}
-                        className="btn btn-primary"
-                        style={{ padding: '10px 24px', fontSize: 13, borderRadius: 12, background: '#10B981', color: '#000', fontWeight: 900, display: 'flex', alignItems: 'center', gap: 6 }}
-                      >
-                        <Check size={14} strokeWidth={3} /> Complete Workout
-                      </button>
-                    )}
+                ) : (
+                  <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)' }}>
+                    No exercises loaded in this workout session.
                   </div>
-                </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* MOBILE CONSOLE WORKSPACE (FULL-WIDTH ZERO-OVERFLOW DEDICATED CONTAINER) */}
+          <div className="block md:hidden w-full max-w-full" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
+            <div style={{ padding: '10px 8px 110px 8px', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
+              {currentActiveEx ? (
+                <ActiveExerciseView
+                  exerciseName={currentActiveEx.name}
+                  category={currentActiveEx.category || 'Compound'}
+                  targetMuscles={formatConciseTarget(currentActiveEx)}
+                  sets={currentActiveEx.sets.map((set, sIdx) => {
+                    const prevFormatted = formatPreviousSet(currentActiveEx.name, sIdx);
+                    const prevCompact = prevFormatted && prevFormatted !== '—' ? prevFormatted.replace(' kg × ', '×') : '—';
+                    return {
+                      id: set.id,
+                      prev: prevCompact,
+                      weight: set.weight,
+                      reps: set.reps,
+                      rpe: set.rpe || 8,
+                      completed: !!set.completed,
+                      isWarmup: set.isWarmup
+                    };
+                  })}
+                  onUpdateSet={(idx, field, value) => handleUpdateSetField(currentExIndex, idx, field, value)}
+                  onToggleComplete={(idx) => handleCheckoffSet(currentExIndex, idx)}
+                  onAddSet={() => handleAddSet(false)}
+                  onRemoveSet={() => handleRemoveSet(currentActiveEx.sets.length - 1)}
+                  onOpenDrawer={(drawerKey) => setActiveDrawer(activeDrawer === drawerKey ? null : drawerKey)}
+                  onOpenRpe={(setIdx) => setOpenRpePicker({ exIdx: currentExIndex, setIdx })}
+                  onSwapExercise={() => setActiveDrawer(activeDrawer === 'swap' ? null : 'swap')}
+                  onAddExercise={() => setShowExerciseSearchModal(true)}
+                />
               ) : (
                 <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)' }}>
                   No exercises loaded in this workout session.
                 </div>
               )}
             </div>
-
           </div>
+
+          {/* MOBILE STICKY BOTTOM ACTION BAR (Tier 4: Pacing & Directional Navigation) */}
+          <div
+            className="console-sticky-bottom-bar sticky bottom-0 bg-[#09090C]/95 backdrop-blur-md p-3 border-t border-zinc-800"
+            style={{
+              background: 'rgba(9, 9, 12, 0.95)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              borderTop: '1px solid #27272A',
+              padding: 12
+            }}
+          >
+            {/* Rest countdown strip if resting */}
+            {restActive && (
+              <div className="console-sticky-rest-strip" style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Clock size={13} color={restRemaining <= 10 ? '#EF4444' : '#10B981'} />
+                  <span style={{ fontSize: 12, fontWeight: 800, color: restRemaining <= 10 ? '#EF4444' : '#10B981', letterSpacing: '0.02em' }}>
+                    Rest: {formatMMSS(restRemaining)}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button
+                    type="button"
+                    onClick={() => setRestRemaining(prev => prev + 30)}
+                    className="console-rest-btn"
+                  >
+                    +30s
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRestActive(false)}
+                    className="console-rest-btn"
+                    style={{ fontWeight: 800, color: '#E4E4E7' }}
+                  >
+                    Skip
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Main navigation controls: Exactly 1 Prev and 1 Forward button */}
+            <div className="console-sticky-actions-row">
+              <button
+                type="button"
+                onClick={() => {
+                  if (currentExIndex > 0) {
+                    setCurrentExIndex(prev => prev - 1);
+                    setActiveDrawer(null);
+                    scrollToTop();
+                  }
+                }}
+                disabled={currentExIndex === 0}
+                className="console-sticky-nav-btn prev h-11 w-11 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 flex items-center justify-center shrink-0 cursor-pointer active:scale-95"
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 12,
+                  opacity: currentExIndex === 0 ? 0.35 : 1,
+                  cursor: currentExIndex === 0 ? 'not-allowed' : 'pointer',
+                  background: '#18181b',
+                  border: '1px solid #27272A',
+                  color: '#d4d4d8',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}
+                aria-label="Previous Exercise"
+              >
+                <ArrowLeft size={16} />
+              </button>
+
+              {currentExIndex < activeExercises.length - 1 ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentExIndex(prev => prev + 1);
+                    setActiveDrawer(null);
+                    scrollToTop();
+                  }}
+                  className="console-sticky-nav-btn next h-11 flex-1 bg-[#10B981] hover:bg-[#059669] text-black font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                  style={{
+                    height: 44,
+                    borderRadius: 12,
+                    background: '#10B981',
+                    color: '#000000',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    boxShadow: '0 4px 16px rgba(16, 185, 129, 0.3)',
+                    border: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    flex: 1,
+                    minWidth: 0,
+                    cursor: 'pointer'
+                  }}
+                >
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    Next: {activeExercises[currentExIndex + 1]?.name}
+                  </span>
+                  <ArrowRight size={16} color="#000000" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleFinishWorkout}
+                  className="console-sticky-nav-btn finish h-11 flex-1 bg-[#10B981] hover:bg-[#059669] text-black font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                  style={{
+                    height: 44,
+                    borderRadius: 12,
+                    background: '#10B981',
+                    color: '#000000',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    boxShadow: '0 4px 16px rgba(16, 185, 129, 0.4)',
+                    border: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    flex: 1,
+                    minWidth: 0,
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Check size={17} strokeWidth={3} color="#000000" />
+                  <span>Finish Workout</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* RPE EFFORT SELECTOR BOTTOM SHEET MODAL */}
+          {openRpePicker && createPortal(
+            <div className="app-modal-backdrop" onClick={() => setOpenRpePicker(null)} style={{ zIndex: 1200 }}>
+              <div
+                className="native-bottom-sheet fadeInUp"
+                onClick={e => e.stopPropagation()}
+                style={{
+                  position: 'fixed',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  background: 'var(--bg-surface)',
+                  borderTop: '1px solid var(--border-subtle)',
+                  borderTopLeftRadius: 20,
+                  borderTopRightRadius: 20,
+                  padding: '20px 20px calc(24px + env(safe-area-inset-bottom, 16px))',
+                  boxShadow: '0 -10px 40px rgba(0,0,0,0.6)',
+                  maxWidth: 480,
+                  margin: '0 auto',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 14
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: -4 }}>
+                  <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border-subtle)' }} />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 900, color: 'var(--text-primary)' }}>
+                      Rate of Perceived Exertion (RPE)
+                    </div>
+                    <div style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
+                      Set {activeExercises[openRpePicker.exIdx]?.sets?.[openRpePicker.setIdx]?.id || openRpePicker.setIdx + 1} • How close were you to muscular failure?
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setOpenRpePicker(null)}
+                    style={{ background: 'var(--bg-surface-raised)', border: 'none', borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, maxHeight: '60vh', overflowY: 'auto' }}>
+                  {[
+                    { rpe: '10', title: '10 — Max Effort', desc: '0 Reps in Reserve (Failure)', color: '#EF4444' },
+                    { rpe: '9.5', title: '9.5 — Near Failure', desc: 'Maybe 0–1 Rep in Reserve', color: '#F97316' },
+                    { rpe: '9', title: '9 — Very Heavy', desc: '1 Rep in Reserve (1 RIR)', color: '#F59E0B' },
+                    { rpe: '8.5', title: '8.5 — Heavy Load', desc: '1–2 Reps in Reserve', color: '#EAB308' },
+                    { rpe: '8', title: '8 — Standard Working', desc: '2 Reps in Reserve (Optimal)', color: '#10B981' },
+                    { rpe: '7.5', title: '7.5 — Moderate Working', desc: '2–3 Reps in Reserve', color: '#10B981' },
+                    { rpe: '7', title: '7 — Speed / Technique', desc: '3 Reps in Reserve (Smooth)', color: '#06B6D4' },
+                    { rpe: '6', title: '6 — Light Working', desc: '4+ Reps in Reserve', color: '#6366F1' },
+                    { rpe: '5', title: '5 — Warm-up Set', desc: 'Submaximal / Prep', color: '#8B5CF6' },
+                    { rpe: '4', title: '1–4 — Light / Bar', desc: 'Mobility & Feeder Set', color: '#9CA3AF' }
+                  ].map(item => {
+                    const isSelected = String(activeExercises[openRpePicker.exIdx]?.sets?.[openRpePicker.setIdx]?.rpe) === item.rpe;
+                    return (
+                      <button
+                        key={item.rpe}
+                        type="button"
+                        onClick={() => {
+                          handleUpdateSetField(openRpePicker.exIdx, openRpePicker.setIdx, 'rpe', item.rpe);
+                          setOpenRpePicker(null);
+                        }}
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: 12,
+                          background: isSelected ? 'var(--brand-primary-subtle)' : 'var(--bg-surface-raised)',
+                          border: isSelected ? '1.5px solid var(--brand-primary-light)' : '1px solid var(--border-subtle)',
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 2,
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <span style={{ fontSize: 12.5, fontWeight: 800, color: isSelected ? 'var(--brand-primary-light)' : 'var(--text-primary)' }}>
+                            {item.title}
+                          </span>
+                          <span style={{ width: 8, height: 8, borderRadius: '50%', background: item.color }} />
+                        </div>
+                        <span style={{ fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.2 }}>
+                          {item.desc}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>,
+            document.body
+          )}
         </div>
       ) : programView === 'program' && generatedProgram ? (
         /* ==================== VIEW A2: 4-WEEK MESOCYCLE PROGRAM VIEW ==================== */
-        <div className="fadeInUp">
+        <div className="fadeInUp w-full max-w-4xl mx-auto pb-28 px-3 sm:px-4">
           
-          {/* Header Row */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
-            <div>
+          {/* 1. Precision Header Bar (Strict h-12 / 48px, Sticky, Vector Icons) */}
+          <div 
+            className="h-12 px-4 flex items-center justify-between border-b border-zinc-800/60 sticky top-0 z-30 mb-3 -mx-3 sm:-mx-4"
+            style={{
+              height: 48,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '0 16px',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+              backgroundColor: 'rgba(9, 9, 12, 0.95)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              position: 'sticky',
+              top: 0,
+              zIndex: 30,
+              marginBottom: 12
+            }}
+          >
+            {/* Left: Back button as a minimal pill */}
+            <button 
+              type="button"
+              onClick={() => { setProgramView('hub'); scrollToTop(); }} 
+              style={{
+                height: 32,
+                padding: '0 10px',
+                borderRadius: 8,
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                color: '#D4D4D8',
+                fontSize: 12,
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                cursor: 'pointer'
+              }}
+              className="active:scale-95 transition"
+            >
+              <ChevronLeft size={16} /> Back
+            </button>
+
+            {/* Center: Routine Title in bold uppercase athletic typography */}
+            <h2 style={{
+              fontSize: 13,
+              fontWeight: 800,
+              color: '#FFFFFF',
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              textAlign: 'center',
+              margin: 0,
+              flex: 1,
+              padding: '0 8px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}>
+              {formatCleanSplitName(generatedProgram.splitName)}
+            </h2>
+
+            {/* Right: Utility group (32x32px buttons) */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
               <button 
-                onClick={() => setProgramView('hub')} 
-                style={{ background: 'none', border: 'none', color: 'var(--brand-primary, #F59E0B)', fontSize: 12, fontWeight: 800, cursor: 'pointer', padding: 0, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}
+                type="button"
+                onClick={() => { setShowIntakeModal(true); setIntakeStep(0); }} 
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  color: '#A1A1AA',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer'
+                }}
+                className="active:scale-95 transition"
+                title="Settings & Preferences"
+                aria-label="Preferences"
               >
-                <ArrowLeft size={14} /> Back to Workout Hub
+                <SlidersHorizontal size={14} />
               </button>
-              <h2 style={{ fontSize: 24, fontWeight: 900, color: 'var(--text-primary)', margin: 0, fontFamily: 'var(--font-heading)' }}>
-                {generatedProgram.splitName}
-              </h2>
+              <button 
+                type="button"
+                onClick={handleRegenerateProgram} 
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  color: '#A1A1AA',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer'
+                }}
+                className="active:scale-95 transition"
+                title="Regenerate Plan"
+                aria-label="Regenerate Plan"
+              >
+                <RotateCw size={14} />
+              </button>
+            </div>
+          </div>
+
+          {/* 2. Phase & Intensity Meta Row */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 4, marginBottom: 12, position: 'relative' }}>
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              <button
+                type="button"
+                onClick={() => setWeekDropdownOpen(prev => !prev)}
+                style={{
+                  height: 32,
+                  padding: '0 12px',
+                  borderRadius: 10,
+                  backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  color: '#E4E4E7',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  cursor: 'pointer'
+                }}
+                className="active:scale-95 transition"
+              >
+                <span>{`Phase ${selectedWeek + 1}: ${WEEKS_METADATA[selectedWeek]?.phase || 'Base Calibration'}`}</span>
+                <ChevronDown size={13} style={{ color: '#10B981', transform: weekDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
+              </button>
+
+              {weekDropdownOpen && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-20" 
+                    onClick={() => setWeekDropdownOpen(false)} 
+                  />
+                  <div 
+                    className="absolute left-0 top-full mt-1.5 z-30 w-64 rounded-xl shadow-2xl p-1.5 space-y-1"
+                    style={{
+                      backgroundColor: '#12141A',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      boxShadow: '0 16px 36px rgba(0, 0, 0, 0.7)'
+                    }}
+                  >
+                    {WEEKS_METADATA.map(wk => {
+                      const isWkActive = selectedWeek === wk.num;
+                      return (
+                        <button
+                          key={wk.num}
+                          type="button"
+                          onClick={() => {
+                            setSelectedWeek(wk.num);
+                            setWeekDropdownOpen(false);
+                          }}
+                          style={{
+                            width: '100%',
+                            textAlign: 'left',
+                            padding: '8px 12px',
+                            borderRadius: 8,
+                            fontSize: 12,
+                            fontWeight: 600,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            cursor: 'pointer',
+                            backgroundColor: isWkActive ? 'rgba(16, 185, 129, 0.12)' : 'transparent',
+                            border: isWkActive ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid transparent',
+                            color: isWkActive ? '#10B981' : '#D4D4D8'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', flexShrink: 0, backgroundColor: isWkActive ? '#10B981' : '#52525B' }} />
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Phase {wk.num + 1}: {wk.phase}</span>
+                          </div>
+                          {isWkActive && <Check size={14} style={{ color: '#10B981', flexShrink: 0 }} />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </div>
 
-            <button 
-              onClick={() => { setShowIntakeModal(true); setIntakeStep(0); }} 
-              className="btn btn-secondary" 
-              style={{ padding: '8px 16px', fontSize: 12, borderRadius: 12, display: 'flex', alignItems: 'center', gap: 6 }}
-            >
-              <RotateCcw size={13} /> Regenerate Plan
-            </button>
+            {/* Right: Phase target badge with glowing emerald indicator */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#A1A1AA', flexShrink: 0 }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#10B981', boxShadow: '0 0 8px #10B981', flexShrink: 0 }} />
+              <span style={{ fontWeight: 700, color: '#FFFFFF' }}>RPE {WEEKS_METADATA[selectedWeek]?.rpe || '7.0'}</span>
+              <span style={{ color: '#52525B' }}>•</span>
+              <span style={{ color: '#A1A1AA' }}>{WEEKS_METADATA[selectedWeek]?.tag || 'Base Load'}</span>
+            </div>
           </div>
 
-          {/* 4-WEEK PERIODIZATION TIMELINE SELECTOR */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 24 }}>
-            {[
-              { num: 0, title: 'Week 1: Accumulation', tag: 'RPE 7-8 · Volume Base' },
-              { num: 1, title: 'Week 2: Intensification', tag: 'RPE 8-9 · Progressive Load' },
-              { num: 2, title: 'Week 3: Overreach', tag: 'RPE 9-10 · Max CNS Stimulus' },
-              { num: 3, title: 'Week 4: Deload', tag: 'RPE 6-7 · Supercompensation' }
-            ].map(wk => {
-              const active = selectedWeek === wk.num;
-              return (
-                <button
-                  key={wk.num}
-                  onClick={() => setSelectedWeek(wk.num)}
-                  style={{
-                    padding: '14px 12px',
-                    borderRadius: 14,
-                    background: active ? 'rgba(245, 158, 11, 0.1)' : 'var(--bg-surface)',
-                    border: `1.5px solid ${active ? 'var(--brand-primary, #F59E0B)' : 'var(--border-subtle)'}`,
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  <span style={{ fontSize: 10, fontWeight: 900, color: active ? 'var(--brand-primary, #F59E0B)' : 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: 2 }}>
-                    PHASE {wk.num + 1}
-                  </span>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 2 }}>{wk.title}</div>
-                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{wk.tag}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* DAY SELECTOR STRIP */}
-          <div style={{ display: 'flex', gap: 8, marginBottom: 20, overflowX: 'auto', paddingBottom: 4 }}>
+          {/* 3. Segmented Day Selector Track */}
+          <div 
+            style={{
+              display: 'flex',
+              gap: 8,
+              marginBottom: 14,
+              overflowX: 'auto',
+              paddingBottom: 6,
+              scrollSnapType: 'x mandatory',
+              WebkitOverflowScrolling: 'touch'
+            }}
+            className="no-scrollbar"
+          >
             {(generatedProgram.weeks[selectedWeek]?.days || []).map((day, dIdx) => {
-              const active = selectedDay === dIdx;
+              const isDayActive = selectedDay === dIdx;
+              
+              if (isDayActive && !day.isRest) {
+                return (
+                  <button
+                    key={dIdx}
+                    type="button"
+                    onClick={() => setSelectedDay(dIdx)}
+                    style={{
+                      minWidth: 98,
+                      padding: '8px 14px',
+                      borderRadius: 12,
+                      background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.16) 0%, rgba(16, 185, 129, 0.05) 100%)',
+                      border: '1px solid rgba(16, 185, 129, 0.65)',
+                      boxShadow: '0 0 16px rgba(16, 185, 129, 0.2)',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      scrollSnapAlign: 'start',
+                      flexShrink: 0
+                    }}
+                    className="active:scale-95 transition select-none"
+                  >
+                    <span style={{ fontSize: 9, textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.08em', color: '#10B981', display: 'block', lineHeight: 1.2 }}>
+                      DAY {dIdx + 1}
+                    </span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#FFFFFF', display: 'block', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {day.dayName || day.sessionType || 'Workout'}
+                    </span>
+                  </button>
+                );
+              }
+
+              if (isDayActive && day.isRest) {
+                return (
+                  <button
+                    key={dIdx}
+                    type="button"
+                    onClick={() => setSelectedDay(dIdx)}
+                    style={{
+                      minWidth: 90,
+                      padding: '8px 12px',
+                      borderRadius: 12,
+                      background: 'rgba(255, 255, 255, 0.08)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      scrollSnapAlign: 'start',
+                      flexShrink: 0
+                    }}
+                    className="active:scale-95 transition select-none"
+                  >
+                    <span style={{ fontSize: 9, textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.08em', color: '#D4D4D8', display: 'block', lineHeight: 1.2 }}>
+                      DAY {dIdx + 1}
+                    </span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#FFFFFF', display: 'block', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      Rest Day
+                    </span>
+                  </button>
+                );
+              }
+
+              if (day.isRest) {
+                return (
+                  <button
+                    key={dIdx}
+                    type="button"
+                    onClick={() => setSelectedDay(dIdx)}
+                    style={{
+                      minWidth: 90,
+                      padding: '8px 12px',
+                      borderRadius: 12,
+                      backgroundColor: 'transparent',
+                      border: '1px dashed rgba(255, 255, 255, 0.09)',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      scrollSnapAlign: 'start',
+                      flexShrink: 0,
+                      opacity: 0.65
+                    }}
+                    className="hover:opacity-90 active:scale-95 transition select-none"
+                  >
+                    <span style={{ fontSize: 9, color: '#71717A', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.08em', display: 'block', lineHeight: 1.2 }}>
+                      DAY {dIdx + 1}
+                    </span>
+                    <span style={{ fontSize: 12, color: '#71717A', display: 'block', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      Rest Day
+                    </span>
+                  </button>
+                );
+              }
+
               return (
                 <button
                   key={dIdx}
-                  onClick={() => !day.isRest && setSelectedDay(dIdx)}
+                  type="button"
+                  onClick={() => setSelectedDay(dIdx)}
                   style={{
-                    flexShrink: 0,
-                    padding: '10px 16px',
+                    minWidth: 98,
+                    padding: '8px 14px',
                     borderRadius: 12,
-                    border: day.isRest ? '1px dashed var(--border-subtle)' : `1.5px solid ${active ? 'var(--brand-primary, #F59E0B)' : 'var(--border-subtle)'}`,
-                    background: day.isRest ? 'rgba(255,255,255,0.02)' : active ? 'rgba(245, 158, 11, 0.1)' : 'var(--bg-surface)',
-                    color: day.isRest ? 'var(--text-muted)' : active ? 'var(--brand-primary, #F59E0B)' : 'var(--text-secondary)',
-                    fontWeight: 800,
-                    fontSize: 12,
-                    cursor: day.isRest ? 'default' : 'pointer',
-                    textAlign: 'center'
+                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.07)',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    scrollSnapAlign: 'start',
+                    flexShrink: 0
                   }}
+                  className="hover:border-zinc-700 active:scale-95 transition select-none"
                 >
-                  <div>{day.dayLabel}</div>
-                  <div style={{ fontSize: 10, fontWeight: 600, opacity: 0.8 }}>
-                    {day.isRest ? 'Rest' : day.sessionType}
-                  </div>
+                  <span style={{ fontSize: 9, color: '#71717A', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.08em', display: 'block', lineHeight: 1.2 }}>
+                    DAY {dIdx + 1}
+                  </span>
+                  <span style={{ fontSize: 12, fontWeight: 500, color: '#D4D4D8', display: 'block', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {day.dayName || day.sessionType || 'Workout'}
+                  </span>
                 </button>
               );
             })}
           </div>
 
-          {/* ACTIVE DAY WORKOUT CARD */}
+          {/* 4 & 5. Active Day Details / Calm Rest State */}
           {(() => {
             const currentDayData = generatedProgram.weeks[selectedWeek]?.days?.[selectedDay];
             if (!currentDayData) return null;
+
+            // Rest & Active Recovery Card (Zero emojis, pure vector semantics)
             if (currentDayData.isRest) {
               return (
-                <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 20, padding: '48px 24px', textAlign: 'center' }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 800, margin: '0 0 8px', color: 'var(--text-primary)' }}>Rest & Recovery Day</h3>
-                  <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>Rest allows muscle fibers to repair and supercompensate.</p>
+                <div 
+                  style={{
+                    background: 'linear-gradient(180deg, #161922 0%, #0F1117 100%)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: 16,
+                    padding: '20px 22px',
+                    boxShadow: '0 8px 24px -4px rgba(0, 0, 0, 0.6)'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                    <div style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 10,
+                      backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                      border: '1px solid rgba(16, 185, 129, 0.25)',
+                      color: '#10B981',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
+                    }}>
+                      <Sparkles size={18} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#10B981' }}>
+                        Active Recovery Protocol
+                      </div>
+                      <h3 style={{ fontSize: 17, fontWeight: 800, letterSpacing: '-0.015em', color: '#FFFFFF', margin: '3px 0 0 0' }}>
+                        Rest & Muscular Adaptation
+                      </h3>
+                      <p style={{ fontSize: 12, color: '#A1A1AA', margin: '2px 0 0 0' }}>
+                        Muscles rebuild and adapt during rest. Prioritize passive repair and light movement today.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3" style={{ marginTop: 18 }}>
+                    <div style={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                      border: '1px solid rgba(255, 255, 255, 0.06)',
+                      borderRadius: 12,
+                      padding: 14
+                    }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#E4E4E7', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                        <Droplets size={14} style={{ color: '#10B981', flexShrink: 0 }} />
+                        <span>Hydration & Protein</span>
+                      </div>
+                      <p style={{ fontSize: 11.5, color: '#A1A1AA', margin: 0, lineHeight: 1.5 }}>
+                        Drink 2.5–3.5L of water and maintain 1.6–2.2g/kg protein intake to fuel muscle tissue remodeling.
+                      </p>
+                    </div>
+
+                    <div style={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                      border: '1px solid rgba(255, 255, 255, 0.06)',
+                      borderRadius: 12,
+                      padding: 14
+                    }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#E4E4E7', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                        <Activity size={14} style={{ color: '#10B981', flexShrink: 0 }} />
+                        <span>Mobility & Recovery</span>
+                      </div>
+                      <p style={{ fontSize: 11.5, color: '#A1A1AA', margin: 0, lineHeight: 1.5 }}>
+                        10–15 mins of gentle hip, thoracic spine, and shoulder flows or foam rolling to reduce muscular tightness.
+                      </p>
+                    </div>
+
+                    <div style={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                      border: '1px solid rgba(255, 255, 255, 0.06)',
+                      borderRadius: 12,
+                      padding: 14
+                    }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#E4E4E7', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                        <Footprints size={14} style={{ color: '#10B981', flexShrink: 0 }} />
+                        <span>Target Step Goal</span>
+                      </div>
+                      <p style={{ fontSize: 11.5, color: '#A1A1AA', margin: 0, lineHeight: 1.5 }}>
+                        Aim for 7,000–10,000 light daily steps to promote systemic bloodflow without CNS fatigue.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               );
             }
 
+            // Workout Day View
+            const dayExercises = currentDayData.exercises || [];
+            const totalSets = dayExercises.reduce((acc, e) => acc + (parseInt(e.sets) || 3), 0);
+            const estMinutes = Math.max(25, Math.round(totalSets * 3));
+
             return (
-              <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 20, overflow: 'hidden' }}>
-                <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-                  <div>
-                    <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--brand-primary, #F59E0B)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                      {currentDayData.dayLabel} · {currentDayData.sessionType}
-                    </span>
-                    <h3 style={{ fontSize: 20, fontWeight: 900, color: 'var(--text-primary)', margin: '2px 0 0' }}>
-                      {currentDayData.dayName || currentDayData.sessionType}
-                    </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {/* 4. Session Briefing Card */}
+                <div 
+                  style={{
+                    background: 'linear-gradient(180deg, #161922 0%, #0F1117 100%)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    boxShadow: '0 8px 24px -4px rgba(0, 0, 0, 0.6)',
+                    borderRadius: 16,
+                    padding: '18px 20px',
+                    marginBottom: 4
+                  }}
+                >
+                  {/* Top Row: Meta Badge + Live Session Indicator */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#10B981' }}>
+                      DAY {String(selectedDay + 1).padStart(2, '0')} • TARGET PROTOCOL
+                    </div>
+                    {isSessionActive && (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: '#10B981' }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#10B981', boxShadow: '0 0 8px #10B981' }} />
+                        Active Session
+                      </span>
+                    )}
                   </div>
 
-                  <button
-                    onClick={() => handleStartGeneratedDay(currentDayData)}
-                    className="btn btn-primary"
-                    style={{ padding: '10px 24px', borderRadius: 12, fontWeight: 900, fontSize: 13, background: 'var(--brand-primary, #F59E0B)', color: '#000' }}
-                  >
-                    <Play size={14} fill="currentColor" /> Start This Workout
-                  </button>
+                  {/* Routine Session Title */}
+                  <h3 style={{
+                    fontSize: 18,
+                    fontWeight: 800,
+                    letterSpacing: '-0.02em',
+                    color: '#FFFFFF',
+                    margin: '4px 0 10px 0',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    {currentDayData.dayName || currentDayData.sessionType || 'Workout Session'}
+                  </h3>
+
+                  {/* Telemetry row */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '4px 10px',
+                      borderRadius: 8,
+                      backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid rgba(255, 255, 255, 0.07)',
+                      fontSize: 12,
+                      fontWeight: 500,
+                      color: '#D4D4D8'
+                    }}>
+                      <Dumbbell size={12} style={{ color: '#A1A1AA', flexShrink: 0 }} />
+                      <span>{dayExercises.length} Exercises</span>
+                    </span>
+
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '4px 10px',
+                      borderRadius: 8,
+                      backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid rgba(255, 255, 255, 0.07)',
+                      fontSize: 12,
+                      fontWeight: 500,
+                      color: '#D4D4D8'
+                    }}>
+                      <Layers size={12} style={{ color: '#A1A1AA', flexShrink: 0 }} />
+                      <span>{totalSets} Working Sets</span>
+                    </span>
+
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '4px 10px',
+                      borderRadius: 8,
+                      backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid rgba(255, 255, 255, 0.07)',
+                      fontSize: 12,
+                      fontWeight: 500,
+                      color: '#D4D4D8'
+                    }}>
+                      <Timer size={12} style={{ color: '#A1A1AA', flexShrink: 0 }} />
+                      <span>~{estMinutes} Minutes</span>
+                    </span>
+                  </div>
+
+                  {/* Start Workout button strictly below telemetry with generous margin - ZERO OVERLAP */}
+                  {!isSessionActive && (
+                    <button
+                      type="button"
+                      onClick={() => handleStartGeneratedDay(currentDayData)}
+                      style={{
+                        marginTop: 14,
+                        width: '100%',
+                        height: 44,
+                        background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                        color: '#000000',
+                        fontWeight: 800,
+                        fontSize: 13,
+                        letterSpacing: '0.05em',
+                        textTransform: 'uppercase',
+                        borderRadius: 12,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 8,
+                        boxShadow: '0 4px 16px rgba(16, 185, 129, 0.35)',
+                        cursor: 'pointer',
+                        border: 'none',
+                        transition: 'all 0.15s ease'
+                      }}
+                      className="active:scale-[0.98]"
+                    >
+                      <Play size={14} fill="#000000" /> Start Workout
+                    </button>
+                  )}
                 </div>
 
-                {/* Exercises list */}
-                <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {(currentDayData.exercises || []).map((ex, exIdx) => {
-                    const rpeInfo = formatRPE(ex.rpeTarget);
-                    const dbEntry = PRESET_EXERCISES.find(p => p.name === ex.name);
-                    return (
-                      <div key={exIdx} style={{
-                        background: 'var(--bg-surface-raised)',
-                        border: '1px solid var(--border-subtle)',
-                        borderRadius: 16,
-                        padding: 18
-                      }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8, marginBottom: 6 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <span style={{
-                              fontSize: 10, fontWeight: 900, padding: '3px 8px', borderRadius: 6,
-                              background: `${TIER_COLORS[ex.tier]}18`, color: TIER_COLORS[ex.tier], border: `1px solid ${TIER_COLORS[ex.tier]}35`
-                            }}>
-                              T{ex.tier}
-                            </span>
-                            <h4 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: 'var(--text-primary)' }}>{ex.name}</h4>
+                {/* 5. Exercise Cards Section */}
+                <div>
+                  <div style={{
+                    fontSize: 10,
+                    fontWeight: 800,
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                    color: '#71717A',
+                    marginBottom: 10,
+                    paddingLeft: 4
+                  }}>
+                    Movements ({dayExercises.length})
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {dayExercises.map((ex, exIdx) => {
+                      const dbEntry = PRESET_EXERCISES.find(p => p.name === ex.name);
+                      const rawAnatomy = dbEntry?.targetAnatomy || ex.targetAnatomy || ex.muscleGroup;
+                      const anatomy = formatConciseAnatomyTarget(rawAnatomy, ex);
+                      const isIsometric = /plank|hold|wall sit/i.test(ex.name);
+                      const sets = ex.sets || 3;
+
+                      return (
+                        <div 
+                          key={exIdx} 
+                          style={{
+                            background: 'linear-gradient(180deg, rgba(22, 25, 34, 0.9) 0%, rgba(15, 17, 23, 0.95) 100%)',
+                            border: '1px solid rgba(255, 255, 255, 0.07)',
+                            borderRadius: 16,
+                            padding: '16px 18px',
+                            boxShadow: '0 4px 18px rgba(0, 0, 0, 0.35)',
+                            transition: 'border-color 0.2s ease'
+                          }}
+                        >
+                          {/* Top Row: Index + Title + Swap Action */}
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                              <span style={{
+                                fontFamily: 'JetBrains Mono, monospace',
+                                fontSize: 12,
+                                fontWeight: 700,
+                                color: '#71717A',
+                                width: 22,
+                                flexShrink: 0
+                              }}>
+                                {String(exIdx + 1).padStart(2, '0')}
+                              </span>
+                              <h3 style={{
+                                margin: 0,
+                                fontSize: 15,
+                                fontWeight: 700,
+                                color: '#FFFFFF',
+                                letterSpacing: '-0.015em',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                              }}>
+                                {ex.name}
+                              </h3>
+                            </div>
+                            
+                            <button
+                              type="button"
+                              onClick={() => setSmartAltTarget({ ex, weekIdx: selectedWeek, dayIdx: selectedDay, exIdx, isConsole: false })}
+                              style={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: 10,
+                                backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                color: '#A1A1AA',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                flexShrink: 0
+                              }}
+                              className="active:scale-95 transition"
+                              title="Swap Exercise"
+                              aria-label="Swap Exercise"
+                            >
+                              <Repeat size={13} style={{ color: '#10B981' }} />
+                            </button>
                           </div>
 
-                          <div style={{ display: 'flex', gap: 6 }}>
-                            <span style={{ fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 8, background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}>
-                              {ex.sets} × {ex.repRange} reps
+                          {/* Subtitle Row: Muscle targets indented past 22px + 12px = 34px */}
+                          {anatomy && (
+                            <div style={{
+                              marginLeft: 34,
+                              marginBottom: 12,
+                              fontSize: 11.5,
+                              fontWeight: 500,
+                              color: '#A1A1AA',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
+                            }}>
+                              {anatomy}
+                            </div>
+                          )}
+
+                          {/* Bottom Metrics Row indented at 34px */}
+                          <div style={{
+                            marginLeft: 34,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            flexWrap: 'wrap'
+                          }}>
+                            <span style={{
+                              backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                              border: '1px solid rgba(255, 255, 255, 0.08)',
+                              borderRadius: 8,
+                              padding: '5px 10px',
+                              fontSize: 12,
+                              color: '#D4D4D8',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 4
+                            }}>
+                              {isIsometric ? (
+                                <>
+                                  <span style={{ color: '#FFFFFF', fontWeight: 700 }}>{sets}</span> Sets × <span style={{ color: '#FFFFFF', fontWeight: 700 }}>45–60s</span> Hold
+                                </>
+                              ) : (
+                                <>
+                                  <span style={{ color: '#FFFFFF', fontWeight: 700 }}>{sets}</span> Sets × <span style={{ color: '#FFFFFF', fontWeight: 700 }}>{ex.repRange || '8–12'}</span> Reps
+                                </>
+                              )}
                             </span>
-                            <span style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 8, background: 'var(--bg-surface)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}>
-                              {rpeInfo.shortLabel}
-                            </span>
-                            <span style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 8, background: 'var(--bg-surface)', color: 'var(--text-muted)', border: '1px solid var(--border-subtle)' }}>
-                              {ex.restSec}s rest
+                            <span style={{
+                              backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                              border: '1px solid rgba(255, 255, 255, 0.08)',
+                              borderRadius: 8,
+                              padding: '5px 10px',
+                              fontSize: 12,
+                              color: '#A1A1AA',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 6
+                            }}>
+                              <Timer size={12} style={{ color: '#10B981', flexShrink: 0 }} />
+                              <span>{formatRestIntervalBadge(ex.restSec)}</span>
                             </span>
                           </div>
                         </div>
-
-                        {/* Exact Target Anatomy Subtitle */}
-                        {dbEntry?.targetAnatomy && (
-                          <div style={{ fontSize: 11, color: 'var(--brand-primary, #F59E0B)', fontWeight: 700, margin: '4px 0 2px' }}>
-                            Target: {dbEntry.targetAnatomy}
-                          </div>
-                        )}
-
-                        {ex.progressionRule && (
-                          <div style={{ fontSize: 11, color: 'var(--text-muted)', fontStyle: 'italic', marginTop: 4 }}>
-                            Overload: {ex.progressionRule}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             );
@@ -2937,154 +5428,376 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
       ) : (
         /* ==================== VIEW A: WORKOUT HUB ==================== */
         <div className="fadeInUp">
-          
-          {/* TOP HERO BANNER: Active Mesocycle Resume or Generator CTA */}
-          <div style={{
-            background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(129, 140, 248, 0.08) 100%)',
-            border: '1px solid rgba(245, 158, 11, 0.25)',
-            borderRadius: 24,
-            padding: '24px 28px',
-            marginBottom: 24,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 16
-          }}>
-            <div>
-              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--brand-primary, #F59E0B)', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Sparkles size={14} /> CERTIFIED PERIODIZATION ENGINE
-              </span>
-              <h2 style={{ fontSize: 20, fontWeight: 900, color: 'var(--text-primary)', margin: '4px 0', fontFamily: 'var(--font-heading)' }}>
-                {generatedProgram ? generatedProgram.splitName : 'Build Your Personalized 4-Week Mesocycle'}
-              </h2>
-              <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>
-                {generatedProgram ? 'Periodized weekly loading, autoregulated RPE thresholds, and volume validation.' : 'NSCA & ACSM certified principles tailored to your exact equipment, goal, and injury history.'}
-              </p>
-            </div>
-
-            <div style={{ display: 'flex', gap: 10 }}>
-              {generatedProgram && (
-                <button
-                  onClick={() => { setProgramView('program'); scrollToTop(); }}
-                  className="btn btn-primary"
-                  style={{ padding: '11px 22px', borderRadius: 12, fontWeight: 800, fontSize: 13, background: 'var(--brand-primary, #F59E0B)', color: '#000' }}
-                >
-                  View Active Mesocycle →
-                </button>
-              )}
-              <button
-                onClick={() => { setShowIntakeModal(true); setIntakeStep(0); }}
-                className="btn btn-secondary"
-                style={{ padding: '11px 20px', borderRadius: 12, fontWeight: 800, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}
-              >
-                <Sparkles size={13} /> {generatedProgram ? 'Regenerate Plan' : 'Generate 4-Week Plan'}
-              </button>
-            </div>
-          </div>
-
-          {/* STREAK & STATS BAR */}
-          <div style={{
-            background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 20, padding: '16px 24px', marginBottom: 24,
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(245, 158, 11, 0.12)', color: 'var(--brand-primary, #F59E0B)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Flame size={20} />
-                </div>
-                <div>
-                  <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>WEEKLY STREAK</span>
-                  <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--text-primary)' }}>{streak} Workouts Logged</div>
-                </div>
-              </div>
-
-              <div style={{ width: 1, height: 28, background: 'var(--border-subtle)' }} />
-
-              <button
-                onClick={handleToggleStreakShield}
-                style={{ background: 'none', border: 'none', padding: 0, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', textAlign: 'left' }}
-              >
-                <Shield size={18} color={streakShield ? 'var(--brand-primary, #F59E0B)' : 'var(--text-muted)'} />
-                <div>
-                  <span style={{ fontSize: 10, fontWeight: 800, color: streakShield ? 'var(--brand-primary, #F59E0B)' : 'var(--text-secondary)', display: 'block' }}>Streak Shield</span>
-                  <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>{streakShield ? 'ACTIVE' : 'INACTIVE'}</span>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          {/* 4 SUB-TABS NAVIGATION */}
-          <div style={{ display: 'flex', gap: 6, background: 'var(--bg-surface-raised)', padding: 6, borderRadius: 14, marginBottom: 24 }}>
-            {[
-              { key: 'console', label: 'Workout Routines (17 Splits)' },
-              { key: 'heatmap', label: 'Volume & Fatigue Map' },
-              { key: 'prs', label: 'PR Hall of Fame' },
-              { key: 'history', label: 'Training Sessions Archive' }
-            ].map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                style={{
-                  flex: 1, padding: '10px 0', fontSize: 13, fontWeight: 800, borderRadius: 10, cursor: 'pointer',
-                  background: activeTab === tab.key ? 'var(--bg-surface)' : 'transparent',
-                  color: activeTab === tab.key ? 'var(--brand-primary, #F59E0B)' : 'var(--text-muted)',
-                  border: activeTab === tab.key ? '1px solid var(--border-subtle)' : '1px solid transparent',
-                  boxShadow: activeTab === tab.key ? '0 2px 8px rgba(0,0,0,0.1)' : 'none',
-                  transition: 'all 0.15s ease'
+          {/* UNIFIED STREAK & SHIELD CARD */}
+          <div 
+            style={{
+              background: 'linear-gradient(180deg, #161922 0%, #0F1117 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              boxShadow: '0 8px 24px -4px rgba(0, 0, 0, 0.5)',
+              borderRadius: 16,
+              padding: '16px 20px',
+              marginBottom: 16,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 12
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div 
+                style={{ 
+                  width: 40, 
+                  height: 40, 
+                  borderRadius: '50%', 
+                  background: 'radial-gradient(circle, rgba(16, 185, 129, 0.22) 0%, rgba(16, 185, 129, 0.04) 70%)',
+                  border: '1px solid rgba(16, 185, 129, 0.35)',
+                  boxShadow: '0 0 14px rgba(16, 185, 129, 0.2)',
+                  color: '#10B981', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  flexShrink: 0 
                 }}
               >
-                {tab.label}
-              </button>
-            ))}
+                <Flame size={20} color="#10B981" />
+              </div>
+              <div>
+                <span 
+                  style={{ fontSize: 10, fontWeight: 800, color: '#71717A', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block' }}
+                >
+                  TRAINING STREAK
+                </span>
+                <div 
+                  style={{ fontSize: 16.5, fontWeight: 800, color: '#FFFFFF', marginTop: 2, letterSpacing: '-0.01em' }}
+                >
+                  {streak} {streak === 1 ? 'Workout' : 'Workouts'} This Week
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleToggleStreakShield}
+              style={{
+                background: streakShield ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                border: streakShield ? '1px solid rgba(16, 185, 129, 0.5)' : '1px solid rgba(255, 255, 255, 0.08)',
+                boxShadow: streakShield ? '0 0 12px rgba(16, 185, 129, 0.2)' : 'none',
+                padding: '6px 14px',
+                borderRadius: 9999,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                cursor: 'pointer',
+                color: streakShield ? '#34D399' : '#D4D4D8',
+                fontSize: 12,
+                fontWeight: 600,
+                transition: 'all 0.15s ease'
+              }}
+              className="active:scale-95 transition"
+              title="Toggle Streak Shield"
+            >
+              <Shield size={13} color={streakShield ? '#10B981' : '#A1A1AA'} />
+              <span>Shield {streakShield ? 'Active' : 'Off'}</span>
+            </button>
           </div>
 
-          {/* TAB 1: WORKOUT ROUTINES (17 Splits) */}
+          {/* 4 SUB-TABS NAVIGATION (Pill Container) */}
+          <div 
+            style={{
+              display: 'flex',
+              gap: 4,
+              background: '#12141A',
+              border: '1px solid rgba(255, 255, 255, 0.07)',
+              padding: 4,
+              borderRadius: 14,
+              marginBottom: 20
+            }}
+          >
+            {[
+              { key: 'console', label: 'Routines' },
+              { key: 'heatmap', label: 'Volume' },
+              { key: 'prs', label: 'Records' },
+              { key: 'history', label: 'History' }
+            ].map(tab => {
+              const isActive = activeTab === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setActiveTab(tab.key)}
+                  style={{
+                    flex: 1,
+                    padding: '9px 10px',
+                    fontSize: 12,
+                    borderRadius: 10,
+                    cursor: 'pointer',
+                    background: isActive ? 'linear-gradient(180deg, #222632 0%, #171922 100%)' : 'transparent',
+                    color: isActive ? '#FFFFFF' : '#71717A',
+                    fontWeight: isActive ? 700 : 500,
+                    border: isActive ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid transparent',
+                    boxShadow: isActive ? '0 2px 8px rgba(0, 0, 0, 0.4)' : 'none',
+                    textAlign: 'center',
+                    transition: 'all 0.15s ease',
+                    whiteSpace: 'nowrap'
+                  }}
+                  className="active:scale-95 transition"
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* TAB 1: WORKOUT ROUTINES */}
           {activeTab === 'console' && (
             <div className="fadeInUp">
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
+              {/* ACTIVE PROGRAM CARD (No Button Stacking, Max 2 Buttons) */}
+              {generatedProgram ? (
+                <div
+                  style={{
+                    background: 'linear-gradient(180deg, #161922 0%, #0F1117 100%)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    boxShadow: '0 8px 24px -4px rgba(0, 0, 0, 0.5)',
+                    borderRadius: 16,
+                    padding: '20px 22px',
+                    marginBottom: 24
+                  }}
+                >
+                  {/* Top Meta Row */}
+                  <div 
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}
+                  >
+                    <span 
+                      style={{ fontSize: 11, fontWeight: 800, color: '#10B981', display: 'inline-flex', alignItems: 'center', gap: 6, letterSpacing: '0.06em', textTransform: 'uppercase' }}
+                    >
+                      <Sparkles size={13} color="#10B981" /> ACTIVE PROGRAM
+                    </span>
+                    <span 
+                      style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#D4D4D8', fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 9999, border: '1px solid rgba(255, 255, 255, 0.08)' }}
+                    >
+                      Week {selectedWeek + 1} of {generatedProgram.weeks?.length || 4} • Day {selectedDay + 1}
+                    </span>
+                  </div>
+
+                  {/* Title */}
+                  <h3 
+                    style={{ fontSize: 18, fontWeight: 800, color: '#FFFFFF', margin: '4px 0 2px', fontFamily: 'var(--font-heading)', letterSpacing: '-0.015em' }}
+                  >
+                    {formatCleanSplitName(generatedProgram.splitName)}
+                  </h3>
+
+                  {/* Subtitle */}
+                  <p 
+                    style={{ fontSize: 12, color: '#A1A1AA', margin: '4px 0 16px', lineHeight: 1.45 }}
+                  >
+                    Personalized 4-week progressive overload routine calibrated for strength and recovery.
+                  </p>
+
+                  {/* Action Buttons (Max 2, No Third Button) */}
+                  <div 
+                    style={{ display: 'flex', alignItems: 'center', gap: 10 }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => { setProgramView('program'); scrollToTop(); }}
+                      style={{
+                        height: 42,
+                        padding: '0 18px',
+                        background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                        color: '#000000',
+                        fontSize: 12.5,
+                        fontWeight: 800,
+                        borderRadius: 12,
+                        border: 'none',
+                        flex: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 6,
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 14px rgba(16, 185, 129, 0.35)'
+                      }}
+                      className="active:scale-[0.98] transition"
+                    >
+                      View Week {selectedWeek + 1} Plan →
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setShowIntakeModal(true); setIntakeStep(0); }}
+                      style={{
+                        height: 42,
+                        padding: '0 16px',
+                        background: 'rgba(255, 255, 255, 0.04)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        color: '#D4D4D8',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        borderRadius: 12,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        cursor: 'pointer',
+                        flexShrink: 0
+                      }}
+                      className="active:scale-95 transition"
+                      title="Update preferences"
+                    >
+                      <Sliders size={13} />
+                      <span>Preferences</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  onClick={() => { setShowIntakeModal(true); setIntakeStep(0); }}
+                  style={{
+                    background: 'linear-gradient(180deg, #161922 0%, #0F1117 100%)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    boxShadow: '0 8px 24px -4px rgba(0, 0, 0, 0.5)',
+                    borderRadius: 16,
+                    padding: '20px 22px',
+                    marginBottom: 24,
+                    cursor: 'pointer'
+                  }}
+                  className="active:scale-[0.99] transition"
+                >
+                  <span 
+                    style={{ fontSize: 11, fontWeight: 800, color: '#10B981', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 6, letterSpacing: '0.06em', textTransform: 'uppercase' }}
+                  >
+                    <Sparkles size={13} color="#10B981" /> 4-WEEK PERIODIZED PROGRAM
+                  </span>
+                  <h3 
+                    style={{ fontSize: 18, fontWeight: 800, color: '#FFFFFF', margin: '4px 0', fontFamily: 'var(--font-heading)', letterSpacing: '-0.015em' }}
+                  >
+                    Build Your 4-Week Workout Plan
+                  </h3>
+                  <p 
+                    style={{ fontSize: 12, color: '#A1A1AA', margin: '4px 0 16px', lineHeight: 1.45 }}
+                  >
+                    Personalize your training split, gym days, equipment, and injury protections to build a science-backed progressive overload routine.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setShowIntakeModal(true); setIntakeStep(0); }}
+                    style={{
+                      height: 42,
+                      padding: '0 18px',
+                      background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                      color: '#000000',
+                      fontSize: 12.5,
+                      fontWeight: 800,
+                      borderRadius: 12,
+                      border: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 14px rgba(16, 185, 129, 0.35)'
+                    }}
+                    className="active:scale-[0.98] transition"
+                  >
+                    <Sparkles size={14} color="#000000" /> Build 4-Week Plan →
+                  </button>
+                </div>
+              )}
+
+              {/* SECTION HEADER: EXPLORE ROUTINES */}
+              <div 
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, padding: '0 2px' }}
+              >
+                <h4 
+                  style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#A1A1AA', margin: 0 }}
+                >
+                  EXPLORE ROUTINES
+                </h4>
+                <span 
+                  style={{ fontSize: 11, fontWeight: 600, color: '#71717A' }}
+                >
+                  ({ROUTINE_SPLITS.length} Splits)
+                </span>
+              </div>
+
+              {/* VERTICAL LIST OF COMPACT ROUTINE CARDS */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 80 }}>
                 {ROUTINE_SPLITS.map((split, sIdx) => {
-                  const cat = SPLIT_CATEGORIES[split.name] || { color: '#818CF8', label: 'SPLIT' };
+                  const cat = SPLIT_CATEGORIES[split.name] || { color: '#10B981', label: 'Split' };
                   return (
                     <div
                       key={sIdx}
-                      style={{
-                        background: 'var(--bg-surface)',
-                        border: '1px solid var(--border-subtle)',
-                        borderRadius: 18,
-                        padding: 20,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        transition: 'all 0.2s ease',
-                        cursor: 'pointer'
-                      }}
                       onClick={() => setPreviewTemplate(split)}
-                      onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--brand-primary, #F59E0B)'}
-                      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-subtle)'}
+                      style={{
+                        background: 'linear-gradient(180deg, #161922 0%, #0F1117 100%)',
+                        border: '1px solid rgba(255, 255, 255, 0.07)',
+                        borderRadius: 14,
+                        padding: '14px 16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 12,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)'
+                      }}
+                      className="active:scale-[0.99] hover:border-zinc-700 transition"
                     >
-                      <div>
-                        <span style={{ fontSize: 9, fontWeight: 900, color: cat.color, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                          {cat.label}
-                        </span>
-                        <h4 style={{ margin: '6px 0 4px', fontSize: 16, fontWeight: 800, color: 'var(--text-primary)' }}>{split.name}</h4>
-                        <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.4 }}>{split.description}</p>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                          <span 
+                            style={{ 
+                              fontSize: 9.5, 
+                              fontWeight: 800, 
+                              color: '#10B981',
+                              textTransform: 'uppercase', 
+                              letterSpacing: '0.06em' 
+                            }}
+                          >
+                            {cat.label}
+                          </span>
+                        </div>
+                        <h4 
+                          style={{ margin: 0, fontSize: 14.5, fontWeight: 700, color: '#FFFFFF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                        >
+                          {split.name}
+                        </h4>
+                        <p 
+                          style={{ margin: '3px 0 0', fontSize: 11.5, color: '#71717A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                        >
+                          {split.description}
+                        </p>
                       </div>
 
-                      <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)' }}>{split.exercises.length} exercises</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                        <span 
+                          style={{ fontSize: 11, fontWeight: 600, color: '#A1A1AA', padding: '4px 10px', background: 'rgba(255, 255, 255, 0.04)', borderRadius: 8, border: '1px solid rgba(255, 255, 255, 0.08)', whiteSpace: 'nowrap' }}
+                        >
+                          {split.exercises.length} exercises
+                        </span>
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleSelectSplit(split);
                           }}
                           style={{
-                            padding: '6px 14px', borderRadius: 8, fontSize: 11, fontWeight: 800,
-                            background: 'rgba(245, 158, 11, 0.1)', color: 'var(--brand-primary, #F59E0B)', border: '1px solid rgba(245, 158, 11, 0.25)',
-                            cursor: 'pointer'
+                            height: 32,
+                            padding: '0 12px',
+                            background: 'rgba(16, 185, 129, 0.08)',
+                            border: '1px solid rgba(16, 185, 129, 0.3)',
+                            borderRadius: 8,
+                            color: '#34D399',
+                            fontSize: 11.5,
+                            fontWeight: 700,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap'
                           }}
+                          className="active:scale-95 transition"
                         >
-                          Start Workout →
+                          <span>Start</span>
+                          <ArrowRight size={11} />
                         </button>
                       </div>
                     </div>
@@ -3094,55 +5807,118 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
             </div>
           )}
 
-          {/* TAB 2: VOLUME & FATIGUE MAP */}
+          {/* TAB 2: VOLUME & FATIGUE MAP (HIGH-PRECISION HORIZONTAL BAR CHART) */}
           {activeTab === 'heatmap' && (
-            <div className="fadeInUp" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 20, padding: 28 }}>
-              <h3 style={{ fontSize: 18, margin: '0 0 4px', fontWeight: 900, color: 'var(--text-primary)' }}>Weekly Muscle Group Volume & Fatigue Map</h3>
-              <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '0 0 24px' }}>Optimal hypertrophy stimulus targets 10–20 hard working sets per muscle group weekly.</p>
-              
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
-                {Object.entries(volumePerGroup).map(([group, sets]) => (
-                  <div key={group} style={{ background: 'var(--bg-surface-raised)', border: '1px solid var(--border-subtle)', borderRadius: 16, padding: 18 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                      <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-primary)' }}>{group}</span>
-                      <span style={{ fontSize: 13, fontWeight: 900, color: sets >= 10 ? '#10B981' : 'var(--brand-primary, #F59E0B)' }}>{sets} sets</span>
-                    </div>
-                    <div style={{ height: 8, background: 'var(--bg-input)', borderRadius: 4, overflow: 'hidden' }}>
-                      <div style={{ width: `${Math.min(100, (sets / 20) * 100)}%`, height: '100%', background: sets >= 10 ? '#10B981' : 'var(--brand-primary, #F59E0B)', borderRadius: 4, transition: 'width 0.3s ease' }} />
-                    </div>
-                  </div>
-                ))}
+            <div className="fadeInUp" style={{ background: 'linear-gradient(180deg, #161922 0%, #0F1117 100%)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 16, padding: '22px clamp(16px, 3vw, 24px)', boxShadow: '0 8px 24px -4px rgba(0, 0, 0, 0.5)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
+                <div>
+                  <h3 style={{ fontSize: 18, margin: '0 0 4px', fontWeight: 800, color: '#FFFFFF', fontFamily: 'var(--font-heading)', letterSpacing: '-0.015em' }}>
+                    Weekly Muscle Group Volume & Fatigue Map
+                  </h3>
+                  <p style={{ fontSize: 12, color: '#A1A1AA', margin: 0 }}>
+                    Evidence-based hypertrophy guidelines recommend 10–20 hard sets per muscle group weekly.
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', gap: 10, fontSize: 11, fontWeight: 700, flexWrap: 'wrap' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#71717A' }}>
+                    <span style={{ width: 8, height: 8, borderRadius: 2, background: '#3F3F46' }} /> &lt;6 Low
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#F59E0B' }}>
+                    <span style={{ width: 8, height: 8, borderRadius: 2, background: '#F59E0B' }} /> 6–9 Maint.
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#10B981' }}>
+                    <span style={{ width: 8, height: 8, borderRadius: 2, background: '#10B981' }} /> 10–20 Optimal
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#818CF8' }}>
+                    <span style={{ width: 8, height: 8, borderRadius: 2, background: '#818CF8' }} /> &gt;20 High
+                  </span>
+                </div>
               </div>
-            </div>
-          )}
 
-          {/* TAB 3: PR HALL OF FAME */}
-          {activeTab === 'prs' && (
-            <div className="fadeInUp" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 20, padding: 28 }}>
-              <h3 style={{ fontSize: 18, margin: '0 0 4px', fontWeight: 900, color: 'var(--text-primary)' }}>Big 4 PR Hall of Fame</h3>
-              <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '0 0 24px' }}>All-time personal bests across primary compound movements.</p>
+              {/* Horizontal Volume Bars */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {Object.entries(volumePerGroup).map(([group, sets]) => {
+                  let statusColor = '#94A3B8';
+                  let statusBadge = 'Below Baseline';
+                  let statusBg = 'rgba(148, 163, 184, 0.1)';
+                  let statusBorder = 'rgba(148, 163, 184, 0.2)';
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
-                {PR_PATTERNS.map((pattern) => {
-                  const pr = prHallOfFame[pattern.key];
-                  if (pr) {
-                    return (
-                      <div key={pattern.key} style={{ background: 'var(--bg-surface-raised)', border: '1px solid var(--border-subtle)', borderRadius: 16, padding: 20 }}>
-                        <span style={{ fontSize: 10, color: 'var(--brand-primary, #F59E0B)', display: 'flex', alignItems: 'center', gap: 4, fontWeight: 900, letterSpacing: '0.05em', marginBottom: 8, textTransform: 'uppercase' }}>
-                          <Trophy size={13} /> {pattern.label}
-                        </span>
-                        <div style={{ fontSize: 22, fontWeight: 900, color: 'var(--text-primary)', marginBottom: 4 }}>
-                          {pr.weight} kg × {pr.reps}
-                        </div>
-                        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Logged {formatPrDate(pr.timestamp)}</span>
-                      </div>
-                    );
+                  if (sets >= 20) {
+                    statusColor = '#818CF8';
+                    statusBadge = 'Maximum Recoverable';
+                    statusBg = 'rgba(129, 140, 248, 0.12)';
+                    statusBorder = 'rgba(129, 140, 248, 0.3)';
+                  } else if (sets >= 10) {
+                    statusColor = '#10B981';
+                    statusBadge = 'Optimal Hypertrophy';
+                    statusBg = 'rgba(16, 185, 129, 0.12)';
+                    statusBorder = 'rgba(16, 185, 129, 0.3)';
+                  } else if (sets >= 6) {
+                    statusColor = '#F59E0B';
+                    statusBadge = 'Maintenance';
+                    statusBg = 'rgba(245, 158, 11, 0.12)';
+                    statusBorder = 'rgba(245, 158, 11, 0.3)';
                   }
+
+                  const pct = Math.min(100, (sets / 20) * 100);
+
                   return (
-                    <div key={pattern.key} style={{ background: 'var(--bg-surface-raised)', border: '1px dashed var(--border-subtle)', borderRadius: 16, padding: 20, opacity: 0.6 }}>
-                      <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 800, letterSpacing: '0.05em', marginBottom: 8, textTransform: 'uppercase' }}>{pattern.label}</span>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 4 }}>Locked Movement</div>
-                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Complete a session to record PR</span>
+                    <div
+                      key={group}
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(255, 255, 255, 0.06)',
+                        borderRadius: 14,
+                        padding: '12px 16px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 8
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: 13.5, fontWeight: 700, color: '#FFFFFF' }}>
+                          {group}
+                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{
+                            fontSize: 10,
+                            fontWeight: 800,
+                            padding: '2px 8px',
+                            borderRadius: 9999,
+                            background: statusBg,
+                            border: `1px solid ${statusBorder}`,
+                            color: statusColor
+                          }}>
+                            {statusBadge}
+                          </span>
+                          <span className="tabular-nums" style={{ fontSize: 13, fontWeight: 900, color: statusColor }}>
+                            {sets} <span style={{ fontSize: 11, color: '#71717A' }}>/ 16 sets</span>
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Progress Track with Zone Markers */}
+                      <div style={{ position: 'relative', height: 8, background: 'rgba(255, 255, 255, 0.05)', borderRadius: 4, overflow: 'hidden' }}>
+                        {/* Optimal zone highlight (50% to 100% = 10 to 20 sets) */}
+                        <div style={{
+                          position: 'absolute',
+                          left: '50%',
+                          width: '50%',
+                          height: '100%',
+                          background: 'rgba(16, 185, 129, 0.08)',
+                          borderLeft: '1px dashed rgba(16, 185, 129, 0.3)'
+                        }} />
+
+                        {/* Progress fill */}
+                        <div style={{
+                          width: `${pct}%`,
+                          height: '100%',
+                          background: statusColor,
+                          borderRadius: 4,
+                          transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+                        }} />
+                      </div>
                     </div>
                   );
                 })}
@@ -3150,38 +5926,122 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
             </div>
           )}
 
+          {/* TAB 3: PR HALL OF FAME & STRENGTH TREND */}
+          {activeTab === 'prs' && (
+            <div className="fadeInUp" style={{ background: 'linear-gradient(180deg, #161922 0%, #0F1117 100%)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 16, padding: '22px clamp(16px, 3vw, 24px)', boxShadow: '0 8px 24px -4px rgba(0, 0, 0, 0.5)' }}>
+              <div style={{ marginBottom: 20 }}>
+                <h3 style={{ fontSize: 18, margin: '0 0 4px', fontWeight: 800, color: '#FFFFFF', fontFamily: 'var(--font-heading)', letterSpacing: '-0.015em' }}>Big 4 PR Hall of Fame</h3>
+                <p style={{ fontSize: 12, color: '#A1A1AA', margin: 0 }}>Tap any movement below to inspect its overload strength trend.</p>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+                {PR_PATTERNS.map((pattern) => {
+                  const pr = prHallOfFame[pattern.key];
+                  const isSelected = selectedPrLift === pattern.key;
+                  if (pr) {
+                    return (
+                      <div
+                        key={pattern.key}
+                        onClick={() => setSelectedPrLift(pattern.key)}
+                        style={{
+                          background: isSelected ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.16) 0%, rgba(16, 185, 129, 0.04) 100%)' : 'rgba(255, 255, 255, 0.03)',
+                          border: isSelected ? '1px solid rgba(16, 185, 129, 0.65)' : '1px solid rgba(255, 255, 255, 0.07)',
+                          boxShadow: isSelected ? '0 0 16px rgba(16, 185, 129, 0.2)' : 'none',
+                          borderRadius: 16,
+                          padding: '16px 18px',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                        className="active:scale-95 transition"
+                      >
+                        <span style={{ fontSize: 10, color: '#10B981', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, letterSpacing: '0.06em', marginBottom: 8, textTransform: 'uppercase' }}>
+                          <Trophy size={13} color="#10B981" /> {pattern.label}
+                        </span>
+                        <div className="tabular-nums" style={{ fontSize: 22, fontWeight: 800, color: '#FFFFFF', marginBottom: 4, fontFamily: 'var(--font-heading)' }}>
+                          {pr.weight} kg × {pr.reps}
+                        </div>
+                        <span style={{ fontSize: 11, color: '#71717A' }}>Logged {formatPrDate(pr.timestamp)}</span>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div
+                      key={pattern.key}
+                      onClick={() => setSelectedPrLift(pattern.key)}
+                      style={{
+                        background: isSelected ? 'rgba(16, 185, 129, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+                        border: isSelected ? '1px solid rgba(16, 185, 129, 0.5)' : '1px dashed rgba(255, 255, 255, 0.1)',
+                        borderRadius: 16,
+                        padding: '16px 18px',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                      className="active:scale-95 transition"
+                    >
+                      <span style={{ fontSize: 10, color: '#71717A', display: 'block', fontWeight: 800, letterSpacing: '0.06em', marginBottom: 8, textTransform: 'uppercase' }}>{pattern.label}</span>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: '#A1A1AA', marginBottom: 4 }}>Baseline Movement</div>
+                      <span style={{ fontSize: 11, color: '#71717A' }}>Tap to view progression curve</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Interactive SVG Strength Trend Line Chart */}
+              <div style={{ marginTop: 22 }}>
+                <StrengthTrendChart
+                  exerciseName={PR_PATTERNS.find(p => p.key === selectedPrLift)?.label || 'Barbell Bench Press'}
+                  currentPr={prHallOfFame[selectedPrLift]?.weight || (selectedPrLift === 'bench' ? 85 : selectedPrLift === 'squat' ? 120 : selectedPrLift === 'deadlift' ? 140 : 55)}
+                  unit="kg"
+                  history={workoutHistory
+                    .filter(w => (w.exercises || []).some(e => e.name.toLowerCase().includes(selectedPrLift)))
+                    .map(w => {
+                      const ex = (w.exercises || []).find(e => e.name.toLowerCase().includes(selectedPrLift));
+                      const maxW = Math.max(...(ex?.sets || []).map(s => Number(s.weight) || 0), 0);
+                      return {
+                        date: new Date(w.timestamp).toISOString().split('T')[0],
+                        weight: maxW,
+                        reps: 5
+                      };
+                    })
+                    .filter(h => h.weight > 0)
+                  }
+                />
+              </div>
+            </div>
+          )}
+
           {/* TAB 4: TRAINING SESSIONS ARCHIVE */}
           {activeTab === 'history' && (
-            <div className="fadeInUp" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 20, padding: 28 }}>
-              <h3 style={{ fontSize: 18, margin: '0 0 4px', fontWeight: 900, color: 'var(--text-primary)' }}>Training Sessions Archive</h3>
-              <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '0 0 24px' }}>Complete historical record of completed workout logs.</p>
+            <div className="fadeInUp" style={{ background: 'linear-gradient(180deg, #161922 0%, #0F1117 100%)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 16, padding: 24, boxShadow: '0 8px 24px -4px rgba(0, 0, 0, 0.5)' }}>
+              <h3 style={{ fontSize: 18, margin: '0 0 4px', fontWeight: 800, color: '#FFFFFF', fontFamily: 'var(--font-heading)', letterSpacing: '-0.015em' }}>Training Sessions Archive</h3>
+              <p style={{ fontSize: 12, color: '#A1A1AA', margin: '0 0 20px' }}>Complete historical record of completed workout logs.</p>
 
               {workoutHistory.length === 0 ? (
-                <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)' }}>
-                  <Dumbbell size={32} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
-                  <p style={{ margin: 0, fontSize: 14, fontWeight: 700 }}>No workouts logged yet</p>
-                  <p style={{ margin: '4px 0 0', fontSize: 12 }}>Start any session from the templates or your mesocycle to begin building your archive.</p>
+                <div style={{ padding: 48, textAlign: 'center', color: '#71717A' }}>
+                  <Dumbbell size={32} style={{ margin: '0 auto 12px', opacity: 0.5, color: '#71717A' }} />
+                  <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#D4D4D8' }}>No workouts logged yet</p>
+                  <p style={{ margin: '4px 0 0', fontSize: 12, color: '#71717A' }}>Start any session from the templates or your mesocycle to begin building your archive.</p>
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {workoutHistory.map((session, idx) => (
                     <div key={session.id || idx} style={{
-                      padding: 18, background: 'var(--bg-surface-raised)', borderRadius: 16, border: '1px solid var(--border-subtle)',
+                      padding: '16px 18px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: 14, border: '1px solid rgba(255, 255, 255, 0.06)',
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12
                     }}>
                       <div>
-                        <h4 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 800, color: 'var(--text-primary)' }}>{session.workoutName}</h4>
-                        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                        <h4 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 700, color: '#FFFFFF' }}>{session.workoutName}</h4>
+                        <span style={{ fontSize: 11, color: '#71717A' }}>
                           {new Date(session.timestamp).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} · {formatMMSS(session.duration || 0)}
                         </span>
                       </div>
 
-                      <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                        <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-secondary)', background: 'var(--bg-surface)', padding: '4px 10px', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: '#D4D4D8', background: 'rgba(255, 255, 255, 0.05)', padding: '4px 10px', borderRadius: 8, border: '1px solid rgba(255, 255, 255, 0.08)' }}>
                           {session.totalSets || (session.exercises?.length * 3) || 12} sets
                         </span>
                         {session.totalVolume > 0 && (
-                          <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--brand-primary, #F59E0B)', background: 'rgba(245,158,11,0.08)', padding: '4px 10px', borderRadius: 8, border: '1px solid rgba(245,158,11,0.2)' }}>
+                          <span style={{ fontSize: 12, fontWeight: 800, color: '#10B981', background: 'rgba(16, 185, 129, 0.12)', padding: '4px 10px', borderRadius: 8, border: '1px solid rgba(16, 185, 129, 0.25)' }}>
                             {Math.round(session.totalVolume)} kg
                           </span>
                         )}

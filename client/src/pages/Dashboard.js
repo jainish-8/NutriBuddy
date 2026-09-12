@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Utensils, Calendar, Dumbbell, Sparkles, Plus, Droplets, 
-  Flame, ArrowRight, Play, Activity
+  Dumbbell, Sparkles, Plus, Droplets, 
+  Flame, Play, Calculator, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { API_BASE } from '../config';
+import { getDetailedCalorieBreakdown } from '../utils/nutritionEngine';
+import MacroDonutChart from '../components/MacroDonutChart';
+import ConsistencyHeatmap from '../components/ConsistencyHeatmap';
 
 // ─── SCROLL REVEAL HOOK ───────────────────────────────────────────────────────
 function useReveal(delay = 0, threshold = 0.08) {
@@ -34,11 +37,11 @@ function Reveal({ children, preset = 'up', delay = 0, style = {}, as: Tag = 'div
   const [ref, visible] = useReveal(delay);
 
   const presets = {
-    up:    { hidden: 'translateY(32px)', shown: 'translateY(0px)' },
-    down:  { hidden: 'translateY(-20px)', shown: 'translateY(0px)' },
-    left:  { hidden: 'translateX(-32px)', shown: 'translateX(0px)' },
-    right: { hidden: 'translateX(32px)', shown: 'translateX(0px)' },
-    scale: { hidden: 'scale(0.92)', shown: 'scale(1)' },
+    up:    { hidden: 'translateY(10px)', shown: 'translateY(0px)' },
+    down:  { hidden: 'translateY(-10px)', shown: 'translateY(0px)' },
+    left:  { hidden: 'translateX(-10px)', shown: 'translateX(0px)' },
+    right: { hidden: 'translateX(10px)', shown: 'translateX(0px)' },
+    scale: { hidden: 'scale(0.97)', shown: 'scale(1)' },
     none:  { hidden: 'none', shown: 'none' },
   };
 
@@ -50,13 +53,203 @@ function Reveal({ children, preset = 'up', delay = 0, style = {}, as: Tag = 'div
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? p.shown : p.hidden,
-        transition: `opacity 0.6s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.6s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
+        transition: `opacity 0.4s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.4s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
         willChange: 'opacity, transform',
         ...style,
       }}
     >
       {children}
     </Tag>
+  );
+}
+
+// ─── FITNESS CALORIE CALCULATION BREAKDOWN COMPONENT ────────────────────────
+function CalorieEngineBreakdown({ user }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const breakdown = getDetailedCalorieBreakdown(user);
+  if (!breakdown) return null;
+
+  return (
+    <div style={{
+      background: 'var(--bg-surface)',
+      border: '1px solid var(--border-subtle)',
+      borderRadius: 'var(--radius-card)',
+      overflow: 'hidden',
+      transition: 'all 0.2s ease'
+    }}>
+      {/* Header Toggle */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          width: '100%',
+          padding: '18px 24px',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          textAlign: 'left'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: 10,
+            background: 'var(--brand-primary-subtle)', color: 'var(--brand-primary-light)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <Calculator size={18} />
+          </div>
+          <div>
+            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              NUTRITION ENGINE
+            </span>
+            <h3 style={{ margin: '2px 0 0', fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
+              How your calorie target is calculated
+            </h3>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span className="tabular-nums" style={{ fontSize: 11, fontWeight: 800, color: 'var(--brand-primary-light)', background: 'var(--brand-primary-subtle)', padding: '4px 10px', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
+            {breakdown.targetCalories} kcal Target
+          </span>
+          <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--bg-surface-raised)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
+            {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </div>
+        </div>
+      </button>
+
+      {/* Expanded Breakdown */}
+      {isOpen && (
+        <div className="fadeInUp" style={{ padding: '0 24px 24px', borderTop: '1px solid var(--border-subtle)' }}>
+          {/* User Profile Inputs Strip */}
+          <div style={{ marginTop: 18, marginBottom: 18 }}>
+            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              PROFILE INPUT FACTORS (LIVE PROFILE)
+            </span>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8, marginTop: 8 }}>
+              <div style={{ background: 'var(--bg-surface-raised)', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
+                <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>SEX & AGE</span>
+                <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-primary)', textTransform: 'capitalize' }}>{breakdown.inputs.gender}, {breakdown.inputs.age} yrs</div>
+              </div>
+              <div style={{ background: 'var(--bg-surface-raised)', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
+                <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>HEIGHT & WEIGHT</span>
+                <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-primary)' }}>{breakdown.inputs.height} cm · {breakdown.inputs.weight} kg</div>
+              </div>
+              <div style={{ background: 'var(--bg-surface-raised)', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
+                <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>OCCUPATION (NEAT)</span>
+                <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-primary)' }}>{breakdown.inputs.profession} (×{Number(breakdown.neatFactor).toFixed(2)})</div>
+              </div>
+              <div style={{ background: 'var(--bg-surface-raised)', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
+                <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>GYM FREQUENCY</span>
+                <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-primary)' }}>{breakdown.inputs.gymDays} days/wk ({breakdown.inputs.gymIntensity})</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Step-by-Step Calculation Engine */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            
+            {/* Step 1: BMR */}
+            <div style={{ background: 'var(--bg-surface-raised)', padding: '14px 16px', borderRadius: 12, border: '1px solid var(--border-subtle)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <span style={{ fontSize: 11, fontWeight: 900, color: 'var(--brand-primary, #F59E0B)' }}>
+                  STEP 1: BASAL METABOLIC RATE (BMR)
+                </span>
+                <span style={{ fontSize: 14, fontWeight: 900, color: 'var(--text-primary)' }}>
+                  {breakdown.bmr} kcal/day
+                </span>
+              </div>
+              <p style={{ margin: '0 0 6px', fontSize: 11, color: 'var(--text-muted)' }}>
+                Baseline caloric expenditure needed by vital organs at absolute rest.
+              </p>
+              <div style={{ fontSize: 11, fontFamily: 'monospace', background: 'var(--bg-surface)', padding: '6px 10px', borderRadius: 6, color: 'var(--text-secondary)' }}>
+                Formula: {breakdown.bmrFormula} = <strong>{breakdown.bmr} kcal</strong>
+              </div>
+            </div>
+
+            {/* Step 2: NEAT + EAT = TDEE */}
+            <div style={{ background: 'var(--bg-surface-raised)', padding: '14px 16px', borderRadius: 12, border: '1px solid var(--border-subtle)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <span style={{ fontSize: 11, fontWeight: 900, color: '#38BDF8' }}>
+                  STEP 2: OCCUPATIONAL STEPS & WORKOUT ENERGY (TDEE)
+                </span>
+                <span style={{ fontSize: 14, fontWeight: 900, color: 'var(--text-primary)' }}>
+                  {breakdown.tdee} kcal/day
+                </span>
+              </div>
+              <p style={{ margin: '0 0 6px', fontSize: 11, color: 'var(--text-muted)' }}>
+                Combines occupational steps (NEAT factor: {Number(breakdown.neatFactor).toFixed(2)}) + resistance training (+{breakdown.eatBurnKcal} kcal/day across {breakdown.eatDays} gym days).
+              </p>
+              <div style={{ fontSize: 11, fontFamily: 'monospace', background: 'var(--bg-surface)', padding: '6px 10px', borderRadius: 6, color: 'var(--text-secondary)' }}>
+                Total PAL: {Number(breakdown.totalPAL).toFixed(2)} → BMR ({breakdown.bmr}) × {Number(breakdown.totalPAL).toFixed(2)} = <strong>{breakdown.tdee} kcal/day Maintenance</strong>
+              </div>
+            </div>
+
+            {/* Step 3: Target Intake Goal */}
+            <div style={{ background: 'var(--bg-surface-raised)', padding: '14px 16px', borderRadius: 12, border: '1px solid var(--border-subtle)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <span style={{ fontSize: 11, fontWeight: 900, color: '#10B981' }}>
+                  STEP 3: CALORIC GOAL ADJUSTMENT
+                </span>
+                <span style={{ fontSize: 14, fontWeight: 900, color: '#10B981' }}>
+                  {breakdown.targetCalories} kcal/day
+                </span>
+              </div>
+              <p style={{ margin: '0 0 6px', fontSize: 11, color: 'var(--text-muted)' }}>
+                {breakdown.calorieDelta < 0
+                  ? `22% calibrated caloric deficit (${breakdown.calorieDelta} kcal) for sustainable fat loss without metabolic downregulation.`
+                  : breakdown.calorieDelta > 0
+                  ? `Controlled caloric surplus (+${breakdown.calorieDelta} kcal) for lean muscle hypertrophy without excess adiposity.`
+                  : `100% of TDEE for body recomposition and weight maintenance.`}
+              </p>
+              <div style={{ fontSize: 11, fontFamily: 'monospace', background: 'var(--bg-surface)', padding: '6px 10px', borderRadius: 6, color: 'var(--text-secondary)' }}>
+                Goal Target = {breakdown.tdee} {breakdown.calorieDelta >= 0 ? '+' : ''}{breakdown.calorieDelta} = <strong>{breakdown.targetCalories} kcal/day</strong>
+              </div>
+            </div>
+
+            {/* Step 4: Strict Macro Partitioning & SVG Donut */}
+            <div style={{ background: 'var(--bg-surface-raised)', padding: '16px 18px', borderRadius: 14, border: '1px solid var(--border-subtle)' }}>
+              <span style={{ fontSize: 11, fontWeight: 900, color: '#818CF8', display: 'block', marginBottom: 12 }}>
+                STEP 4: EXACT MACRONUTRIENT PARTITIONING
+              </span>
+
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+                <MacroDonutChart
+                  calories={breakdown.targetCalories}
+                  protein={breakdown.macros.protein}
+                  carbs={breakdown.macros.carbs}
+                  fat={breakdown.macros.fat}
+                  size={150}
+                  showLegend={false}
+                  centerLabel="TARGET"
+                />
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8, width: '100%' }}>
+                  <div style={{ background: 'var(--bg-surface)', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
+                    <span style={{ fontSize: 10, fontWeight: 800, color: '#818CF8' }}>PROTEIN</span>
+                    <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--text-primary)' }}>{breakdown.macros.protein}g</div>
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{breakdown.macros.protein * 4} kcal ({Math.round(((breakdown.macros.protein * 4) / breakdown.targetCalories) * 100)}%)</span>
+                  </div>
+                  <div style={{ background: 'var(--bg-surface)', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
+                    <span style={{ fontSize: 10, fontWeight: 800, color: '#10B981' }}>CARBOHYDRATES</span>
+                    <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--text-primary)' }}>{breakdown.macros.carbs}g</div>
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{breakdown.macros.carbs * 4} kcal ({Math.round(((breakdown.macros.carbs * 4) / breakdown.targetCalories) * 100)}%)</span>
+                  </div>
+                  <div style={{ background: 'var(--bg-surface)', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
+                    <span style={{ fontSize: 10, fontWeight: 800, color: '#FB923C' }}>HEALTHY FATS</span>
+                    <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--text-primary)' }}>{breakdown.macros.fat}g</div>
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{breakdown.macros.fat * 9} kcal ({Math.round(((breakdown.macros.fat * 9) / breakdown.targetCalories) * 100)}%)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -315,6 +508,7 @@ export default function Dashboard({ user, setCurrentPage }) {
   // Load active program summary
   const [generatedProgram, setGeneratedProgram] = useState(null);
   const [workoutStreak, setWorkoutStreak] = useState(0);
+  const [workoutHistory, setWorkoutHistory] = useState([]);
 
   const fetchDailyData = async () => {
     try {
@@ -370,6 +564,7 @@ export default function Dashboard({ user, setCurrentPage }) {
     if (savedHistory) {
       try {
         const hist = JSON.parse(savedHistory);
+        setWorkoutHistory(Array.isArray(hist) ? hist : []);
         setWorkoutStreak(hist.length > 0 ? Math.min(hist.length, 7) : 0);
       } catch (e) {}
     }
@@ -395,7 +590,7 @@ export default function Dashboard({ user, setCurrentPage }) {
   });
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
       
       {/* ── HERO HEADER BAR ── */}
       <Reveal preset="down" delay={0}>
@@ -411,23 +606,23 @@ export default function Dashboard({ user, setCurrentPage }) {
           gap: 16
         }}>
           <div>
-            <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--brand-primary, #F59E0B)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-              DAILY EXECUTIVE OVERVIEW
+            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              TODAY'S CHECK-IN
             </span>
             <h1 style={{
               margin: '2px 0 0',
               fontFamily: 'var(--font-heading)',
               fontSize: 24,
-              fontWeight: 900,
+              fontWeight: 800,
               color: 'var(--text-primary)',
             }}>
               Welcome back, {user.fullName?.split(' ')[0] || 'Athlete'}
             </h1>
             <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4, fontWeight: 600 }}>
               {todayFormatted} · Goal: {
-                user.goal === 'fat_loss' || user.goal === 'lose' ? 'Fat Loss (22% Deficit)' :
-                user.goal === 'lean_bulk' ? 'Lean Bulk (8% Surplus)' :
-                user.goal === 'aggressive_bulk' ? 'Aggressive Bulk (18% Surplus)' : 'Maintenance (TDEE)'
+                user.goal === 'fat_loss' || user.goal === 'lose' ? 'Fat Loss (Caloric Deficit)' :
+                user.goal === 'lean_bulk' ? 'Lean Bulk (Muscle Growth)' :
+                user.goal === 'aggressive_bulk' ? 'Bulk (Muscle Growth)' : 'Weight Maintenance'
               }
             </div>
           </div>
@@ -436,78 +631,109 @@ export default function Dashboard({ user, setCurrentPage }) {
             <button
               onClick={() => setCurrentPage('food-log')}
               className="btn btn-primary"
-              style={{ padding: '10px 18px', fontSize: 12, fontWeight: 800, background: 'var(--brand-primary, #F59E0B)', color: '#000', display: 'flex', alignItems: 'center', gap: 6 }}
+              style={{ padding: '10px 18px', fontSize: 13, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6 }}
             >
-              <Plus size={14} strokeWidth={3} /> Log Meal
+              <Plus size={15} strokeWidth={2.5} /> Log Meal
             </button>
             <button
               onClick={() => setCurrentPage('exercise')}
               className="btn btn-secondary"
-              style={{ padding: '10px 18px', fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6 }}
+              style={{ padding: '10px 18px', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}
             >
-              <Dumbbell size={14} /> Workout Hub
+              <Dumbbell size={15} /> Workout Console
             </button>
           </div>
         </div>
       </Reveal>
 
-      {/* ── DAILY ENERGY & CALORIE STATS ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+      {/* ── 2-COLUMN COMPACT MOBILE STATS GRID (CALORIES & MACROS) ── */}
+      <div className="mobile-2col-grid">
+        {/* 1. Daily Target */}
         <Reveal preset="up" delay={0}>
-          <div style={{ background: 'var(--bg-surface)', padding: '20px 22px', borderRadius: 16, border: '1px solid var(--border-subtle)' }}>
-            <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)' }}>DAILY TARGET</span>
-            <div style={{ fontSize: 26, fontWeight: 900, color: 'var(--text-primary)', margin: '4px 0 2px' }}>{targetCalories}</div>
-            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>calories calculated goal</span>
+          <div style={{ background: 'var(--bg-surface)', padding: '16px 18px', borderRadius: 'var(--radius-card)', border: '1px solid var(--border-subtle)', height: '100%' }}>
+            <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.04em' }}>DAILY TARGET</span>
+            <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 900, color: 'var(--text-primary)', margin: '4px 0 2px' }}>{targetCalories}</div>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>target calories</span>
           </div>
         </Reveal>
 
+        {/* 2. Consumed Today */}
+        <Reveal preset="up" delay={30}>
+          <div style={{ background: 'var(--bg-surface)', padding: '16px 18px', borderRadius: 'var(--radius-card)', border: '1px solid var(--border-subtle)', height: '100%' }}>
+            <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.04em' }}>CONSUMED</span>
+            <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 900, color: 'var(--brand-primary-light)', margin: '4px 0 2px' }}>{consumedCalories}</div>
+            <span style={{ fontSize: 11, color: 'var(--brand-primary-light)', fontWeight: 700 }}>{Math.round(progressPct)}% reached</span>
+          </div>
+        </Reveal>
+
+        {/* 3. Calories Remaining */}
         <Reveal preset="up" delay={60}>
-          <div style={{ background: 'var(--bg-surface)', padding: '20px 22px', borderRadius: 16, border: '1px solid var(--border-subtle)' }}>
-            <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)' }}>CONSUMED TODAY</span>
-            <div style={{ fontSize: 26, fontWeight: 900, color: '#10B981', margin: '4px 0 2px' }}>{consumedCalories}</div>
-            <span style={{ fontSize: 11, color: '#10B981', fontWeight: 700 }}>{Math.round(progressPct)}% of daily target</span>
-          </div>
-        </Reveal>
-
-        <Reveal preset="up" delay={120}>
-          <div style={{ background: 'var(--bg-surface)', padding: '20px 22px', borderRadius: 16, border: '1px solid var(--border-subtle)' }}>
-            <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)' }}>{overGoal ? 'OVER BUDGET' : 'CALORIES REMAINING'}</span>
-            <div style={{ fontSize: 26, fontWeight: 900, color: overGoal ? '#EF4444' : 'var(--brand-primary, #F59E0B)', margin: '4px 0 2px' }}>
+          <div style={{ background: 'var(--bg-surface)', padding: '16px 18px', borderRadius: 'var(--radius-card)', border: '1px solid var(--border-subtle)', height: '100%' }}>
+            <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.04em' }}>{overGoal ? 'OVER BUDGET' : 'REMAINING'}</span>
+            <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 900, color: overGoal ? 'var(--accent-danger)' : 'var(--accent-calories)', margin: '4px 0 2px' }}>
               {Math.abs(caloriesRemaining)}
             </div>
-            <span style={{ fontSize: 11, color: overGoal ? '#EF4444' : 'var(--text-muted)' }}>
-              {overGoal ? 'kcal over planned limit' : 'kcal available to eat'}
+            <span style={{ fontSize: 11, color: overGoal ? 'var(--accent-danger)' : 'var(--text-muted)' }}>
+              {overGoal ? 'kcal over' : 'kcal left'}
             </span>
           </div>
         </Reveal>
-      </div>
 
-      {/* ── MACRONUTRIENT BALANCE + WATER INTAKE ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
-        {[
-          { label: 'PROTEIN', value: dailyData?.totals.protein || 0, target: user.targetProtein, color: '#818CF8' },
-          { label: 'CARBOHYDRATES', value: dailyData?.totals.carbs || 0, target: user.targetCarbs, color: '#10B981' },
-          { label: 'HEALTHY FATS', value: dailyData?.totals.fat || 0, target: user.targetFat, color: '#F472B6' },
-        ].map((macro, idx) => (
-          <Reveal key={macro.label} preset="up" delay={idx * 50}>
-            <div style={{ background: 'var(--bg-surface)', padding: '20px 22px', borderRadius: 16, border: '1px solid var(--border-subtle)', textAlign: 'center' }}>
-              <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)' }}>{macro.label}</span>
-              <div style={{ fontSize: 24, fontWeight: 900, color: macro.color, margin: '4px 0 2px' }}>
-                {macro.value}<span style={{ fontSize: 13, fontWeight: 700, opacity: 0.8 }}>g</span>
-              </div>
-              {macro.target && (
-                <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>
-                  of {macro.target}g target
-                </span>
-              )}
+        {/* 4. Protein */}
+        <Reveal preset="up" delay={90}>
+          <div style={{ background: 'var(--bg-surface)', padding: '16px 18px', borderRadius: 'var(--radius-card)', border: '1px solid var(--border-subtle)', height: '100%' }}>
+            <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: 'var(--accent-protein-text, #818CF8)', letterSpacing: '0.04em' }}>PROTEIN</span>
+            <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 900, color: 'var(--accent-protein-text, #818CF8)', margin: '4px 0 2px' }}>
+              {dailyData?.totals.protein || 0}<span style={{ fontSize: 13, fontWeight: 700, opacity: 0.85 }}>g</span>
             </div>
-          </Reveal>
-        ))}
+            {user.targetProtein && (
+              <span className="tabular-nums" style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>
+                / {user.targetProtein}g goal
+              </span>
+            )}
+          </div>
+        </Reveal>
 
+        {/* 5. Carbs */}
+        <Reveal preset="up" delay={120}>
+          <div style={{ background: 'var(--bg-surface)', padding: '16px 18px', borderRadius: 'var(--radius-card)', border: '1px solid var(--border-subtle)', height: '100%' }}>
+            <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: 'var(--brand-primary-light, #10B981)', letterSpacing: '0.04em' }}>CARBS</span>
+            <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 900, color: 'var(--brand-primary-light, #10B981)', margin: '4px 0 2px' }}>
+              {dailyData?.totals.carbs || 0}<span style={{ fontSize: 13, fontWeight: 700, opacity: 0.85 }}>g</span>
+            </div>
+            {user.targetCarbs && (
+              <span className="tabular-nums" style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>
+                / {user.targetCarbs}g goal
+              </span>
+            )}
+          </div>
+        </Reveal>
+
+        {/* 6. Fats */}
         <Reveal preset="up" delay={150}>
-          <WaterTracker user={user} />
+          <div style={{ background: 'var(--bg-surface)', padding: '16px 18px', borderRadius: 'var(--radius-card)', border: '1px solid var(--border-subtle)', height: '100%' }}>
+            <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: 'var(--accent-fat-text, #FB7185)', letterSpacing: '0.04em' }}>FATS</span>
+            <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 900, color: 'var(--accent-fat-text, #FB7185)', margin: '4px 0 2px' }}>
+              {dailyData?.totals.fat || 0}<span style={{ fontSize: 13, fontWeight: 700, opacity: 0.85 }}>g</span>
+            </div>
+            {user.targetFat && (
+              <span className="tabular-nums" style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>
+                / {user.targetFat}g goal
+              </span>
+            )}
+          </div>
         </Reveal>
       </div>
+
+      {/* ── HYDRATION TRACKER (FULL WIDTH CARD) ── */}
+      <Reveal preset="up" delay={100}>
+        <WaterTracker user={user} />
+      </Reveal>
+
+      {/* ── INTERACTIVE FITNESS CALORIE CALCULATION ENGINE BREAKDOWN ── */}
+      <Reveal preset="up" delay={40}>
+        <CalorieEngineBreakdown user={user} />
+      </Reveal>
 
       {/* ── 2-COLUMN SPLIT: 7-Day Calorie Chart + Active Workout & Daily Insight ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 }}>
@@ -521,7 +747,7 @@ export default function Dashboard({ user, setCurrentPage }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           
           {/* Scheduled Workout Module */}
-          <Reveal preset="right" delay={50}>
+          <Reveal preset="right" delay={40}>
             <div style={{
               background: 'var(--bg-surface)',
               border: '1px solid var(--border-subtle)',
@@ -533,18 +759,18 @@ export default function Dashboard({ user, setCurrentPage }) {
             }}>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                  <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--brand-primary, #F59E0B)', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Dumbbell size={13} /> ACTIVE TRAINING SCHEDULE
                   </span>
-                  <span style={{ fontSize: 11, fontWeight: 800, color: '#10B981', display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <Flame size={12} fill="#10B981" /> {workoutStreak} Streak
+                  <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--brand-primary-light)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Flame size={12} fill="var(--brand-primary-light)" /> {workoutStreak} Streak
                   </span>
                 </div>
 
-                <h3 style={{ fontSize: 18, fontWeight: 900, color: 'var(--text-primary)', margin: '0 0 4px', fontFamily: 'var(--font-heading)' }}>
+                <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 4px', fontFamily: 'var(--font-heading)' }}>
                   {generatedProgram ? generatedProgram.splitName : 'Personalized 4-Week Mesocycle'}
                 </h3>
-                <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '0 0 16px', lineHeight: 1.4 }}>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '0 0 16px', lineHeight: 1.5 }}>
                   {generatedProgram 
                     ? 'Certified NSCA progressive overload periodization active.' 
                     : 'Configure your goal, equipment, and injury history to build your 4-week program.'}
@@ -555,28 +781,28 @@ export default function Dashboard({ user, setCurrentPage }) {
                 onClick={() => setCurrentPage('exercise')}
                 className="btn btn-primary"
                 style={{
-                  width: '100%', padding: '11px 0', borderRadius: 12, fontWeight: 800, fontSize: 12,
-                  background: 'var(--brand-primary, #F59E0B)', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+                  width: '100%', padding: '11px 0', borderRadius: 'var(--radius-panel)', fontWeight: 800, fontSize: 12.5,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
                 }}
               >
-                <Play size={13} fill="#000" /> {generatedProgram ? 'Open Workout Console' : 'Generate 4-Week Program'}
+                <Play size={13} fill="currentColor" /> {generatedProgram ? 'Open Workout Console' : 'Generate 4-Week Program'}
               </button>
             </div>
           </Reveal>
 
           {/* Daily Smart Health & Nutrition Insight */}
-          <Reveal preset="right" delay={100}>
+          <Reveal preset="right" delay={80}>
             <div style={{
               background: 'var(--bg-surface)',
               border: '1px solid var(--border-subtle)',
-              borderLeft: '4px solid var(--brand-primary, #F59E0B)',
+              borderLeft: '3.5px solid var(--brand-primary)',
               borderRadius: 'var(--radius-card)',
               padding: '18px 22px',
             }}>
-              <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: 'var(--brand-primary, #F59E0B)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+              <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: 'var(--brand-primary-light)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, letterSpacing: '0.06em' }}>
                 <Sparkles size={12} /> DAILY NUTRITION INSIGHT
               </span>
-              <p style={{ margin: 0, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+              <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
                 {(() => {
                   const name = user?.fullName?.split(' ')[0] || 'Athlete';
                   const budget = user?.budgetRange || 'moderate';
@@ -597,57 +823,9 @@ export default function Dashboard({ user, setCurrentPage }) {
         </div>
       </div>
 
-      {/* ── QUICK ACTION NAVIGATION ── */}
-      <Reveal preset="up" delay={0}>
-        <div style={{ marginTop: 6 }}>
-          <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 10 }}>
-            FEATURE NAVIGATION
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
-            {[
-              { label: 'Food Log', desc: 'Track breakfast, lunch, dinner & snacks', page: 'food-log', icon: <Utensils size={16} /> },
-              { label: 'Weekly Meal Planner', desc: 'Budget-optimized weekly Indian diet plans', page: 'meal-planner', icon: <Calendar size={16} /> },
-              { label: 'Workout Console', desc: '17 workout splits, set matrix & timer', page: 'exercise', icon: <Dumbbell size={16} /> },
-              { label: 'Member Profile', desc: 'PR Hall of Fame & biometrics', page: 'profile', icon: <Activity size={16} /> },
-            ].map(item => (
-              <button
-                key={item.page}
-                onClick={() => setCurrentPage(item.page)}
-                style={{
-                  background: 'var(--bg-surface)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 14,
-                  padding: '16px 18px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.borderColor = 'var(--brand-primary, #F59E0B)';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.transform = 'none';
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(245, 158, 11, 0.12)', color: 'var(--brand-primary, #F59E0B)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {item.icon}
-                  </div>
-                  <div>
-                    <h4 style={{ margin: 0, fontSize: 13, fontWeight: 800, color: 'var(--text-primary)' }}>{item.label}</h4>
-                    <p style={{ margin: 0, fontSize: 11, color: 'var(--text-muted)' }}>{item.desc}</p>
-                  </div>
-                </div>
-                <ArrowRight size={14} color="var(--text-muted)" />
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* ── 10-WEEK CONSISTENCY MATRIX & ACTIVITY HEATMAP ── */}
+      <Reveal preset="up" delay={60}>
+        <ConsistencyHeatmap workoutHistory={workoutHistory} currentStreak={workoutStreak} />
       </Reveal>
 
     </div>
