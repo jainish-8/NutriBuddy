@@ -249,18 +249,16 @@ export default function GlobalSearchModal({
           {!cleanQ && (
             <div>
               <div style={{
-                fontSize: 10,
-                fontWeight: 800,
-                color: 'var(--text-muted, #8B949E)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.04em',
+                fontSize: 11,
+                fontWeight: 700,
+                color: 'var(--text-secondary, rgba(255, 255, 255, 0.55))',
                 marginBottom: 10,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6
               }}>
-                <Sparkles size={12} color="var(--brand-primary-light, #10B981)" />
-                TRENDING SEARCHES
+                <Sparkles size={12} color="var(--color-green, #22D17A)" />
+                Trending searches
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
                 {trendingSearches.map((item) => (
@@ -336,8 +334,8 @@ export default function GlobalSearchModal({
               {/* SECTION: FOODS */}
               {(activeTab === 'all' || activeTab === 'foods') && matchedFoods.length > 0 && (
                 <div>
-                  <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--accent-protein-text, #818CF8)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: 8 }}>
-                    INDIAN FOODS ({matchedFoods.length})
+                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-protein, #5B8AF5)', display: 'block', marginBottom: 8 }}>
+                    Indian foods ({matchedFoods.length})
                   </span>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {matchedFoods.map(food => (
@@ -409,8 +407,8 @@ export default function GlobalSearchModal({
               {/* SECTION: EXERCISES */}
               {(activeTab === 'all' || activeTab === 'exercises') && matchedExercises.length > 0 && (
                 <div>
-                  <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light, #10B981)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: 8 }}>
-                    EXERCISES & ANATOMY ({matchedExercises.length})
+                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-green, #22D17A)', display: 'block', marginBottom: 8 }}>
+                    Exercises & anatomy ({matchedExercises.length})
                   </span>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {matchedExercises.map(ex => (
@@ -455,8 +453,8 @@ export default function GlobalSearchModal({
               {/* SECTION: RECIPES */}
               {(activeTab === 'all' || activeTab === 'recipes') && matchedRecipes.length > 0 && (
                 <div>
-                  <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--accent-carbs-text, #38BDF8)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: 8 }}>
-                    RECIPES & MEAL PLANS ({matchedRecipes.length})
+                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-water, #60D4F7)', display: 'block', marginBottom: 8 }}>
+                    Recipes & meal plans ({matchedRecipes.length})
                   </span>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {matchedRecipes.map(recipe => (

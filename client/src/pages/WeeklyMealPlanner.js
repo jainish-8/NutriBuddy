@@ -206,7 +206,7 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
     if (!currentMeal) return;
 
     const currentMult = currentMeal.multiplier || 1.0;
-    const newMult = Math.max(0.25, parseFloat((currentMult + delta).toFixed(2)));
+    const newMult = Math.max(0.5, Math.min(3.0, parseFloat((currentMult + delta).toFixed(2))));
 
     const baseCost = currentMeal.cost / currentMult;
     const baseCal = currentMeal.calories / currentMult;
@@ -791,12 +791,12 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
                         <button
                           type="button"
                           onClick={() => handleAdjustPortion(selectedDay, meal, -0.25)}
-                          disabled={(mealData.multiplier || 1) <= 0.25}
+                          disabled={(mealData.multiplier || 1) <= 0.5}
                           style={{
                             background: 'none',
                             border: 'none',
-                            color: (mealData.multiplier || 1) <= 0.25 ? 'var(--text-muted)' : 'var(--text-secondary)',
-                            cursor: (mealData.multiplier || 1) <= 0.25 ? 'not-allowed' : 'pointer',
+                            color: (mealData.multiplier || 1) <= 0.5 ? 'var(--text-muted)' : 'var(--text-secondary)',
+                            cursor: (mealData.multiplier || 1) <= 0.5 ? 'not-allowed' : 'pointer',
                             display: 'flex',
                             alignItems: 'center',
                             padding: 2

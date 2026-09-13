@@ -787,8 +787,8 @@ export default function Dashboard({ user, setCurrentPage }) {
                   <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Dumbbell size={13} /> Active training schedule
                   </span>
-                  <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--brand-primary-light)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <Flame size={12} fill="var(--brand-primary-light)" /> {workoutStreak} Streak
+                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-green)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Flame size={12} fill="var(--color-green)" /> {workoutStreak === 0 ? 'Start streak' : `${workoutStreak}-day streak`}
                   </span>
                 </div>
 

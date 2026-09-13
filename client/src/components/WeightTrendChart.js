@@ -42,10 +42,10 @@ export default function WeightTrendChart({
         border: '1px solid var(--border-subtle, #30363D)',
         textAlign: 'center'
       }}>
-        <div style={{ fontSize: 11, color: 'var(--text-muted, #8B949E)', textTransform: 'uppercase', fontWeight: 700 }}>
-          First Weigh-in Recorded
+        <div style={{ fontSize: 11, color: 'var(--text-secondary, rgba(255, 255, 255, 0.55))', fontWeight: 600 }}>
+          First weigh-in recorded
         </div>
-        <div className="tabular-nums" style={{ fontSize: 28, fontWeight: 900, color: 'var(--brand-primary-light, #10B981)', margin: '6px 0' }}>
+        <div className="tabular-nums" style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-green, #22D17A)', margin: '6px 0', letterSpacing: '-0.03em' }}>
           {pt.weight} <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-muted)' }}>kg</span>
         </div>
         <div style={{ fontSize: 12, color: 'var(--text-secondary, #C9D1D9)' }}>

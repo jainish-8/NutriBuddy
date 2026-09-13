@@ -2380,8 +2380,8 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                 <X size={14} />
               </button>
 
-              <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Sparkles size={13} /> CERTIFIED EXERCISE DATABASE
+              <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Sparkles size={13} /> Certified exercise database
               </span>
               <h2 style={{ fontSize: 20, fontWeight: 800, margin: '4px 0 2px', color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
                 Search & Add Exercise
@@ -2550,8 +2550,8 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                 <X size={14} />
               </button>
 
-              <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Sparkles size={13} /> SMART EXERCISE ALTERNATIVE ENGINE
+              <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Sparkles size={13} /> Smart exercise alternative engine
               </span>
               <h2 style={{ fontSize: 19, fontWeight: 800, margin: '4px 0 2px', color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
                 Target-Matched Replacements for {smartAltTarget.ex?.name}
@@ -2716,8 +2716,8 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                 <X size={14} />
               </button>
 
-              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--brand-primary-light)', letterSpacing: '0.12em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Sparkles size={13} /> PERSONALIZED PROGRAM BUILDER
+              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--brand-primary-light)', letterSpacing: '0.12em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Sparkles size={13} /> Personalized program builder
               </span>
               <h2 style={{ fontSize: 20, fontWeight: 800, margin: '4px 0 2px', color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
                 {intakeStep === 0 && 'Select Primary Goal'}
@@ -2995,8 +2995,8 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
             <div style={{ width: 50, height: 50, borderRadius: '50%', background: 'var(--brand-primary-subtle)', color: 'var(--brand-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
               <Award size={26} />
             </div>
-            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              SESSION COMPLETED
+            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.08em', }}>
+              Session completed
             </span>
             <h2 style={{ fontSize: 19, fontWeight: 800, margin: '4px 0 16px', color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
               {completedSummary.name}
@@ -3004,15 +3004,15 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 16 }}>
               <div style={{ background: 'var(--bg-surface-raised)', padding: 10, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
-                <span style={{ fontSize: 9.5, color: 'var(--text-muted)', display: 'block' }}>DURATION</span>
+                <span style={{ fontSize: 9.5, color: 'var(--text-muted)', display: 'block' }}>Duration</span>
                 <span className="tabular-nums" style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-primary)' }}>{formatMMSS(completedSummary.duration)}</span>
               </div>
               <div style={{ background: 'var(--bg-surface-raised)', padding: 10, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
-                <span style={{ fontSize: 9.5, color: 'var(--text-muted)', display: 'block' }}>SETS</span>
+                <span style={{ fontSize: 9.5, color: 'var(--text-muted)', display: 'block' }}>Sets</span>
                 <span className="tabular-nums" style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-primary)' }}>{completedSummary.totalSets}</span>
               </div>
               <div style={{ background: 'var(--bg-surface-raised)', padding: 10, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
-                <span style={{ fontSize: 9.5, color: 'var(--text-muted)', display: 'block' }}>VOLUME</span>
+                <span style={{ fontSize: 9.5, color: 'var(--text-muted)', display: 'block' }}>Volume</span>
                 <span className="tabular-nums" style={{ fontSize: 14, fontWeight: 800, color: 'var(--brand-primary-light)' }}>{Math.round(completedSummary.totalVolume)} kg</span>
               </div>
             </div>
@@ -3020,7 +3020,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
             {completedSummary.newPrs && completedSummary.newPrs.length > 0 && (
               <div style={{ background: 'var(--brand-primary-subtle)', border: '1px solid var(--border-focus)', borderRadius: 'var(--radius-panel)', padding: 12, marginBottom: 16, textAlign: 'left' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 11, fontWeight: 800, color: 'var(--brand-primary-light)' }}>
-                  <Trophy size={13} /> NEW PERSONAL RECORDS!
+                  <Trophy size={13} /> New personal records!
                 </div>
                 {completedSummary.newPrs.map((pr, i) => (
                   <div key={i} className="tabular-nums" style={{ fontSize: 11.5, color: 'var(--text-primary)', padding: '2px 0' }}>
@@ -3112,8 +3112,8 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
               <Trophy size={40} color="#10B981" />
             </div>
 
-            <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-              <Flame size={14} fill="var(--brand-primary-light)" /> NEW PERSONAL RECORD!
+            <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              <Flame size={14} fill="var(--brand-primary-light)" /> New personal record!
             </span>
 
             <h2 style={{ fontSize: 24, fontWeight: 800, color: '#ffffff', margin: '6px 0 2px', fontFamily: 'var(--font-heading)' }}>
@@ -3318,7 +3318,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
               <span style={{
                 fontSize: 10, fontWeight: 800,
                 color: 'var(--brand-primary-light)',
-                textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 4
+                letterSpacing: '0.08em', display: 'block', marginBottom: 4
               }}>
                 {SPLIT_CATEGORIES[previewTemplate.name]?.label || 'ROUTINE SPLIT'}
               </span>
@@ -3332,7 +3332,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
 
             {/* Drawer Body (Exercises) */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
                 Included Exercises ({previewTemplate.exercises.length})
               </span>
 
@@ -3796,7 +3796,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                         </div>
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                          <span style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: 8 }}>
                             {activeDrawer === 'warmup' && <><Flame size={15} color="#10B981" /> <span>Warm-Up Ramp Protocol</span></>}
                             {activeDrawer === 'plates' && <><Disc size={15} color="#10B981" /> <span>Barbell Plate Calculator</span></>}
                             {activeDrawer === 'cues' && <><Sparkles size={15} color="#10B981" /> <span>Form & Execution Cues</span></>}
@@ -3815,15 +3815,15 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                         {activeDrawer === 'anatomy' && (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                             <div style={{ background: 'var(--bg-surface-raised)', padding: 12, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
-                              <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 800 }}>PRIMARY MOVER</span>
+                              <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 800 }}>Primary mover</span>
                               <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{currentActiveEx.targetAnatomy || currentActiveEx.muscleGroup}</span>
                             </div>
                             <div style={{ background: 'var(--bg-surface-raised)', padding: 12, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
-                              <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 800 }}>ASSISTING SYNERGISTS</span>
+                              <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 800 }}>Assisting synergists</span>
                               <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>{currentActiveEx.synergists || 'Stabilizing Core'}</span>
                             </div>
                             <div style={{ background: 'var(--bg-surface-raised)', padding: 12, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
-                              <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 800 }}>MOVEMENT PLANE</span>
+                              <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 800 }}>Movement plane</span>
                               <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>{currentActiveEx.movementPlane || currentActiveEx.category}</span>
                             </div>
                           </div>
@@ -3844,7 +3844,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                         {activeDrawer === 'warmup' && (
                           <div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                              <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--brand-primary-light)', textTransform: 'uppercase' }}>
+                              <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--brand-primary-light)', }}>
                                 Target Working Load
                               </span>
                               <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
@@ -3971,7 +3971,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
           {!isMobileViewport && (
             <div className="hidden md:grid workout-console-layout" style={{ display: 'grid', gridTemplateColumns: '290px 1fr', minHeight: 640, background: 'var(--bg-surface)' }}>
               <div className="workout-console-left">
-                <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4 }}>
+                <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 4 }}>
                 EXERCISES IN WORKOUT ({activeExercises.length})
               </span>
 
@@ -4092,7 +4092,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                             textAlign: 'right',
                             flexShrink: 0
                           }}>
-                            <span style={{ fontSize: 9.5, fontWeight: 900, color: 'var(--brand-primary-light)', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+                            <span style={{ fontSize: 9.5, fontWeight: 900, color: 'var(--brand-primary-light)', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
                               <Trophy size={11} /> PERSONAL RECORD
                             </span>
                             <span className="tabular-nums" style={{ fontSize: 13.5, fontWeight: 900, color: 'var(--text-primary)', display: 'block', marginTop: 1 }}>
@@ -4726,7 +4726,6 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
               fontWeight: 800,
               color: '#FFFFFF',
               letterSpacing: '0.06em',
-              textTransform: 'uppercase',
               textAlign: 'center',
               margin: 0,
               flex: 1,
@@ -4909,8 +4908,8 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                     }}
                     className="active:scale-95 transition select-none"
                   >
-                    <span style={{ fontSize: 9, textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.08em', color: '#10B981', display: 'block', lineHeight: 1.2 }}>
-                      DAY {dIdx + 1}
+                    <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.08em', color: '#10B981', display: 'block', lineHeight: 1.2 }}>
+                      Day {dIdx + 1}
                     </span>
                     <span style={{ fontSize: 12, fontWeight: 700, color: '#FFFFFF', display: 'block', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {day.dayName || day.sessionType || 'Workout'}
@@ -4938,8 +4937,8 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                     }}
                     className="active:scale-95 transition select-none"
                   >
-                    <span style={{ fontSize: 9, textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.08em', color: '#D4D4D8', display: 'block', lineHeight: 1.2 }}>
-                      DAY {dIdx + 1}
+                    <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.08em', color: '#D4D4D8', display: 'block', lineHeight: 1.2 }}>
+                      Day {dIdx + 1}
                     </span>
                     <span style={{ fontSize: 12, fontWeight: 700, color: '#FFFFFF', display: 'block', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       Rest Day
@@ -4968,8 +4967,8 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                     }}
                     className="hover:opacity-90 active:scale-95 transition select-none"
                   >
-                    <span style={{ fontSize: 9, color: '#71717A', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.08em', display: 'block', lineHeight: 1.2 }}>
-                      DAY {dIdx + 1}
+                    <span style={{ fontSize: 9, color: '#71717A', fontWeight: 800, letterSpacing: '0.08em', display: 'block', lineHeight: 1.2 }}>
+                      Day {dIdx + 1}
                     </span>
                     <span style={{ fontSize: 12, color: '#71717A', display: 'block', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       Rest Day
@@ -4996,8 +4995,8 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                   }}
                   className="hover:border-zinc-700 active:scale-95 transition select-none"
                 >
-                  <span style={{ fontSize: 9, color: '#71717A', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.08em', display: 'block', lineHeight: 1.2 }}>
-                    DAY {dIdx + 1}
+                  <span style={{ fontSize: 9, color: '#71717A', fontWeight: 800, letterSpacing: '0.08em', display: 'block', lineHeight: 1.2 }}>
+                    Day {dIdx + 1}
                   </span>
                   <span style={{ fontSize: 12, fontWeight: 500, color: '#D4D4D8', display: 'block', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {day.dayName || day.sessionType || 'Workout'}
@@ -5040,7 +5039,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                       <Sparkles size={18} />
                     </div>
                     <div>
-                      <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#10B981' }}>
+                      <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', color: '#10B981' }}>
                         Active Recovery Protocol
                       </div>
                       <h3 style={{ fontSize: 17, fontWeight: 800, letterSpacing: '-0.015em', color: '#FFFFFF', margin: '3px 0 0 0' }}>
@@ -5122,8 +5121,8 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                 >
                   {/* Top Row: Meta Badge + Live Session Indicator */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#10B981' }}>
-                      DAY {String(selectedDay + 1).padStart(2, '0')} • TARGET PROTOCOL
+                    <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', color: '#10B981' }}>
+                      Day {String(selectedDay + 1).padStart(2, '0')} • Target protocol
                     </div>
                     {isSessionActive && (
                       <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: '#10B981' }}>
@@ -5206,26 +5205,24 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                       style={{
                         marginTop: 14,
                         width: '100%',
-                        height: 44,
-                        background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                        color: '#000000',
-                        fontWeight: 800,
-                        fontSize: 13,
-                        letterSpacing: '0.05em',
-                        textTransform: 'uppercase',
-                        borderRadius: 12,
+                        height: 56,
+                        background: 'var(--color-green, #22d17a)',
+                        color: '#0a1a10',
+                        fontWeight: 700,
+                        fontSize: 15,
+                        borderRadius: 14,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: 8,
-                        boxShadow: '0 4px 16px rgba(16, 185, 129, 0.35)',
+                        boxShadow: '0 4px 16px rgba(34, 209, 122, 0.35)',
                         cursor: 'pointer',
                         border: 'none',
                         transition: 'all 0.15s ease'
                       }}
                       className="active:scale-[0.98]"
                     >
-                      <Play size={14} fill="#000000" /> Start Workout
+                      <Play size={16} fill="#0a1a10" color="#0a1a10" /> Start workout
                     </button>
                   )}
                 </div>
@@ -5236,7 +5233,6 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                     fontSize: 10,
                     fontWeight: 800,
                     letterSpacing: '0.1em',
-                    textTransform: 'uppercase',
                     color: '#71717A',
                     marginBottom: 10,
                     paddingLeft: 4
@@ -5377,14 +5373,14 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
               </div>
               <div>
                 <span 
-                  style={{ fontSize: 10, fontWeight: 800, color: '#71717A', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block' }}
+                  style={{ fontSize: 10, fontWeight: 700, color: '#71717A', letterSpacing: '0.04em', display: 'block' }}
                 >
-                  TRAINING STREAK
+                  Training streak
                 </span>
                 <div 
                   style={{ fontSize: 16.5, fontWeight: 800, color: '#FFFFFF', marginTop: 2, letterSpacing: '-0.01em' }}
                 >
-                  {streak} {streak === 1 ? 'Workout' : 'Workouts'} This Week
+                  {streak === 0 ? 'Ready to begin this week' : `${streak} ${streak === 1 ? 'workout' : 'workouts'} this week`}
                 </div>
               </div>
             </div>
@@ -5504,7 +5500,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                     style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}
                   >
                     <span 
-                      style={{ fontSize: 11, fontWeight: 800, color: '#10B981', display: 'inline-flex', alignItems: 'center', gap: 6, letterSpacing: '0.06em', textTransform: 'uppercase' }}
+                      style={{ fontSize: 11, fontWeight: 800, color: '#10B981', display: 'inline-flex', alignItems: 'center', gap: 6, letterSpacing: '0.06em', }}
                     >
                       <Sparkles size={13} color="#10B981" /> ACTIVE PROGRAM
                     </span>
@@ -5637,14 +5633,14 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                 </div>
               )}
 
-              {/* SECTION HEADER: EXPLORE ROUTINES */}
+              {/* SECTION HEADER: Explore routines */}
               <div 
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, padding: '0 2px' }}
               >
                 <h4 
-                  style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#A1A1AA', margin: 0 }}
+                  style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', color: '#A1A1AA', margin: 0 }}
                 >
-                  EXPLORE ROUTINES
+                  Explore routines
                 </h4>
                 <span 
                   style={{ fontSize: 11, fontWeight: 600, color: '#71717A' }}
@@ -5683,7 +5679,6 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                               fontSize: 9.5, 
                               fontWeight: 800, 
                               color: '#10B981',
-                              textTransform: 'uppercase', 
                               letterSpacing: '0.06em' 
                             }}
                           >
@@ -5889,7 +5884,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                         }}
                         className="active:scale-95 transition"
                       >
-                        <span style={{ fontSize: 10, color: '#10B981', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, letterSpacing: '0.06em', marginBottom: 8, textTransform: 'uppercase' }}>
+                        <span style={{ fontSize: 10, color: '#10B981', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, letterSpacing: '0.06em', marginBottom: 8, }}>
                           <Trophy size={13} color="#10B981" /> {pattern.label}
                         </span>
                         <div className="tabular-nums" style={{ fontSize: 22, fontWeight: 800, color: '#FFFFFF', marginBottom: 4, fontFamily: 'var(--font-heading)' }}>
@@ -5913,7 +5908,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                       }}
                       className="active:scale-95 transition"
                     >
-                      <span style={{ fontSize: 10, color: '#71717A', display: 'block', fontWeight: 800, letterSpacing: '0.06em', marginBottom: 8, textTransform: 'uppercase' }}>{pattern.label}</span>
+                      <span style={{ fontSize: 10, color: '#71717A', display: 'block', fontWeight: 800, letterSpacing: '0.06em', marginBottom: 8, }}>{pattern.label}</span>
                       <div style={{ fontSize: 14, fontWeight: 700, color: '#A1A1AA', marginBottom: 4 }}>Baseline Movement</div>
                       <span style={{ fontSize: 11, color: '#71717A' }}>Tap to view progression curve</span>
                     </div>

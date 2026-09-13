@@ -10,6 +10,7 @@ import UserProfileDetails from './pages/UserProfileDetails';
 import GlobalSearchModal from './components/GlobalSearchModal';
 import FloatingWorkoutBar from './components/FloatingWorkoutBar';
 import { Search } from 'lucide-react';
+import { toTitleCase } from './utils/nutritionEngine';
 // import AIChatbot from './components/AIChatbot';
 
 // ===== ORBITAL ANIMATED BACKGROUND =====
@@ -411,7 +412,7 @@ function App() {
                     <h1 style={{ fontSize: 20, margin: 0, fontWeight: 900, letterSpacing: '-0.03em', fontFamily: 'var(--font-heading)', cursor: 'pointer', display: 'flex', alignItems: 'center' }} onClick={toggleSidebar}>
                       Nutri<span style={{ color: 'var(--brand-primary-light)' }}>Buddy</span><span style={{ color: 'var(--brand-primary-light)', animation: 'greenPulse 1.4s infinite alternate' }}>_</span>
                     </h1>
-                    <div style={{ fontSize: 9.5, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', letterSpacing: '0.15em', textTransform: 'uppercase', marginTop: 2 }}>
+                    <div style={{ fontSize: 9.5, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', letterSpacing: '0.05em', marginTop: 2 }}>
                       Core // v2.4
                     </div>
                   </div>
@@ -589,7 +590,7 @@ function App() {
                     {!isSidebarCollapsed ? (
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                         <span>{nav.label}</span>
-                        <span style={{ fontSize: 9, fontFamily: 'var(--font-mono)', color: isActive ? 'var(--brand-primary-light)' : 'var(--text-muted)', opacity: isActive ? 1 : 0.6, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                        <span style={{ fontSize: 9, fontFamily: 'var(--font-mono)', color: isActive ? 'var(--brand-primary-light)' : 'var(--text-muted)', opacity: isActive ? 1 : 0.6, letterSpacing: '0.04em' }}>
                           {nav.tag}
                         </span>
                       </div>
@@ -672,7 +673,7 @@ function App() {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
                   <div style={{ minWidth: 0 }}>
                     <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {user.fullName}
+                      {toTitleCase(user.fullName || 'Member')}
                     </p>
                     <p style={{ margin: 0, fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {user.profession || 'Member'}

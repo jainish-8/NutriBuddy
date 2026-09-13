@@ -64,10 +64,10 @@ export default function ConsistencyHeatmap({
   const consistencyPct = Math.round((totalActiveDays / totalDays) * 100);
 
   return (
-    <div style={{
-      background: 'var(--bg-surface-raised, rgba(255, 255, 255, 0.03))',
-      border: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.08))',
-      borderRadius: 'var(--radius-card, 18px)',
+    <div className="nb-card" style={{
+      background: 'var(--color-card, #141820)',
+      border: '0.5px solid var(--border-default, rgba(255, 255, 255, 0.07))',
+      borderRadius: 20,
       padding: '18px 20px',
       position: 'relative'
     }}>
@@ -75,15 +75,13 @@ export default function ConsistencyHeatmap({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Calendar size={14} color="var(--brand-primary-light, #10B981)" />
+            <Calendar size={14} color="var(--color-green, #22D17A)" />
             <span style={{
-              fontSize: 10.5,
-              fontWeight: 800,
-              letterSpacing: '0.07em',
-              textTransform: 'uppercase',
-              color: 'var(--brand-primary-light, #10B981)'
+              fontSize: 11,
+              fontWeight: 700,
+              color: 'var(--color-green, #22D17A)'
             }}>
-              10-WEEK CONSISTENCY MATRIX
+              10-week consistency matrix
             </span>
           </div>
           <h4 style={{
