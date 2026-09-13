@@ -9,7 +9,7 @@ import ExerciseTracker from './pages/ExerciseTracker';
 import UserProfileDetails from './pages/UserProfileDetails';
 import GlobalSearchModal from './components/GlobalSearchModal';
 import FloatingWorkoutBar from './components/FloatingWorkoutBar';
-import { Search } from 'lucide-react';
+import { Search, LogOut } from 'lucide-react';
 import { toTitleCase } from './utils/nutritionEngine';
 // import AIChatbot from './components/AIChatbot';
 
@@ -145,7 +145,6 @@ function App() {
   });
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [theme, setTheme] = useState(localStorage.getItem('nutribuddy_theme') || 'dark');
   const [showSplash, setShowSplash] = useState(true);
   const [introActive, setIntroActive] = useState(false);
   const [revealMain, setRevealMain] = useState(false);
@@ -189,15 +188,11 @@ function App() {
     setCurrentPage(pageKey);
   };
 
-  // Toggle theme and activity-level class on DOM elements
+  // Enforce consistent obsidian dark mode and set activity-level class on DOM elements
   useEffect(() => {
-    if (theme === 'light') {
-      document.documentElement.classList.add('light-mode');
-      document.body.classList.add('light-mode');
-    } else {
-      document.documentElement.classList.remove('light-mode');
-      document.body.classList.remove('light-mode');
-    }
+    document.documentElement.classList.remove('light-mode');
+    document.body.classList.remove('light-mode');
+    localStorage.removeItem('nutribuddy_theme');
 
     const isGym = user && (
       user.isGymGoer === true ||
@@ -222,9 +217,7 @@ function App() {
       document.body.classList.add('sedentary-theme');
       document.body.classList.remove('gym-theme');
     }
-
-    localStorage.setItem('nutribuddy_theme', theme);
-  }, [theme, user]);
+  }, [user]);
 
   // Save current page to localStorage whenever it changes
   useEffect(() => {
@@ -350,26 +343,23 @@ function App() {
                 <Search size={20} />
               </button>
               <button
-                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                onClick={handleLogout}
                 style={{
                   width: 36, height: 36, borderRadius: 10,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer', padding: 0,
-                  color: 'var(--text-muted)',
-                  background: 'transparent',
-                  border: 'none',
+                  color: '#EF4444',
+                  background: 'rgba(239, 68, 68, 0.12)',
+                  border: '1px solid rgba(239, 68, 68, 0.22)',
                   outline: 'none',
-                  transition: 'background 0.2s ease'
+                  transition: 'all 0.2s ease'
                 }}
-                onMouseDown={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
-                onMouseUp={(e) => e.currentTarget.style.background = 'transparent'}
-                title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
+                onMouseDown={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.24)'}
+                onMouseUp={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.12)'}
+                title="Log out"
+                aria-label="Log out"
               >
-                {theme === 'light' ? (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-                ) : (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-                )}
+                <LogOut size={17} />
               </button>
               <button
                 onClick={() => {
@@ -610,106 +600,118 @@ function App() {
               flexDirection: 'column',
               gap: 12
             }}>
-              {/* Theme toggle & Profile circle */}
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: isSidebarCollapsed ? 'center' : 'space-between',
-                flexDirection: isSidebarCollapsed ? 'column' : 'row',
-                gap: 10
-              }}>
-                <button
-                  onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-                  className="sidebar-nav-item"
-                  style={{
-                    width: 32, height: 32, borderRadius: '50%',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer', padding: 0, fontSize: 13,
-                    color: 'var(--text-primary)',
-                    background: 'var(--bg-surface-raised)',
-                    border: '1px solid var(--border-subtle)',
-                    transition: 'all 0.2s ease',
-                    outline: 'none'
-                  }}
-                >
-                  {theme === 'light' ? (
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-                  ) : (
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-                  )}
-                  {isSidebarCollapsed && (
-                    <span className="sidebar-tooltip">Theme: {theme === 'light' ? 'Dark' : 'Light'}</span>
-                  )}
-                </button>
-
-                <button
-                  onClick={() => {
-                    setCurrentPage('profile');
-                    setIsEditingProfile(false);
-                  }}
-                  className="sidebar-nav-item"
-                  style={{
-                    width: 36, height: 36, borderRadius: '50%',
-                    background: 'var(--color-green, #22d17a)',
-                    color: '#0a1a10',
-                    border: currentPage === 'profile' ? '2px solid rgba(255, 255, 255, 0.4)' : '1px solid rgba(255, 255, 255, 0.1)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer', padding: 0,
-                    fontSize: 14, fontWeight: 700,
-                    boxShadow: '0 2px 10px rgba(34, 209, 122, 0.25)', transition: 'all 0.2s ease',
-                    transform: currentPage === 'profile' ? 'scale(1.05)' : 'none',
-                    outline: 'none'
-                  }}
-                >
-                  {user.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
-                  {isSidebarCollapsed && (
-                    <span className="sidebar-tooltip">Profile Details</span>
-                  )}
-                </button>
-              </div>
-
-              {/* Logged user info / logout button */}
               {!isSidebarCollapsed ? (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
-                  <div style={{ minWidth: 0 }}>
-                    <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {toTitleCase(user.fullName || 'Member')}
-                    </p>
-                    <p style={{ margin: 0, fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {user.profession || 'Member'}
-                    </p>
-                  </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                  <button
+                    onClick={() => {
+                      setCurrentPage('profile');
+                      setIsEditingProfile(false);
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      textAlign: 'left',
+                      minWidth: 0,
+                      flex: 1
+                    }}
+                    title="View Profile"
+                  >
+                    <div style={{
+                      width: 36, height: 36, borderRadius: '50%',
+                      background: 'var(--color-green, #22d17a)',
+                      color: '#0a1a10',
+                      border: currentPage === 'profile' ? '2px solid rgba(255, 255, 255, 0.4)' : '1px solid rgba(255, 255, 255, 0.1)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 14, fontWeight: 700,
+                      flexShrink: 0,
+                      boxShadow: '0 2px 10px rgba(34, 209, 122, 0.25)'
+                    }}>
+                      {user.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {toTitleCase(user.fullName || 'Member')}
+                      </p>
+                      <p style={{ margin: 0, fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {user.profession || 'Member'}
+                      </p>
+                    </div>
+                  </button>
                   <button 
                     onClick={handleLogout}
-                    className="btn btn-secondary"
-                    style={{ padding: '4px 8px', fontSize: 10, height: 26, borderRadius: 6, flexShrink: 0 }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      background: 'rgba(239, 68, 68, 0.12)',
+                      border: '1px solid rgba(239, 68, 68, 0.24)',
+                      color: '#EF4444',
+                      padding: '6px 10px',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      borderRadius: 8,
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                      transition: 'all 0.2s ease'
+                    }}
+                    title="Sign out"
                   >
+                    <LogOut size={13} />
                     Logout
                   </button>
                 </div>
               ) : (
-                <button
-                  onClick={handleLogout}
-                  className="sidebar-nav-item"
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'var(--text-muted)',
-                    cursor: 'pointer',
-                    padding: 6,
-                    borderRadius: 6,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    outline: 'none',
-                    margin: '0 auto'
-                  }}
-                >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                  {isSidebarCollapsed && (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+                  <button
+                    onClick={() => {
+                      setCurrentPage('profile');
+                      setIsEditingProfile(false);
+                    }}
+                    className="sidebar-nav-item"
+                    style={{
+                      width: 36, height: 36, borderRadius: '50%',
+                      background: 'var(--color-green, #22d17a)',
+                      color: '#0a1a10',
+                      border: currentPage === 'profile' ? '2px solid rgba(255, 255, 255, 0.4)' : '1px solid rgba(255, 255, 255, 0.1)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: 'pointer', padding: 0,
+                      fontSize: 14, fontWeight: 700,
+                      boxShadow: '0 2px 10px rgba(34, 209, 122, 0.25)',
+                      transition: 'all 0.2s ease',
+                      outline: 'none'
+                    }}
+                    title="Profile Details"
+                  >
+                    {user.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
+                    <span className="sidebar-tooltip">Profile</span>
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="sidebar-nav-item"
+                    style={{
+                      width: 32, height: 32, borderRadius: 8,
+                      background: 'rgba(239, 68, 68, 0.12)',
+                      border: '1px solid rgba(239, 68, 68, 0.24)',
+                      color: '#EF4444',
+                      cursor: 'pointer',
+                      padding: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      outline: 'none',
+                      transition: 'all 0.2s ease'
+                    }}
+                    title="Sign out"
+                  >
+                    <LogOut size={15} />
                     <span className="sidebar-tooltip">Logout</span>
-                  )}
-                </button>
+                  </button>
+                </div>
               )}
             </div>
           </aside>
