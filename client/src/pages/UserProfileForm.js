@@ -934,53 +934,55 @@ export default function UserProfileForm({ user, setUser, setCurrentPage }) {
       </div>
 
       {/* Reusable Mobile Bottom Sheet Dropdown Picker */}
-      <MobileSelectSheet
-        isOpen={Boolean(activeSheet)}
-        onClose={() => setActiveSheet(null)}
-        title={
-          activeSheet === 'gender' ? 'Biological Sex' :
-          activeSheet === 'gymDays' ? 'Weekly Gym Days' :
-          activeSheet === 'gymIntensity' ? 'Workout Intensity' :
-          activeSheet === 'goal' ? 'Your Fitness Goal' :
-          activeSheet === 'dietaryPreferences' ? 'Dietary Lifestyle' :
-          activeSheet === 'cuisinePreference' ? 'Regional Indian Cuisine' :
-          activeSheet === 'cookingSkill' ? 'Cooking Experience' :
-          activeSheet === 'budgetRange' ? 'Monthly Grocery Budget' :
-          activeSheet === 'mealPrepTime' ? 'Meal Prep Time Limit' : ''
-        }
-        subtitle={
-          activeSheet === 'gender' ? 'Used for accurate BMR & hormonal metabolic calculation' :
-          activeSheet === 'gymDays' ? 'Select your target weekly lifting frequency' :
-          activeSheet === 'gymIntensity' ? 'Helps calibrate training volume and fatigue recovery' :
-          activeSheet === 'goal' ? 'Caloric target and macro split will adjust accordingly' :
-          activeSheet === 'dietaryPreferences' ? 'Filters recipe engine and suggested ingredients' :
-          activeSheet === 'cuisinePreference' ? 'Prioritizes regional flavors & staple ingredients' :
-          activeSheet === 'cookingSkill' ? 'Recipes will match your kitchen preparation experience' :
-          activeSheet === 'budgetRange' ? 'Meal suggestions balance cost vs macro density' :
-          activeSheet === 'mealPrepTime' ? 'Determines prep complexity in your weekly plan' : ''
-        }
-        options={
-          activeSheet === 'gender' ? GENDER_OPTIONS :
-          activeSheet === 'gymDays' ? GYM_DAYS_OPTIONS :
-          activeSheet === 'gymIntensity' ? GYM_INTENSITY_OPTIONS :
-          activeSheet === 'goal' ? GOAL_OPTIONS :
-          activeSheet === 'dietaryPreferences' ? DIETARY_OPTIONS :
-          activeSheet === 'cuisinePreference' ? CUISINE_OPTIONS :
-          activeSheet === 'cookingSkill' ? COOKING_OPTIONS :
-          activeSheet === 'budgetRange' ? BUDGET_OPTIONS :
-          activeSheet === 'mealPrepTime' ? PREP_TIME_OPTIONS : []
-        }
-        value={form[activeSheet] !== undefined ? String(form[activeSheet]) : ''}
-        onChange={(val) => {
-          setForm(prev => ({
-            ...prev,
-            [activeSheet]: activeSheet === 'gymDays' ? Number(val) : val
-          }));
-          if (errors[activeSheet]) {
-            setErrors(prev => ({ ...prev, [activeSheet]: null }));
+      {Boolean(activeSheet) && MobileSelectSheet && (
+        <MobileSelectSheet
+          isOpen={Boolean(activeSheet)}
+          onClose={() => setActiveSheet(null)}
+          title={
+            activeSheet === 'gender' ? 'Biological Sex' :
+            activeSheet === 'gymDays' ? 'Weekly Gym Days' :
+            activeSheet === 'gymIntensity' ? 'Workout Intensity' :
+            activeSheet === 'goal' ? 'Your Fitness Goal' :
+            activeSheet === 'dietaryPreferences' ? 'Dietary Lifestyle' :
+            activeSheet === 'cuisinePreference' ? 'Regional Indian Cuisine' :
+            activeSheet === 'cookingSkill' ? 'Cooking Experience' :
+            activeSheet === 'budgetRange' ? 'Monthly Grocery Budget' :
+            activeSheet === 'mealPrepTime' ? 'Meal Prep Time Limit' : ''
           }
-        }}
-      />
+          subtitle={
+            activeSheet === 'gender' ? 'Used for accurate BMR & hormonal metabolic calculation' :
+            activeSheet === 'gymDays' ? 'Select your target weekly lifting frequency' :
+            activeSheet === 'gymIntensity' ? 'Helps calibrate training volume and fatigue recovery' :
+            activeSheet === 'goal' ? 'Caloric target and macro split will adjust accordingly' :
+            activeSheet === 'dietaryPreferences' ? 'Filters recipe engine and suggested ingredients' :
+            activeSheet === 'cuisinePreference' ? 'Prioritizes regional flavors & staple ingredients' :
+            activeSheet === 'cookingSkill' ? 'Recipes will match your kitchen preparation experience' :
+            activeSheet === 'budgetRange' ? 'Meal suggestions balance cost vs macro density' :
+            activeSheet === 'mealPrepTime' ? 'Determines prep complexity in your weekly plan' : ''
+          }
+          options={
+            activeSheet === 'gender' ? GENDER_OPTIONS :
+            activeSheet === 'gymDays' ? GYM_DAYS_OPTIONS :
+            activeSheet === 'gymIntensity' ? GYM_INTENSITY_OPTIONS :
+            activeSheet === 'goal' ? GOAL_OPTIONS :
+            activeSheet === 'dietaryPreferences' ? DIETARY_OPTIONS :
+            activeSheet === 'cuisinePreference' ? CUISINE_OPTIONS :
+            activeSheet === 'cookingSkill' ? COOKING_OPTIONS :
+            activeSheet === 'budgetRange' ? BUDGET_OPTIONS :
+            activeSheet === 'mealPrepTime' ? PREP_TIME_OPTIONS : []
+          }
+          value={form[activeSheet] !== undefined ? String(form[activeSheet]) : ''}
+          onChange={(val) => {
+            setForm(prev => ({
+              ...prev,
+              [activeSheet]: activeSheet === 'gymDays' ? Number(val) : val
+            }));
+            if (errors[activeSheet]) {
+              setErrors(prev => ({ ...prev, [activeSheet]: null }));
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
