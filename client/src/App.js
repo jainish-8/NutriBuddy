@@ -736,6 +736,7 @@ function App() {
                     user={user} 
                     onEdit={() => setIsEditingProfile(true)} 
                     onLogout={handleLogout} 
+                    setCurrentPage={setCurrentPage}
                   />
                 )}
                 {currentPage === 'dashboard' && <Dashboard user={user} setCurrentPage={setCurrentPage} />}
@@ -750,23 +751,6 @@ function App() {
                 />
               </div>
             </main>
-
-            {/* Footer */}
-            <footer style={{
-              marginTop: 64, paddingBottom: 16, paddingTop: 16,
-              borderTop: '1px solid var(--border-subtle)',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 13, fontWeight: 800, fontFamily: 'var(--font-heading)', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
-                  Nutri<span style={{ color: 'var(--accent-lime-text)' }}>Buddy</span>
-                </span>
-                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>· Health Companion</span>
-              </div>
-              <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-                Trackers · Budget Planner · Gym Logs
-              </div>
-            </footer>
           </div>
 
           {/* MOBILE BOTTOM NAVIGATION */}

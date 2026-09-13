@@ -12,7 +12,7 @@ export default function MacroDonutChart({
   size = 170,
   strokeWidth = 14,
   showLegend = true,
-  centerLabel = 'DAILY TARGET'
+  centerLabel = 'Daily target'
 }) {
   // Caloric calculations (Protein 4 kcal/g, Carbs 4 kcal/g, Fat 9 kcal/g)
   const pCal = Math.max(0, Number(protein) || 0) * 4;
@@ -131,8 +131,7 @@ export default function MacroDonutChart({
           <span style={{
             fontSize: 9.5,
             fontWeight: 800,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
+            letterSpacing: '0.04em',
             color: 'var(--text-muted, #94A3B8)'
           }}>
             {centerLabel}

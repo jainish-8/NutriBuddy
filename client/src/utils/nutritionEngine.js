@@ -3,6 +3,12 @@
  * Formulated under WHO, NSCA, ACSM, and ISSN clinical nutrition standards.
  */
 
+// ─── UTILITY FUNCTIONS ─────────────────────────────────────────────────────────
+export function toTitleCase(str) {
+  if (!str || typeof str !== 'string') return '';
+  return str.split(' ').map(w => w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : '').join(' ');
+}
+
 // ─── 150+ COMPREHENSIVE OCCUPATIONAL TAXONOMY (NEAT PROFILING) ─────────────────
 export const PROFESSION_DATABASE = [
   // Sedentary Desk & Tech Occupations (NEAT: 1.15)
@@ -642,7 +648,7 @@ export const GOLDEN_FITNESS_MEALS = [
       'Sliced Almonds - 8',
       'Raw Jaggery powder - 1 tsp'
     ],
-    recipe: '1. Soak rolled oats and chia seeds in milk overnight in the fridge. 2. In the morning, garnish with sliced almonds and jaggery. Eat cold.',
+    recipe: '1. Soak rolled oats and chia seeds in milk overnight in the fridge. 2. In the morning, garnish with sliced almonds and jaggery. Serve chilled straight from the fridge. Add a drizzle of honey or jaggery if preferred.',
     benefits: 'Pre-hydrated carbohydrates and omega-3 fatty acids ready to eat with zero cooking time.'
   },
 
@@ -1603,8 +1609,9 @@ export function getDynamicServingUnit(dish, multiplier = 1.0) {
   if (id === 'rec-nv1' || (name.includes('chicken breast') && name.includes('rice'))) {
     const chicken = Math.round(180 * mult);
     const riceCups = (1.5 * mult).toFixed(1).replace(/\.0$/, '');
+    const cupLabel = parseFloat(riceCups) === 1 ? '1 cup' : `${riceCups} cups`;
     const riceG = Math.round(180 * mult);
-    return `${chicken}g Chicken Breast + ${riceG}g (${riceCups} Cups) Basmati Rice`;
+    return `${chicken}g Chicken Breast + ${riceG}g (${cupLabel}) Basmati Rice`;
   }
 
   if (id === 'rec-nv2' || (name.includes('chicken breast curry') && name.includes('phulkas'))) {
@@ -1664,10 +1671,11 @@ export function getDynamicServingUnit(dish, multiplier = 1.0) {
 
   if (id === 'lnc-2' || name.includes('rajma masala')) {
     const riceCups = (1.5 * mult).toFixed(1).replace(/\.0$/, '');
+    const cupLabel = parseFloat(riceCups) === 1 ? '1 cup' : `${riceCups} cups`;
     const riceG = Math.round(180 * mult);
     const paneer = Math.round(60 * mult);
     const dahi = Math.round(150 * mult);
-    return `Rajma Masala + ${riceG}g (${riceCups} Cups) Rice + ${paneer}g Paneer + ${dahi}g Dahi`;
+    return `Rajma Masala + ${riceG}g (${cupLabel}) Rice + ${paneer}g Paneer + ${dahi}g Dahi`;
   }
 
   if (id === 'lnc-3' || (name.includes('soya chunks curry') && name.includes('toor dal'))) {
@@ -1950,8 +1958,8 @@ export function generateCohesiveWeeklyMealPlan(allFoods = [], user = {}, customB
 
       const targetSlotCal = targetCalories * (slotRatios[m] || (1 / mealList.length));
       let initialMult = targetSlotCal / (dish.calories || 250);
-      // Discrete kitchen portions rounded to nearest 0.05 (min 0.5x, max 2.5x)
-      initialMult = Math.max(0.5, Math.min(2.5, Math.round(initialMult * 20) / 20));
+      // Discrete kitchen portions rounded to nearest 0.05 (min 0.5x, max 3.0x)
+      initialMult = Math.max(0.5, Math.min(3.0, Math.round(initialMult * 20) / 20));
       
       const cal = Math.round(dish.calories * initialMult);
       const prot = Math.round(dish.protein * initialMult * 10) / 10;

@@ -59,11 +59,11 @@
     "difficulty": "basic",
     "cuisine": "indian",
     "allergies": [
-      "gluten"
+      "gluten",
+      "dairy"
     ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "diabetic"
     ],
     "ingredients": [
@@ -138,10 +138,11 @@
     "prepTime": 30,
     "difficulty": "basic",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "diabetic"
     ],
@@ -296,7 +297,9 @@
     "prepTime": 15,
     "difficulty": "basic",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "nuts"
+    ],
     "dietaryStyle": [
       "vegetarian",
       "vegan",
@@ -337,11 +340,11 @@
     "difficulty": "basic",
     "cuisine": "indian",
     "allergies": [
-      "gluten"
+      "gluten",
+      "dairy"
     ],
     "dietaryStyle": [
-      "vegetarian",
-      "vegan"
+      "vegetarian"
     ],
     "ingredients": [
       "Whole wheat flour - 1/2 cup",
@@ -749,10 +752,11 @@
     "prepTime": 30,
     "difficulty": "moderate",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "diabetic"
     ],
@@ -997,10 +1001,11 @@
     "prepTime": 15,
     "difficulty": "basic",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "diabetic",
       "low-carb"
@@ -1078,7 +1083,8 @@
     "difficulty": "moderate",
     "cuisine": "indian",
     "allergies": [
-      "dairy"
+      "dairy",
+      "nuts"
     ],
     "dietaryStyle": [
       "vegetarian",
@@ -1391,11 +1397,11 @@
     "difficulty": "no-cook",
     "cuisine": "indian",
     "allergies": [
-      "soy"
+      "soy",
+      "dairy"
     ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "diabetic",
       "low-carb"
@@ -1845,10 +1851,11 @@
     "prepTime": 10,
     "difficulty": "moderate",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free"
     ],
     "ingredients": [
@@ -1992,10 +1999,11 @@
     "prepTime": 8,
     "difficulty": "basic",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "diabetic",
       "low-carb"
@@ -2066,10 +2074,11 @@
     "prepTime": 20,
     "difficulty": "moderate",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free"
     ],
     "ingredients": [
@@ -2105,7 +2114,8 @@
     "difficulty": "basic",
     "cuisine": "indian",
     "allergies": [
-      "peanuts"
+      "peanuts",
+      "nuts"
     ],
     "dietaryStyle": [
       "vegetarian",
@@ -2355,12 +2365,12 @@
     "prepTime": 25,
     "difficulty": "basic",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
-      "gluten-free",
-      "diabetic"
+      "gluten-free"
     ],
     "ingredients": [
       "Split yellow Moong Dal - 1/2 cup",
@@ -2705,8 +2715,7 @@
     "dietaryStyle": [
       "vegetarian",
       "vegan",
-      "gluten-free",
-      "diabetic"
+      "gluten-free"
     ],
     "ingredients": [
       "Sweet potato - 1 medium (boiled)",
@@ -2929,10 +2938,11 @@
     "prepTime": 20,
     "difficulty": "basic",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "diabetic"
     ],
@@ -3161,11 +3171,12 @@
     "cuisine": "indian",
     "allergies": [
       "peanuts",
-      "gluten"
+      "gluten",
+      "dairy",
+      "nuts"
     ],
     "dietaryStyle": [
-      "vegetarian",
-      "vegan"
+      "vegetarian"
     ],
     "ingredients": [
       "Whole wheat bread - 2 slices",
@@ -3341,7 +3352,7 @@
       "breakfast",
       "post_workout"
     ],
-    "calories": 180,
+    "calories": 157,
     "protein": 26,
     "carbs": 2,
     "fat": 5,
@@ -3615,7 +3626,8 @@
     "cuisine": "global",
     "allergies": [
       "peanuts",
-      "dairy"
+      "dairy",
+      "nuts"
     ],
     "dietaryStyle": [
       "vegetarian"
@@ -3722,7 +3734,8 @@
     "difficulty": "moderate",
     "cuisine": "indian",
     "allergies": [
-      "dairy"
+      "dairy",
+      "nuts"
     ],
     "dietaryStyle": [
       "vegetarian",
@@ -3833,11 +3846,11 @@
     "difficulty": "no-cook",
     "cuisine": "global",
     "allergies": [
-      "nuts"
+      "nuts",
+      "dairy"
     ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "low-carb"
     ],
@@ -3871,7 +3884,8 @@
     "difficulty": "moderate",
     "cuisine": "indian",
     "allergies": [
-      "fish"
+      "fish",
+      "dairy"
     ],
     "dietaryStyle": [
       "non-vegetarian",
@@ -3905,10 +3919,11 @@
     "prepTime": 7,
     "difficulty": "basic",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "low-carb"
     ],
@@ -4087,10 +4102,11 @@
     "prepTime": 25,
     "difficulty": "moderate",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free"
     ],
     "ingredients": [
@@ -4375,10 +4391,11 @@
     "prepTime": 8,
     "difficulty": "basic",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free"
     ],
     "ingredients": [
@@ -4409,10 +4426,11 @@
     "prepTime": 25,
     "difficulty": "basic",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free"
     ],
     "ingredients": [
@@ -4663,10 +4681,11 @@
     "prepTime": 20,
     "difficulty": "basic",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free"
     ],
     "ingredients": [
@@ -4699,7 +4718,8 @@
     "difficulty": "no-cook",
     "cuisine": "indian",
     "allergies": [
-      "peanuts"
+      "peanuts",
+      "nuts"
     ],
     "dietaryStyle": [
       "vegetarian",
@@ -4732,10 +4752,11 @@
     "prepTime": 5,
     "difficulty": "no-cook",
     "cuisine": "global",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "keto",
       "low-carb"
@@ -4805,7 +4826,8 @@
     "difficulty": "basic",
     "cuisine": "indian",
     "allergies": [
-      "peanuts"
+      "peanuts",
+      "nuts"
     ],
     "dietaryStyle": [
       "vegetarian",
@@ -4883,11 +4905,11 @@
     "difficulty": "no-cook",
     "cuisine": "global",
     "allergies": [
-      "soy"
+      "soy",
+      "dairy"
     ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "low-carb"
     ],
@@ -5028,7 +5050,8 @@
     "difficulty": "no-cook",
     "cuisine": "indian",
     "allergies": [
-      "peanuts"
+      "peanuts",
+      "nuts"
     ],
     "dietaryStyle": [
       "vegetarian",
@@ -5363,7 +5386,9 @@
     "allergies": [
       "eggs",
       "peanuts",
-      "gluten"
+      "gluten",
+      "dairy",
+      "nuts"
     ],
     "dietaryStyle": [
       "eggitarian",
@@ -5519,9 +5544,10 @@
     "prepTime": 5,
     "difficulty": "no-cook",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
-      "vegan",
       "vegetarian",
       "gluten-free"
     ],
@@ -5558,7 +5584,8 @@
     "cuisine": "global",
     "allergies": [
       "dairy",
-      "tree-nuts"
+      "tree-nuts",
+      "nuts"
     ],
     "dietaryStyle": [
       "vegetarian",
@@ -5798,10 +5825,11 @@
     "region": "north",
     "servingUnit": "1 Platter (1 bowl Rice + 1 bowl Rajma + Salad)",
     "budgetTier": "tight",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free"
     ],
     "ingredients": [
@@ -5935,7 +5963,7 @@
       "lunch",
       "dinner"
     ],
-    "calories": 475,
+    "calories": 454,
     "protein": 24,
     "carbs": 58,
     "fat": 14,
@@ -5973,7 +6001,7 @@
       "lunch",
       "dinner"
     ],
-    "calories": 540,
+    "calories": 500,
     "protein": 44,
     "carbs": 54,
     "fat": 12,
@@ -5985,7 +6013,8 @@
     "servingUnit": "1 High-Protein Athlete Platter",
     "budgetTier": "moderate",
     "allergies": [
-      "gluten"
+      "gluten",
+      "dairy"
     ],
     "dietaryStyle": [
       "non-vegetarian"
@@ -6061,10 +6090,11 @@
     "region": "east",
     "servingUnit": "1 Large Glass (350ml)",
     "budgetTier": "tight",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "diabetic"
     ],
@@ -6287,7 +6317,7 @@
       "post_workout",
       "snacks"
     ],
-    "calories": 330,
+    "calories": 304,
     "protein": 26,
     "carbs": 32,
     "fat": 8,
@@ -6377,7 +6407,8 @@
     "budgetTier": "flexible",
     "allergies": [
       "dairy",
-      "gluten"
+      "gluten",
+      "nuts"
     ],
     "dietaryStyle": [
       "vegetarian"
@@ -6414,11 +6445,11 @@
     "budgetTier": "tight",
     "allergies": [
       "nuts",
-      "peanuts"
+      "peanuts",
+      "dairy"
     ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "diabetic"
     ],
@@ -6490,10 +6521,11 @@
     "region": "east",
     "servingUnit": "1 Bowl Rice + 1 Large Bowl Dalma",
     "budgetTier": "tight",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "diabetic"
     ],
@@ -6566,7 +6598,8 @@
     "servingUnit": "1 Bowl Keema + 2 Phulkas + Salad",
     "budgetTier": "moderate",
     "allergies": [
-      "gluten"
+      "gluten",
+      "dairy"
     ],
     "dietaryStyle": [
       "non-vegetarian"
@@ -6792,7 +6825,8 @@
     "servingUnit": "1 Bowl Chholar Dal + 2 Rotis + Salad",
     "budgetTier": "tight",
     "allergies": [
-      "gluten"
+      "gluten",
+      "dairy"
     ],
     "dietaryStyle": [
       "vegetarian"
@@ -6866,7 +6900,8 @@
     "servingUnit": "1 Bowl Goan Fish Curry + 1 Bowl Steamed Rice",
     "budgetTier": "moderate",
     "allergies": [
-      "fish"
+      "fish",
+      "dairy"
     ],
     "dietaryStyle": [
       "non-vegetarian",
@@ -6983,11 +7018,11 @@
     "servingUnit": "1 Glass Mason Jar (250g)",
     "budgetTier": "moderate",
     "allergies": [
-      "nuts"
+      "nuts",
+      "dairy"
     ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free"
     ],
     "ingredients": [
@@ -7021,7 +7056,9 @@
     "region": "east",
     "servingUnit": "1 Large Bowl Khichuri + 2 Eggplant Slices",
     "budgetTier": "tight",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
       "gluten-free",
@@ -7337,7 +7374,7 @@
     "prepTime": 12,
     "difficulty": "basic",
     "allergies": [
-      "egg",
+      "eggs",
       "gluten"
     ],
     "ingredients": [
@@ -7377,7 +7414,8 @@
     "prepTime": 20,
     "difficulty": "basic",
     "allergies": [
-      "egg"
+      "eggs",
+      "dairy"
     ],
     "ingredients": [
       "Boiled Eggs - 2",
@@ -7419,7 +7457,7 @@
     "prepTime": 8,
     "difficulty": "no-cook",
     "allergies": [
-      "egg"
+      "eggs"
     ],
     "ingredients": [
       "Boiled Egg Whites - 4",
@@ -7456,8 +7494,9 @@
     "prepTime": 10,
     "difficulty": "basic",
     "allergies": [
-      "egg",
-      "gluten"
+      "eggs",
+      "gluten",
+      "dairy"
     ],
     "ingredients": [
       "Whole Eggs - 2",
@@ -7496,7 +7535,8 @@
     "prepTime": 15,
     "difficulty": "basic",
     "allergies": [
-      "gluten"
+      "gluten",
+      "soy"
     ],
     "ingredients": [
       "Soya Granules (Dry) - 50g",
@@ -7534,7 +7574,8 @@
     "prepTime": 20,
     "difficulty": "basic",
     "allergies": [
-      "gluten"
+      "gluten",
+      "soy"
     ],
     "ingredients": [
       "Firm Tofu (Cubed) - 120g",
@@ -7602,7 +7643,7 @@
     ],
     "budgetTier": "moderate",
     "cost": 65,
-    "calories": 510,
+    "calories": 478,
     "protein": 42,
     "carbs": 46,
     "fat": 14,
@@ -7680,7 +7721,7 @@
     ],
     "budgetTier": "moderate",
     "cost": 70,
-    "calories": 480,
+    "calories": 444,
     "protein": 40,
     "carbs": 44,
     "fat": 12,
@@ -7727,7 +7768,9 @@
     "servingUnit": "2 medium Pesarattus + Allam (Ginger) Chutney",
     "prepTime": 15,
     "difficulty": "basic",
-    "allergies": [],
+    "allergies": [
+      "nuts"
+    ],
     "ingredients": [
       "Whole Green Moong (Soaked) - 70g",
       "Ginger - 1 inch",
@@ -7763,7 +7806,8 @@
     "prepTime": 20,
     "difficulty": "basic",
     "allergies": [
-      "dairy"
+      "dairy",
+      "eggs"
     ],
     "ingredients": [
       "Toor Dal - 50g",
@@ -7802,7 +7846,8 @@
     "prepTime": 12,
     "difficulty": "basic",
     "allergies": [
-      "peanuts"
+      "peanuts",
+      "nuts"
     ],
     "ingredients": [
       "Thick Poha (Flattened Rice) - 70g",
@@ -7952,7 +7997,8 @@
     "prepTime": 12,
     "difficulty": "basic",
     "allergies": [
-      "peanuts"
+      "peanuts",
+      "nuts"
     ],
     "ingredients": [
       "Rolled Oats - 60g",
@@ -8141,7 +8187,8 @@
     "prepTime": 25,
     "difficulty": "intermediate",
     "allergies": [
-      "dairy"
+      "dairy",
+      "soy"
     ],
     "ingredients": [
       "Soya Chunks - 45g dry",
@@ -8325,7 +8372,9 @@
     "servingUnit": "1 large bowl (40g)",
     "prepTime": 6,
     "difficulty": "basic",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "ingredients": [
       "Phool Makhana (Foxnuts) - 40g",
       "Desi Ghee - 1 tsp",
@@ -8334,5 +8383,342 @@
     "recipe": "1. Heat 1 tsp ghee in a heavy kadai. 2. Add makhana and slow roast on low flame for 5-6 mins until crisp. 3. Sprinkle rock salt and freshly cracked black pepper. Toss well.",
     "benefits": "Low glycemic index, rich in magnesium and antioxidants, light on stomach.",
     "tips": "Roast on low heat; high heat burns the outer shell while leaving the core chewy."
+  },
+  {
+    "id": 220,
+    "name": "Banana (1 medium)",
+    "category": "fruits",
+    "mealTypes": [
+      "breakfast",
+      "snacks",
+      "pre_workout"
+    ],
+    "calories": 89,
+    "protein": 1,
+    "carbs": 23,
+    "fat": 0,
+    "cost": 5,
+    "prepTime": 0,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "region": "pan-indian",
+    "servingUnit": "1 medium",
+    "budgetTier": "tight",
+    "ingredients": [
+      "Banana - 1 medium (ripe)"
+    ],
+    "recipe": "Peel and eat as is, or slice into a bowl.",
+    "benefits": "Rich in potassium, natural sugars for quick energy, and prebiotic fiber.",
+    "tips": "Eat pre-workout for a quick energy boost. Pair with peanut butter for sustained energy."
+  },
+  {
+    "id": 221,
+    "name": "Apple (1 medium)",
+    "category": "fruits",
+    "mealTypes": [
+      "snacks",
+      "breakfast"
+    ],
+    "calories": 95,
+    "protein": 0,
+    "carbs": 25,
+    "fat": 0,
+    "cost": 20,
+    "prepTime": 0,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "region": "pan-indian",
+    "servingUnit": "1 medium",
+    "budgetTier": "moderate",
+    "ingredients": [
+      "Apple - 1 medium (washed)"
+    ],
+    "recipe": "Wash and eat whole, or slice and serve.",
+    "benefits": "High in quercetin, catechin, and pectin fiber. Supports gut health.",
+    "tips": "Eat with skin on for maximum fiber and polyphenol content."
+  },
+  {
+    "id": 222,
+    "name": "Mango (1 cup sliced)",
+    "category": "fruits",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 99,
+    "protein": 1,
+    "carbs": 25,
+    "fat": 1,
+    "cost": 25,
+    "prepTime": 5,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "region": "pan-indian",
+    "servingUnit": "1 cup sliced",
+    "budgetTier": "moderate",
+    "ingredients": [
+      "Ripe mango - 1 cup (sliced)"
+    ],
+    "recipe": "Peel the mango and slice the flesh away from the seed. Serve chilled.",
+    "benefits": "Rich in Vitamin C, beta-carotene, and digestive enzymes like amylase.",
+    "tips": "Best consumed in the morning or pre-workout. Avoid at night for weight loss goals."
+  },
+  {
+    "id": 223,
+    "name": "Papaya (1 cup)",
+    "category": "fruits",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 62,
+    "protein": 1,
+    "carbs": 16,
+    "fat": 0,
+    "cost": 15,
+    "prepTime": 5,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "region": "pan-indian",
+    "servingUnit": "1 cup",
+    "budgetTier": "tight",
+    "ingredients": [
+      "Ripe papaya - 1 cup (cubed)"
+    ],
+    "recipe": "Scoop out seeds, peel the skin, and cube the flesh.",
+    "benefits": "Contains papain enzyme for protein digestion. Excellent for gut health and immunity.",
+    "tips": "Eat on an empty stomach in the morning for best digestive benefits."
+  },
+  {
+    "id": 224,
+    "name": "Guava (1 medium)",
+    "category": "fruits",
+    "mealTypes": [
+      "snacks"
+    ],
+    "calories": 68,
+    "protein": 3,
+    "carbs": 14,
+    "fat": 1,
+    "cost": 10,
+    "prepTime": 2,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "region": "pan-indian",
+    "servingUnit": "1 medium",
+    "budgetTier": "tight",
+    "ingredients": [
+      "Guava - 1 medium (washed)"
+    ],
+    "recipe": "Wash, remove ends, and eat whole or cut into slices. Sprinkle chaat masala if preferred.",
+    "benefits": "Exceptionally high in Vitamin C (4× an orange). High fiber aids digestion.",
+    "tips": "Eat with the seeds for maximum fiber. Excellent for diabetics due to low GI."
+  },
+  {
+    "id": 225,
+    "name": "Pomegranate (1/2 cup seeds)",
+    "category": "fruits",
+    "mealTypes": [
+      "snacks",
+      "breakfast"
+    ],
+    "calories": 83,
+    "protein": 2,
+    "carbs": 19,
+    "fat": 1,
+    "cost": 30,
+    "prepTime": 5,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "region": "pan-indian",
+    "servingUnit": "1/2 cup seeds",
+    "budgetTier": "moderate",
+    "ingredients": [
+      "Pomegranate - 1/2 fruit (seeds extracted)"
+    ],
+    "recipe": "Score the pomegranate, break it open underwater to avoid staining, and collect the seeds.",
+    "benefits": "Powerful antioxidant. Reduces inflammation and supports heart health.",
+    "tips": "Add to curd, salads, or chaats for flavor and nutrition boost."
+  },
+  {
+    "id": 226,
+    "name": "Dates (3 pieces)",
+    "category": "fruits",
+    "mealTypes": [
+      "snacks",
+      "pre_workout"
+    ],
+    "calories": 69,
+    "protein": 1,
+    "carbs": 18,
+    "fat": 0,
+    "cost": 15,
+    "prepTime": 0,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "region": "pan-indian",
+    "servingUnit": "3 pieces",
+    "budgetTier": "moderate",
+    "ingredients": [
+      "Medjool or Deglet dates - 3 pieces (pitted)"
+    ],
+    "recipe": "Remove pits and eat as is, or stuff with nut butter.",
+    "benefits": "Natural source of iron, potassium, and quick-release carbohydrates for energy.",
+    "tips": "Excellent pre-workout natural energy source. Avoid in large quantities for diabetics."
+  },
+  {
+    "id": 227,
+    "name": "Mixed Nuts — 30g",
+    "category": "nuts",
+    "cuisine": "indian",
+    "mealTypes": [
+      "snacks"
+    ],
+    "calories": 173,
+    "protein": 5,
+    "carbs": 6,
+    "fat": 15,
+    "cost": 30,
+    "prepTime": 0,
+    "difficulty": "basic",
+    "allergies": [
+      "nuts"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "region": "pan-indian",
+    "servingUnit": "30g",
+    "budgetTier": "moderate",
+    "ingredients": [
+      "Almonds - 10g",
+      "Walnuts - 10g",
+      "Cashews - 10g"
+    ],
+    "recipe": "Measure and eat as is.",
+    "benefits": "Healthy omega-3 and omega-6 fats, vitamin E, magnesium. Supports brain and heart health.",
+    "tips": "Soak almonds and walnuts overnight for better mineral absorption. Keep cashews raw."
+  },
+  {
+    "id": 228,
+    "name": "Peanuts — Roasted Plain (30g)",
+    "category": "nuts",
+    "cuisine": "indian",
+    "mealTypes": [
+      "snacks",
+      "pre_workout"
+    ],
+    "calories": 161,
+    "protein": 7,
+    "carbs": 5,
+    "fat": 14,
+    "cost": 5,
+    "prepTime": 0,
+    "difficulty": "basic",
+    "allergies": [
+      "nuts"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "region": "pan-indian",
+    "servingUnit": "30g",
+    "budgetTier": "tight",
+    "ingredients": [
+      "Roasted peanuts (plain, unsalted) - 30g"
+    ],
+    "recipe": "Eat as is, or season with salt and lime.",
+    "benefits": "High protein plant-based snack. Rich in niacin and resveratrol.",
+    "tips": "Budget-friendly protein source. Avoid salted versions for sodium-conscious users."
+  },
+  {
+    "id": 229,
+    "name": "Walnuts (4 halves / 14g)",
+    "category": "nuts",
+    "cuisine": "indian",
+    "mealTypes": [
+      "snacks"
+    ],
+    "calories": 93,
+    "protein": 2,
+    "carbs": 2,
+    "fat": 9,
+    "cost": 20,
+    "prepTime": 0,
+    "difficulty": "basic",
+    "allergies": [
+      "nuts"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "region": "pan-indian",
+    "servingUnit": "4 halves (14g)",
+    "budgetTier": "moderate",
+    "ingredients": [
+      "Walnuts - 4 halves (14g)"
+    ],
+    "recipe": "Eat as is or add to oatmeal, salads, or curd.",
+    "benefits": "Richest plant source of omega-3 (ALA). Supports cognitive function and reduces inflammation.",
+    "tips": "Soak in water overnight to reduce phytic acid and improve digestion."
   }
 ]

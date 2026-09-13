@@ -60,9 +60,17 @@ app.get('/api/foods', (req, res) => {
   res.json({ success: true, foods: filteredFoods });
 });
 
+function toTitleCase(str) {
+  if (!str || typeof str !== 'string') return '';
+  return str.split(' ').map(w => w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : '').join(' ');
+}
+
 app.post('/api/user-profile', (req, res) => {
   console.log('👤 USER PROFILE RECEIVED:', req.body);
   const user = req.body;
+  if (user && user.fullName) {
+    user.fullName = toTitleCase(user.fullName);
+  }
   users.push(user);
   res.json({ success: true, user });
 });

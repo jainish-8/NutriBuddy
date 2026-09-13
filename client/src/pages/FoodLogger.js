@@ -29,6 +29,31 @@ export default function FoodLogger({ user, setCurrentPage }) {
     }
   }, [showMobileModal]);
 
+  const [favorites, setFavorites] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem(`nutribuddy_favorites_${user?.id || 'guest'}`) || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  const toggleFavorite = (food) => {
+    if (!food) return;
+    const isFav = favorites.some(f => f.id === food.id || f.name === food.name);
+    let updated;
+    if (isFav) {
+      updated = favorites.filter(f => f.id !== food.id && f.name !== food.name);
+      showNotification('info', `Removed ${food.name} from favourites`);
+    } else {
+      updated = [...favorites, food];
+      showNotification('success', `Saved ${food.name} to favourites!`);
+    }
+    setFavorites(updated);
+    try {
+      localStorage.setItem(`nutribuddy_favorites_${user?.id || 'guest'}`, JSON.stringify(updated));
+    } catch (e) {}
+  };
+
   // Dynamic filter with letter-by-letter matching & recent support
   useEffect(() => {
     let list = fallbackFoods;
@@ -38,13 +63,23 @@ export default function FoodLogger({ user, setCurrentPage }) {
         const key = `nutribuddy_foodlogs_${user?.id || 'guest'}_${today}`;
         const recentLogs = JSON.parse(localStorage.getItem(key) || '[]');
         const loggedNames = new Set(recentLogs.map(l => (l.name || '').toLowerCase()));
+        const favKey = `nutribuddy_favorites_${user?.id || 'guest'}`;
+        const favs = JSON.parse(localStorage.getItem(favKey) || '[]');
+        const favNames = new Set(favs.map(f => (f.name || '').toLowerCase()));
         const recentMatches = fallbackFoods.filter(f => 
-          loggedNames.has(f.name.toLowerCase()) || f.protein >= 18
+          loggedNames.has(f.name.toLowerCase()) || favNames.has(f.name.toLowerCase()) || f.protein >= 18
         );
         list = recentMatches.length > 0 ? recentMatches : fallbackFoods.filter(f => f.protein >= 15);
       } catch (e) {
         list = fallbackFoods.filter(f => f.protein >= 15);
       }
+    } else if (activeCategory === 'protein') {
+      list = list.filter(f => f.category === 'protein' || f.protein >= 15);
+    } else if (activeCategory === 'thalis') {
+      list = list.filter(f => 
+        f.name.toLowerCase().includes('thali') || 
+        (f.tags && f.tags.some(t => t.toLowerCase().includes('thali')))
+      );
     } else if (activeCategory !== 'all') {
       list = list.filter(f => f.category === activeCategory);
     }
@@ -58,7 +93,7 @@ export default function FoodLogger({ user, setCurrentPage }) {
       );
     }
     setFoods(list);
-  }, [searchTerm, activeCategory, user?.id]);
+  }, [searchTerm, activeCategory, user?.id, favorites]);
 
   const showNotification = (type, message) => {
     setNotification({ type, message });
@@ -130,14 +165,15 @@ export default function FoodLogger({ user, setCurrentPage }) {
   };
 
   const categories = [
-    { id: 'all', label: 'All Foods' },
-    { id: 'recent', label: 'Recent & Favorites' },
-    { id: 'protein', label: 'High Protein & Thalis' },
-    { id: 'legumes', label: 'Dals & Pulses' },
-    { id: 'grains', label: 'Rotis & Grains' },
-    { id: 'dairy', label: 'Dairy & Curds' },
-    { id: 'poultry', label: 'Poultry, Fish & Eggs' },
-    { id: 'snacks', label: 'Healthy Snacks' },
+    { id: 'all', label: 'All foods' },
+    { id: 'recent', label: 'Recent & favourites' },
+    { id: 'protein', label: 'High protein' },
+    { id: 'thalis', label: 'Indian thalis' },
+    { id: 'legumes', label: 'Dals & pulses' },
+    { id: 'grains', label: 'Rotis & grains' },
+    { id: 'dairy', label: 'Dairy & curds' },
+    { id: 'poultry', label: 'Poultry, fish & eggs' },
+    { id: 'snacks', label: 'Healthy snacks' },
   ];
 
   const mealOptions = [
@@ -156,7 +192,7 @@ export default function FoodLogger({ user, setCurrentPage }) {
     <>
       {/* Meal Destination Selector */}
       <div className="form-group" style={{ marginBottom: 18 }}>
-        <label className="form-label" style={{ fontSize: 11, marginBottom: 6 }}>Target Meal Slot</label>
+        <label className="form-label" style={{ fontSize: 11, marginBottom: 6 }}>Target meal slot</label>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
           {mealOptions.map(m => (
             <button
@@ -183,8 +219,8 @@ export default function FoodLogger({ user, setCurrentPage }) {
       {/* Dynamic Portion Stepper & Presets */}
       <div style={{ background: 'var(--bg-surface-raised)', padding: '16px', borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)', marginBottom: 18 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            PORTION MULTIPLIER
+          <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
+            Portion multiplier
           </span>
           <span className="tabular-nums" style={{ fontSize: 12, fontWeight: 800, color: 'var(--brand-primary-light)' }}>
             Est. ₹{Math.round((selectedFood.cost || 15) * currentQty)}
@@ -251,8 +287,8 @@ export default function FoodLogger({ user, setCurrentPage }) {
               />
               <span style={{ fontSize: 15, fontWeight: 900, color: 'var(--brand-primary-light)' }}>x</span>
             </div>
-            <span style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              {currentQty === 1 ? '1 Standard Serving' : `${currentQty} Servings`}
+            <span style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
+              {currentQty === 1 ? '1 standard serving' : `${currentQty} servings`}
             </span>
           </div>
 
@@ -314,25 +350,25 @@ export default function FoodLogger({ user, setCurrentPage }) {
       {/* Dynamic Scaled Macro Matrix */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 18 }}>
         <div style={{ background: 'var(--bg-surface-raised)', padding: '12px 8px', borderRadius: 'var(--radius-panel)', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
-          <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>CALORIES</span>
+          <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--text-muted)' }}>Calories</span>
           <div className="tabular-nums" style={{ fontSize: 17, fontWeight: 800, color: 'var(--brand-primary-light)', marginTop: 2 }}>
             {Math.round(selectedFood.calories * currentQty)}
           </div>
         </div>
         <div style={{ background: 'var(--bg-surface-raised)', padding: '12px 8px', borderRadius: 'var(--radius-panel)', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
-          <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--accent-protein-text, #818CF8)', textTransform: 'uppercase' }}>PROTEIN</span>
+          <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--accent-protein-text, #818CF8)' }}>Protein</span>
           <div className="tabular-nums" style={{ fontSize: 15, fontWeight: 800, color: 'var(--accent-protein-text, #818CF8)', marginTop: 2 }}>
             {(selectedFood.protein * currentQty).toFixed(1)}g
           </div>
         </div>
         <div style={{ background: 'var(--bg-surface-raised)', padding: '12px 8px', borderRadius: 'var(--radius-panel)', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
-          <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--brand-primary-light, #10B981)', textTransform: 'uppercase' }}>CARBS</span>
+          <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--brand-primary-light, #10B981)' }}>Carbs</span>
           <div className="tabular-nums" style={{ fontSize: 15, fontWeight: 800, color: 'var(--brand-primary-light, #10B981)', marginTop: 2 }}>
             {(selectedFood.carbs * currentQty).toFixed(1)}g
           </div>
         </div>
         <div style={{ background: 'var(--bg-surface-raised)', padding: '12px 8px', borderRadius: 'var(--radius-panel)', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
-          <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--accent-fat-text, #FB7185)', textTransform: 'uppercase' }}>FATS</span>
+          <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--accent-fat-text, #FB7185)' }}>Fats</span>
           <div className="tabular-nums" style={{ fontSize: 15, fontWeight: 800, color: 'var(--accent-fat-text, #FB7185)', marginTop: 2 }}>
             {(selectedFood.fat * currentQty).toFixed(1)}g
           </div>
@@ -342,8 +378,8 @@ export default function FoodLogger({ user, setCurrentPage }) {
       {/* Scaled Recipe Ingredients Preview */}
       {scaledIngredients.length > 0 && (
         <div style={{ background: 'var(--bg-surface-raised)', padding: 14, borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)', marginBottom: 20 }}>
-          <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: 8 }}>
-            CALCULATED INGREDIENTS ({currentQty}x PORTION)
+          <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
+            {currentQty === 1 ? 'Ingredients (1 portion)' : `Ingredients (${currentQty}× portion)`}
           </span>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {scaledIngredients.map((ing, iIdx) => (
@@ -363,7 +399,7 @@ export default function FoodLogger({ user, setCurrentPage }) {
           className={loading ? "btn btn-primary btn-disabled" : "btn btn-primary"}
           style={{ width: '100%', padding: '13px 20px', fontSize: 13, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
         >
-          <Plus size={16} strokeWidth={2.5} /> {loading ? 'Logging meal...' : `Log ${Math.round(selectedFood.calories * currentQty)} kcal to ${mealType.toUpperCase()}`}
+          <Plus size={16} strokeWidth={2.5} /> {loading ? 'Logging meal...' : `Log ${Math.round(selectedFood.calories * currentQty)} kcal to ${mealType.charAt(0).toUpperCase() + mealType.slice(1)}`}
         </button>
       )}
     </>
@@ -399,14 +435,14 @@ export default function FoodLogger({ user, setCurrentPage }) {
       {/* Page Header */}
       <div className="food-logger-header-card">
         <div>
-          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--brand-primary-light)', marginBottom: 4 }}>
-            DAILY NUTRITION LOG
+          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.08em', color: 'var(--brand-primary-light)', marginBottom: 4 }}>
+            Daily nutrition log
           </div>
           <h1 style={{ fontSize: 24, fontWeight: 800, fontFamily: 'var(--font-heading)', color: 'var(--text-primary)', margin: 0 }}>
-            Food & Calorie Logger
+            Food & macro tracker
           </h1>
           <p style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: '4px 0 0' }}>
-            Instant search with real-time portion scaling and automatic macro calculations.
+            Search foods, scale portions, and track macros instantly
           </p>
         </div>
 
@@ -534,12 +570,37 @@ export default function FoodLogger({ user, setCurrentPage }) {
         }}>
           {selectedFood ? (
             <div>
-              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--brand-primary-light)', marginBottom: 4 }}>
-                SELECTED FOOD
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.08em', color: 'var(--brand-primary-light)', marginBottom: 4 }}>
+                    Selected food
+                  </div>
+                  <h2 style={{ fontSize: 20, fontWeight: 800, fontFamily: 'var(--font-heading)', color: 'var(--text-primary)', margin: 0 }}>
+                    {selectedFood.name}
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => toggleFavorite(selectedFood)}
+                  style={{
+                    background: favorites.some(f => f.id === selectedFood.id || f.name === selectedFood.name) ? 'rgba(239, 68, 68, 0.12)' : 'var(--bg-surface-raised)',
+                    border: `1px solid ${favorites.some(f => f.id === selectedFood.id || f.name === selectedFood.name) ? '#EF4444' : 'var(--border-subtle)'}`,
+                    color: favorites.some(f => f.id === selectedFood.id || f.name === selectedFood.name) ? '#EF4444' : 'var(--text-secondary)',
+                    borderRadius: 'var(--radius-pill)',
+                    padding: '6px 12px',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    flexShrink: 0,
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  Save to favourites {favorites.some(f => f.id === selectedFood.id || f.name === selectedFood.name) ? '♥' : '♡'}
+                </button>
               </div>
-              <h2 style={{ fontSize: 20, fontWeight: 800, fontFamily: 'var(--font-heading)', color: 'var(--text-primary)', margin: '0 0 16px' }}>
-                {selectedFood.name}
-              </h2>
               {renderScalerBody()}
             </div>
           ) : (
@@ -605,8 +666,8 @@ export default function FoodLogger({ user, setCurrentPage }) {
               borderBottom: '1px solid var(--border-subtle)'
             }}>
               <div>
-                <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--brand-primary-light)' }}>
-                  PORTION & MACRO CALIBRATION
+                <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '0.08em', color: 'var(--brand-primary-light)' }}>
+                  Portion & macro calibration
                 </div>
                 <h2 style={{ fontSize: 19, fontWeight: 900, fontFamily: 'var(--font-heading)', color: 'var(--text-primary)', margin: '2px 0 0' }}>
                   {selectedFood.name}
@@ -616,25 +677,46 @@ export default function FoodLogger({ user, setCurrentPage }) {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setShowMobileModal(false)}
-                style={{
-                  background: 'var(--bg-surface-raised)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: '50%',
-                  width: 34,
-                  height: 34,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--text-muted)',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <X size={17} />
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => toggleFavorite(selectedFood)}
+                  style={{
+                    background: favorites.some(f => f.id === selectedFood.id || f.name === selectedFood.name) ? 'rgba(239, 68, 68, 0.12)' : 'var(--bg-surface-raised)',
+                    border: `1px solid ${favorites.some(f => f.id === selectedFood.id || f.name === selectedFood.name) ? '#EF4444' : 'var(--border-subtle)'}`,
+                    color: favorites.some(f => f.id === selectedFood.id || f.name === selectedFood.name) ? '#EF4444' : 'var(--text-secondary)',
+                    borderRadius: 'var(--radius-pill)',
+                    padding: '6px 10px',
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4
+                  }}
+                >
+                  Save to favourites {favorites.some(f => f.id === selectedFood.id || f.name === selectedFood.name) ? '♥' : '♡'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowMobileModal(false)}
+                  style={{
+                    background: 'var(--bg-surface-raised)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: '50%',
+                    width: 34,
+                    height: 34,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--text-muted)',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <X size={17} />
+                </button>
+              </div>
             </div>
 
             {/* Scrollable Body */}

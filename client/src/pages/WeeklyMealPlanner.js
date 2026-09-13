@@ -32,7 +32,8 @@ import {
   Coffee,
   Sun,
   Moon,
-  Dumbbell
+  Dumbbell,
+  Share2
 } from 'lucide-react';
 
 const PLAN_ENGINE_VERSION = 'v6.1_dynamic_servings';
@@ -97,6 +98,7 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
   const [checkedGroceryItems, setCheckedGroceryItems] = useState({});
   const [checkedIngredients, setCheckedIngredients] = useState({});
   const [copyToast, setCopyToast] = useState(false);
+  const [recipeToGroceryToast, setRecipeToGroceryToast] = useState(false);
 
   const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
@@ -112,11 +114,11 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
 
   const mealLabels = {
     breakfast: 'Breakfast',
-    pre_workout: 'Pre-Workout Fuel',
-    post_workout: 'Post-Workout Recovery',
-    lunch: 'Lunch Platter',
-    dinner: 'Dinner Platter',
-    snacks: 'Evening Snack'
+    pre_workout: 'Pre-workout fuel',
+    post_workout: 'Post-workout recovery',
+    lunch: 'Lunch platter',
+    dinner: 'Dinner platter',
+    snacks: 'Evening snack'
   };
 
   const getMealIcon = (meal) => {
@@ -390,6 +392,41 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
     setTimeout(() => setCopyToast(false), 2500);
   };
 
+  const shareGroceryList = async () => {
+    const categorized = generateCategorizedGroceryList(weeklyPlan);
+    let text = `NutriBuddy 7-Day Indian Grocery List\n\n`;
+
+    Object.values(categorized).forEach(cat => {
+      const itemsList = Object.entries(cat.items);
+      if (itemsList.length > 0) {
+        text += `[${cat.title}]\n`;
+        itemsList.forEach(([item, count]) => {
+          text += `• ${item} (${count}x)\n`;
+        });
+        text += '\n';
+      }
+    });
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'NutriBuddy 7-Day Grocery List',
+          text: text
+        });
+      } catch (err) {
+        copyGroceryListText();
+      }
+    } else {
+      copyGroceryListText();
+    }
+  };
+
+  const addAllToGroceryList = (item) => {
+    if (!item) return;
+    setRecipeToGroceryToast(true);
+    setTimeout(() => setRecipeToGroceryToast(false), 3000);
+  };
+
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 8px 48px' }}>
 
@@ -506,10 +543,22 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
       {/* Main Content Area */}
       {planGenerated && !loading && (() => {
         const totals = getSelectedDayTotals();
-        const calPercent = Math.min(100, Math.round((totals.calories / targetCal) * 100));
-        const protPercent = Math.min(100, Math.round((totals.protein / targetProt) * 100));
-        const carbPercent = Math.min(100, Math.round((totals.carbs / targetCarb) * 100));
-        const fatPercent = Math.min(100, Math.round((totals.fat / targetFat) * 100));
+        const calPercent = Math.round((totals.calories / targetCal) * 100);
+        const protPercent = Math.round((totals.protein / targetProt) * 100);
+        const carbPercent = Math.round((totals.carbs / targetCarb) * 100);
+        const fatPercent = Math.round((totals.fat / targetFat) * 100);
+
+        const getPercentColor = (pct) => {
+          if (pct >= 120) return '#EF4444';
+          if (pct > 100) return '#F5A623';
+          if (pct >= 80) return '#10B981';
+          return 'var(--text-muted)';
+        };
+
+        const getBarColor = (pct, baseColor) => {
+          if (pct > 100) return '#F5A623';
+          return baseColor;
+        };
 
         return (
           <div>
@@ -542,7 +591,6 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
                       fontWeight: 900,
                       fontFamily: 'var(--font-heading)',
                       color: isSelected ? 'var(--brand-primary-light)' : 'var(--text-primary)',
-                      textTransform: 'uppercase',
                       letterSpacing: '0.04em'
                     }}>
                       {day.slice(0, 3)}
@@ -572,7 +620,7 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
               <div style={{ minWidth: 200 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                   <Calendar size={14} color="var(--brand-primary-light)" />
-                  <span style={{ fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-primary)' }}>
+                  <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.05em', color: 'var(--text-primary)' }}>
                     {selectedDay.charAt(0).toUpperCase() + selectedDay.slice(1)} Nutrition
                   </span>
                 </div>
@@ -590,8 +638,8 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
                 <div style={{ height: 6, borderRadius: 3, background: 'var(--bg-surface-raised)', overflow: 'hidden' }}>
                   <div style={{
                     height: '100%',
-                    width: `${calPercent}%`,
-                    background: 'linear-gradient(90deg, #10B981, #38BDF8)',
+                    width: `${Math.min(100, Math.max(0, calPercent))}%`,
+                    background: calPercent > 100 ? '#F5A623' : 'linear-gradient(90deg, #10B981, #38BDF8)',
                     borderRadius: 3,
                     transition: 'width 0.4s ease'
                   }} />
@@ -601,42 +649,42 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
               {/* Protein Target Box */}
               <div style={{ background: 'var(--bg-surface-raised)', padding: '12px 16px', borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                  <span style={{ fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase', color: 'var(--accent-protein-text, #818CF8)' }}>PLANNED PROTEIN</span>
-                  <span className="tabular-nums" style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)' }}>{protPercent}%</span>
+                  <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--accent-protein-text, #818CF8)' }}>Planned protein</span>
+                  <span className="tabular-nums" style={{ fontSize: 11, fontWeight: 700, color: getPercentColor(protPercent) }}>{protPercent}%</span>
                 </div>
                 <div className="tabular-nums" style={{ fontSize: 18, fontWeight: 900, color: 'var(--text-primary)' }}>
                   {totals.protein}g <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>/ {targetProt}g</span>
                 </div>
                 <div style={{ height: 4, borderRadius: 2, background: 'var(--border-subtle)', marginTop: 6, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${protPercent}%`, background: '#818CF8', borderRadius: 2 }} />
+                  <div style={{ height: '100%', width: `${Math.min(100, Math.max(0, protPercent))}%`, background: getBarColor(protPercent, '#818CF8'), borderRadius: 2 }} />
                 </div>
               </div>
 
               {/* Carbs Target Box */}
               <div style={{ background: 'var(--bg-surface-raised)', padding: '12px 16px', borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                  <span style={{ fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase', color: 'var(--brand-primary-light, #10B981)' }}>PLANNED CARBS</span>
-                  <span className="tabular-nums" style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)' }}>{carbPercent}%</span>
+                  <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--brand-primary-light, #10B981)' }}>Planned carbs</span>
+                  <span className="tabular-nums" style={{ fontSize: 11, fontWeight: 700, color: getPercentColor(carbPercent) }}>{carbPercent}%</span>
                 </div>
                 <div className="tabular-nums" style={{ fontSize: 18, fontWeight: 900, color: 'var(--text-primary)' }}>
                   {totals.carbs}g <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>/ {targetCarb}g</span>
                 </div>
                 <div style={{ height: 4, borderRadius: 2, background: 'var(--border-subtle)', marginTop: 6, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${carbPercent}%`, background: '#10B981', borderRadius: 2 }} />
+                  <div style={{ height: '100%', width: `${Math.min(100, Math.max(0, carbPercent))}%`, background: getBarColor(carbPercent, '#10B981'), borderRadius: 2 }} />
                 </div>
               </div>
 
               {/* Fats Target Box */}
               <div style={{ background: 'var(--bg-surface-raised)', padding: '12px 16px', borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                  <span style={{ fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase', color: 'var(--accent-fat-text, #FB7185)' }}>PLANNED FATS</span>
-                  <span className="tabular-nums" style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)' }}>{fatPercent}%</span>
+                  <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--accent-fat-text, #FB7185)' }}>Planned fats</span>
+                  <span className="tabular-nums" style={{ fontSize: 11, fontWeight: 700, color: getPercentColor(fatPercent) }}>{fatPercent}%</span>
                 </div>
                 <div className="tabular-nums" style={{ fontSize: 18, fontWeight: 900, color: 'var(--text-primary)' }}>
                   {totals.fat}g <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>/ {targetFat}g</span>
                 </div>
                 <div style={{ height: 4, borderRadius: 2, background: 'var(--border-subtle)', marginTop: 6, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${fatPercent}%`, background: '#FB7185', borderRadius: 2 }} />
+                  <div style={{ height: '100%', width: `${Math.min(100, Math.max(0, fatPercent))}%`, background: getBarColor(fatPercent, '#FB7185'), borderRadius: 2 }} />
                 </div>
               </div>
             </div>
@@ -772,19 +820,19 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
                       }}>
                         <div style={{ textAlign: 'center', paddingRight: 12, borderRight: '1px solid var(--border-subtle)' }}>
                           <div style={{ fontSize: 14.5, fontWeight: 900, color: 'var(--brand-primary-light)' }}>{mealData.calories}</div>
-                          <div style={{ fontSize: 9.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>KCAL</div>
+                          <div style={{ fontSize: 9.5, fontWeight: 800, color: 'var(--text-muted)' }}>kcal</div>
                         </div>
                         <div style={{ textAlign: 'center' }}>
                           <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--accent-protein-text, #818CF8)' }}>{mealData.protein}g</div>
-                          <div style={{ fontSize: 9.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>PROT</div>
+                          <div style={{ fontSize: 9.5, fontWeight: 800, color: 'var(--text-muted)' }}>Prot</div>
                         </div>
                         <div style={{ textAlign: 'center' }}>
                           <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--brand-primary-light, #10B981)' }}>{mealData.carbs}g</div>
-                          <div style={{ fontSize: 9.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>CARB</div>
+                          <div style={{ fontSize: 9.5, fontWeight: 800, color: 'var(--text-muted)' }}>Carb</div>
                         </div>
                         <div style={{ textAlign: 'center' }}>
                           <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--accent-fat-text, #FB7185)' }}>{mealData.fat}g</div>
-                          <div style={{ fontSize: 9.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>FAT</div>
+                          <div style={{ fontSize: 9.5, fontWeight: 800, color: 'var(--text-muted)' }}>Fat</div>
                         </div>
                       </div>
                     </div>
@@ -801,7 +849,7 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
                     }}>
                       {/* Left: Portion Scale Stepper */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
                           Portion:
                         </span>
                         <div style={{
@@ -932,20 +980,27 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
             {/* Header */}
             <div style={{ padding: '22px 26px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--brand-primary-light)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                  YOUR 7-DAY FRESH PANTRY BLUEPRINT
+                <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.06em' }}>
+                  Your 7-day grocery list
                 </span>
                 <h3 style={{ margin: '2px 0 0', fontSize: 19, fontWeight: 900, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
                   Smart Kitchen Grocery Essentials
                 </h3>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <button
                   onClick={copyGroceryListText}
                   className="btn btn-secondary"
                   style={{ padding: '7px 14px', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}
                 >
-                  {copyToast ? <><Check size={13} color="var(--brand-primary-light)" /> Copied!</> : <><Copy size={13} /> Copy Smart Shopping List</>}
+                  {copyToast ? <><Check size={13} color="var(--brand-primary-light)" /> Copied!</> : <><Copy size={13} /> Copy shopping list</>}
+                </button>
+                <button
+                  onClick={shareGroceryList}
+                  className="btn btn-secondary"
+                  style={{ padding: '7px 14px', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}
+                >
+                  <Share2 size={13} /> Share list
                 </button>
                 <button
                   onClick={() => setShowGroceryModal(false)}
@@ -959,7 +1014,7 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
             {/* Inspiring Vision Banner */}
             <div style={{ padding: '12px 26px', background: 'var(--bg-surface-raised)', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
               <span style={{ fontSize: 12.5, color: 'var(--text-secondary)' }}>
-                Everything you need for a week of delicious, high-energy Indian nutrition. Zero food waste, 100% wholesome homemade goodness.
+                Covers all meals in your weekly plan. Tap items to mark as purchased.
               </span>
               <span style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--brand-primary-light)', background: 'var(--brand-primary-subtle)', padding: '3px 10px', borderRadius: 8, border: '1px solid var(--border-focus)' }}>
                 {corePantry?.length || 12} Core Shared Staples
@@ -968,18 +1023,57 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
 
             {/* Aisles Content */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '20px 26px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {/* Quick Shared Pantry Staples summary */}
+              {/* Weekly Staples with individual checkbox rows */}
               {corePantry && corePantry.length > 0 && (
                 <div style={{ background: 'var(--brand-primary-subtle)', border: '1px solid var(--border-focus)', borderRadius: 'var(--radius-card)', padding: '14px 18px' }}>
-                  <span style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: 'var(--brand-primary-light)', display: 'block', marginBottom: 8 }}>
-                    Most Frequent Pantry Staples (Cook once, eat fresh):
-                  </span>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {corePantry.slice(0, 8).map((p, pIdx) => (
-                      <span key={pIdx} style={{ fontSize: 12, fontWeight: 600, background: 'var(--bg-surface)', padding: '3px 10px', borderRadius: 6, color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}>
-                        {p.name} ({p.count}x)
-                      </span>
-                    ))}
+                  <div style={{ marginBottom: 10 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--brand-primary-light)' }}>
+                      Weekly staples
+                    </div>
+                    <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                      Used across multiple meals this week
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {corePantry.slice(0, 8).map((p, pIdx) => {
+                      const itemKey = `staple-${p.name}`;
+                      const isChecked = !!checkedGroceryItems[itemKey];
+                      return (
+                        <div
+                          key={pIdx}
+                          onClick={() => toggleGroceryCheck(itemKey)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 9,
+                            padding: '8px 12px',
+                            borderRadius: 'var(--radius-sm)',
+                            background: isChecked ? 'var(--brand-primary-subtle)' : 'var(--bg-surface)',
+                            border: `1px solid ${isChecked ? 'var(--border-focus)' : 'var(--border-subtle)'}`,
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          <div style={{
+                            width: 16, height: 16, borderRadius: 4,
+                            border: `1.5px solid ${isChecked ? 'var(--brand-primary)' : 'var(--text-muted)'}`,
+                            background: isChecked ? 'var(--brand-primary)' : 'transparent',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: '#fff', fontSize: 10, flexShrink: 0
+                          }}>
+                            {isChecked && <Check size={12} />}
+                          </div>
+                          <span style={{
+                            fontSize: 12.5,
+                            color: isChecked ? 'var(--text-muted)' : 'var(--text-primary)',
+                            textDecoration: isChecked ? 'line-through' : 'none',
+                            fontWeight: 600
+                          }}>
+                            {p.name} <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>({p.count}×)</span>
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -1079,8 +1173,8 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
             {/* Header */}
             <div style={{ padding: '22px 26px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--brand-primary-light)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                  RECIPE & PREPARATION GUIDE
+                <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.06em' }}>
+                  Recipe & preparation guide
                 </span>
                 <h3 style={{ margin: '2px 0 3px', fontSize: 19, fontWeight: 900, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
                   {recipeModalItem.name}
@@ -1102,32 +1196,49 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
               {/* Macro Ribbon */}
               <div style={{ background: 'var(--bg-surface-raised)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-card)', padding: '12px 18px', display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)' }}>CALORIES</div>
+                  <div style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)' }}>Calories</div>
                   <div className="tabular-nums" style={{ fontSize: 16, fontWeight: 900, color: 'var(--brand-primary-light)' }}>{recipeModalItem.calories} kcal</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)' }}>PROTEIN</div>
+                  <div style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)' }}>Protein</div>
                   <div className="tabular-nums" style={{ fontSize: 16, fontWeight: 900, color: 'var(--accent-protein-text, #818CF8)' }}>{recipeModalItem.protein}g</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)' }}>CARBS</div>
+                  <div style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)' }}>Carbs</div>
                   <div className="tabular-nums" style={{ fontSize: 16, fontWeight: 900, color: 'var(--brand-primary-light, #10B981)' }}>{recipeModalItem.carbs}g</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)' }}>FAT</div>
+                  <div style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)' }}>Fat</div>
                   <div className="tabular-nums" style={{ fontSize: 16, fontWeight: 900, color: 'var(--accent-fat-text, #FB7185)' }}>{recipeModalItem.fat}g</div>
                 </div>
               </div>
 
               {/* Measured Ingredients Grid */}
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 6 }}>
-                  <h4 style={{ margin: 0, fontSize: 12.5, fontWeight: 900, color: 'var(--brand-primary-light)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                    Required Ingredients ({(recipeModalItem.multiplier || 1).toFixed(2).replace(/\.00$/, '')}x Portion)
-                  </h4>
-                  <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
-                    Tap to check off
-                  </span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, flexWrap: 'wrap', gap: 10 }}>
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: 13, fontWeight: 900, color: 'var(--brand-primary-light)', letterSpacing: '0.04em' }}>
+                      Ingredients — {(recipeModalItem.multiplier || 1).toFixed(2).replace(/\.00$/, '')}× portion
+                    </h4>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 3 }}>
+                      Tap to check off
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => addAllToGroceryList(recipeModalItem)}
+                    className="btn btn-secondary"
+                    style={{
+                      padding: '6px 12px',
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      borderRadius: 'var(--radius-sm)'
+                    }}
+                  >
+                    <ShoppingCart size={13} /> {recipeToGroceryToast ? 'Added to grocery list!' : 'Add all to grocery list'}
+                  </button>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 10 }}>
                   {parseStructuredIngredients(recipeModalItem.ingredients || [], recipeModalItem.multiplier || 1).map((ing, iIdx) => {
@@ -1196,14 +1307,15 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
               {/* Numbered Steps with Clean Method Cards */}
               {recipeModalItem.recipe && (
                 <div>
-                  <h4 style={{ margin: '0 0 12px 0', fontSize: 12.5, fontWeight: 900, color: 'var(--brand-primary-light)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                    Step-by-Step Preparation Method
+                  <h4 style={{ margin: '0 0 12px 0', fontSize: 12.5, fontWeight: 900, color: 'var(--brand-primary-light)', letterSpacing: '0.06em' }}>
+                    Step-by-step preparation method
                   </h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {scaleRecipeInstructions(recipeModalItem.recipe, recipeModalItem.multiplier || 1)
                       .split(/(?:\d+\.\s*|[.!相對]\s+)/)
                       .map(s => s.trim())
                       .filter(s => s.length > 5)
+                      .map(s => s.replace(/Eat cold\.?/gi, 'Serve chilled straight from the fridge. Add a drizzle of honey or jaggery if preferred.'))
                       .map((stepText, sIdx) => (
                         <div key={sIdx} style={{
                           display: 'flex', gap: 14, alignItems: 'flex-start',

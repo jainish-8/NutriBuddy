@@ -63,7 +63,7 @@ export default function FloatingWorkoutBar({ workoutSession, onNavigateToExercis
               <span>
                 {workoutSession.currentExerciseName ? `${workoutSession.currentExerciseName} · ` : ''}
                 <span className="tabular-nums">
-                  {workoutSession.completedSets || 0}/{workoutSession.totalSets || 0} sets
+                  Set {workoutSession.completedSets || 0} of {workoutSession.totalSets || 0}
                 </span>
               </span>
             )}

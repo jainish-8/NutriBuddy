@@ -4,7 +4,7 @@ import {
   Flame, Play, Calculator, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { API_BASE } from '../config';
-import { getDetailedCalorieBreakdown } from '../utils/nutritionEngine';
+import { getDetailedCalorieBreakdown, toTitleCase } from '../utils/nutritionEngine';
 import MacroDonutChart from '../components/MacroDonutChart';
 import ConsistencyHeatmap from '../components/ConsistencyHeatmap';
 
@@ -101,8 +101,8 @@ function CalorieEngineBreakdown({ user }) {
             <Calculator size={18} />
           </div>
           <div>
-            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              NUTRITION ENGINE
+            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.08em' }}>
+              Nutrition engine
             </span>
             <h3 style={{ margin: '2px 0 0', fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
               How your calorie target is calculated
@@ -125,24 +125,24 @@ function CalorieEngineBreakdown({ user }) {
         <div className="fadeInUp" style={{ padding: '0 24px 24px', borderTop: '1px solid var(--border-subtle)' }}>
           {/* User Profile Inputs Strip */}
           <div style={{ marginTop: 18, marginBottom: 18 }}>
-            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              PROFILE INPUT FACTORS (LIVE PROFILE)
+            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
+              Profile input factors (live profile)
             </span>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8, marginTop: 8 }}>
               <div style={{ background: 'var(--bg-surface-raised)', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
-                <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>SEX & AGE</span>
+                <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 700 }}>Sex & age</span>
                 <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-primary)', textTransform: 'capitalize' }}>{breakdown.inputs.gender}, {breakdown.inputs.age} yrs</div>
               </div>
               <div style={{ background: 'var(--bg-surface-raised)', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
-                <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>HEIGHT & WEIGHT</span>
+                <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 700 }}>Height & weight</span>
                 <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-primary)' }}>{breakdown.inputs.height} cm · {breakdown.inputs.weight} kg</div>
               </div>
               <div style={{ background: 'var(--bg-surface-raised)', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
-                <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>OCCUPATION (NEAT)</span>
+                <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 700 }}>Occupation (NEAT)</span>
                 <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-primary)' }}>{breakdown.inputs.profession} (×{Number(breakdown.neatFactor).toFixed(2)})</div>
               </div>
               <div style={{ background: 'var(--bg-surface-raised)', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
-                <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>GYM FREQUENCY</span>
+                <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 700 }}>Gym frequency</span>
                 <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-primary)' }}>{breakdown.inputs.gymDays} days/wk ({breakdown.inputs.gymIntensity})</div>
               </div>
             </div>
@@ -155,7 +155,7 @@ function CalorieEngineBreakdown({ user }) {
             <div style={{ background: 'var(--bg-surface-raised)', padding: '14px 16px', borderRadius: 12, border: '1px solid var(--border-subtle)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                 <span style={{ fontSize: 11, fontWeight: 900, color: 'var(--brand-primary, #F59E0B)' }}>
-                  STEP 1: BASAL METABOLIC RATE (BMR)
+                  Step 1: Basal Metabolic Rate (BMR)
                 </span>
                 <span style={{ fontSize: 14, fontWeight: 900, color: 'var(--text-primary)' }}>
                   {breakdown.bmr} kcal/day
@@ -173,7 +173,7 @@ function CalorieEngineBreakdown({ user }) {
             <div style={{ background: 'var(--bg-surface-raised)', padding: '14px 16px', borderRadius: 12, border: '1px solid var(--border-subtle)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                 <span style={{ fontSize: 11, fontWeight: 900, color: '#38BDF8' }}>
-                  STEP 2: OCCUPATIONAL STEPS & WORKOUT ENERGY (TDEE)
+                  Step 2: Occupational steps & workout energy (TDEE)
                 </span>
                 <span style={{ fontSize: 14, fontWeight: 900, color: 'var(--text-primary)' }}>
                   {breakdown.tdee} kcal/day
@@ -191,7 +191,7 @@ function CalorieEngineBreakdown({ user }) {
             <div style={{ background: 'var(--bg-surface-raised)', padding: '14px 16px', borderRadius: 12, border: '1px solid var(--border-subtle)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                 <span style={{ fontSize: 11, fontWeight: 900, color: '#10B981' }}>
-                  STEP 3: CALORIC GOAL ADJUSTMENT
+                  Step 3: Caloric goal adjustment
                 </span>
                 <span style={{ fontSize: 14, fontWeight: 900, color: '#10B981' }}>
                   {breakdown.targetCalories} kcal/day
@@ -212,7 +212,7 @@ function CalorieEngineBreakdown({ user }) {
             {/* Step 4: Strict Macro Partitioning & SVG Donut */}
             <div style={{ background: 'var(--bg-surface-raised)', padding: '16px 18px', borderRadius: 14, border: '1px solid var(--border-subtle)' }}>
               <span style={{ fontSize: 11, fontWeight: 900, color: '#818CF8', display: 'block', marginBottom: 12 }}>
-                STEP 4: EXACT MACRONUTRIENT PARTITIONING
+                Step 4: Exact macronutrient partitioning
               </span>
 
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
@@ -289,14 +289,11 @@ function WaterTracker({ user }) {
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
         <div>
-          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-            <Droplets size={13} color="#38BDF8" /> HYDRATION
+          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+            <Droplets size={13} color="#38BDF8" /> Hydration
           </div>
           <div style={{ fontSize: 20, fontWeight: 900, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
             {waterIntake} <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)' }}>/ {dailyGoal} glasses</span>
-          </div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-            {waterIntake * 250} ml consumed today
           </div>
         </div>
 
@@ -413,8 +410,8 @@ function WeeklyProgress({ user }) {
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <div>
-          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 2 }}>
-            WEEKLY CONSISTENCY
+          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 2 }}>
+            Weekly consistency
           </div>
           <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
             7-Day Caloric Intake
@@ -423,11 +420,11 @@ function WeeklyProgress({ user }) {
 
         <div style={{ display: 'flex', gap: 14 }}>
           <div style={{ textAlign: 'right' }}>
-            <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 700 }}>AVG INTAKE</span>
+            <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 700 }}>Avg intake</span>
             <span style={{ fontSize: 14, fontWeight: 900, color: 'var(--brand-primary, #F59E0B)' }}>{avgCal} kcal</span>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 700 }}>ON TARGET</span>
+            <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 700 }}>Days on track</span>
             <span style={{ fontSize: 14, fontWeight: 900, color: '#10B981' }}>{daysOnTarget}/7 days</span>
           </div>
         </div>
@@ -471,8 +468,7 @@ function WeeklyProgress({ user }) {
               <div style={{ textAlign: 'center' }}>
                 <div style={{
                   fontSize: 10, fontWeight: isToday ? 900 : 700,
-                  color: isToday ? 'var(--brand-primary, #F59E0B)' : 'var(--text-muted)',
-                  textTransform: 'uppercase'
+                  color: isToday ? 'var(--brand-primary, #F59E0B)' : 'var(--text-muted)'
                 }}>
                   {day.day}
                 </div>
@@ -485,15 +481,15 @@ function WeeklyProgress({ user }) {
       <div style={{ display: 'flex', gap: 16, borderTop: '1px solid var(--border-subtle)', paddingTop: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{ width: 8, height: 8, borderRadius: 2, background: '#10B981' }} />
-          <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700 }}>On Target</span>
+          <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700 }}>On target</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{ width: 8, height: 8, borderRadius: 2, background: '#EF4444' }} />
-          <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700 }}>Over Budget</span>
+          <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700 }}>Over budget</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{ width: 8, height: 1, background: 'var(--border-subtle)' }} />
-          <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700 }}>Target Line</span>
+          <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700 }}>Target line</span>
         </div>
       </div>
     </div>
@@ -606,8 +602,8 @@ export default function Dashboard({ user, setCurrentPage }) {
           gap: 16
         }}>
           <div>
-            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              TODAY'S CHECK-IN
+            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.08em' }}>
+              Today's check-in
             </span>
             <h1 style={{
               margin: '2px 0 0',
@@ -616,7 +612,7 @@ export default function Dashboard({ user, setCurrentPage }) {
               fontWeight: 800,
               color: 'var(--text-primary)',
             }}>
-              Welcome back, {user.fullName?.split(' ')[0] || 'Athlete'}
+              Welcome back, {toTitleCase(user.fullName?.split(' ')[0] || 'Athlete')}
             </h1>
             <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4, fontWeight: 600 }}>
               {todayFormatted} · Goal: {
@@ -651,7 +647,7 @@ export default function Dashboard({ user, setCurrentPage }) {
         {/* 1. Daily Target */}
         <Reveal preset="up" delay={0}>
           <div style={{ background: 'var(--bg-surface)', padding: '16px 18px', borderRadius: 'var(--radius-card)', border: '1px solid var(--border-subtle)', height: '100%' }}>
-            <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.04em' }}>DAILY TARGET</span>
+            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>Calorie target</span>
             <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 900, color: 'var(--text-primary)', margin: '4px 0 2px' }}>{targetCalories}</div>
             <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>target calories</span>
           </div>
@@ -660,21 +656,40 @@ export default function Dashboard({ user, setCurrentPage }) {
         {/* 2. Consumed Today */}
         <Reveal preset="up" delay={30}>
           <div style={{ background: 'var(--bg-surface)', padding: '16px 18px', borderRadius: 'var(--radius-card)', border: '1px solid var(--border-subtle)', height: '100%' }}>
-            <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.04em' }}>CONSUMED</span>
+            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>Consumed today</span>
             <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 900, color: 'var(--brand-primary-light)', margin: '4px 0 2px' }}>{consumedCalories}</div>
-            <span style={{ fontSize: 11, color: 'var(--brand-primary-light)', fontWeight: 700 }}>{Math.round(progressPct)}% reached</span>
+            {consumedCalories === 0 ? (
+              <button
+                onClick={() => setCurrentPage('food-log')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  fontSize: 11,
+                  color: 'var(--brand-primary-light)',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center'
+                }}
+              >
+                Start logging →
+              </button>
+            ) : (
+              <span style={{ fontSize: 11, color: 'var(--brand-primary-light)', fontWeight: 700 }}>{Math.round(progressPct)}% reached</span>
+            )}
           </div>
         </Reveal>
 
         {/* 3. Calories Remaining */}
         <Reveal preset="up" delay={60}>
           <div style={{ background: 'var(--bg-surface)', padding: '16px 18px', borderRadius: 'var(--radius-card)', border: '1px solid var(--border-subtle)', height: '100%' }}>
-            <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.04em' }}>{overGoal ? 'OVER BUDGET' : 'REMAINING'}</span>
+            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>{overGoal ? 'Over budget' : 'Remaining'}</span>
             <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 900, color: overGoal ? 'var(--accent-danger)' : 'var(--accent-calories)', margin: '4px 0 2px' }}>
               {Math.abs(caloriesRemaining)}
             </div>
             <span style={{ fontSize: 11, color: overGoal ? 'var(--accent-danger)' : 'var(--text-muted)' }}>
-              {overGoal ? 'kcal over' : 'kcal left'}
+              {overGoal ? 'kcal over' : 'kcal'}
             </span>
           </div>
         </Reveal>
@@ -682,7 +697,7 @@ export default function Dashboard({ user, setCurrentPage }) {
         {/* 4. Protein */}
         <Reveal preset="up" delay={90}>
           <div style={{ background: 'var(--bg-surface)', padding: '16px 18px', borderRadius: 'var(--radius-card)', border: '1px solid var(--border-subtle)', height: '100%' }}>
-            <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: 'var(--accent-protein-text, #818CF8)', letterSpacing: '0.04em' }}>PROTEIN</span>
+            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--accent-protein-text, #818CF8)', letterSpacing: '0.04em' }}>Protein</span>
             <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 900, color: 'var(--accent-protein-text, #818CF8)', margin: '4px 0 2px' }}>
               {dailyData?.totals.protein || 0}<span style={{ fontSize: 13, fontWeight: 700, opacity: 0.85 }}>g</span>
             </div>
@@ -697,7 +712,7 @@ export default function Dashboard({ user, setCurrentPage }) {
         {/* 5. Carbs */}
         <Reveal preset="up" delay={120}>
           <div style={{ background: 'var(--bg-surface)', padding: '16px 18px', borderRadius: 'var(--radius-card)', border: '1px solid var(--border-subtle)', height: '100%' }}>
-            <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: 'var(--brand-primary-light, #10B981)', letterSpacing: '0.04em' }}>CARBS</span>
+            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light, #10B981)', letterSpacing: '0.04em' }}>Carbs</span>
             <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 900, color: 'var(--brand-primary-light, #10B981)', margin: '4px 0 2px' }}>
               {dailyData?.totals.carbs || 0}<span style={{ fontSize: 13, fontWeight: 700, opacity: 0.85 }}>g</span>
             </div>
@@ -712,7 +727,7 @@ export default function Dashboard({ user, setCurrentPage }) {
         {/* 6. Fats */}
         <Reveal preset="up" delay={150}>
           <div style={{ background: 'var(--bg-surface)', padding: '16px 18px', borderRadius: 'var(--radius-card)', border: '1px solid var(--border-subtle)', height: '100%' }}>
-            <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: 'var(--accent-fat-text, #FB7185)', letterSpacing: '0.04em' }}>FATS</span>
+            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--accent-fat-text, #FB7185)', letterSpacing: '0.04em' }}>Fats</span>
             <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 900, color: 'var(--accent-fat-text, #FB7185)', margin: '4px 0 2px' }}>
               {dailyData?.totals.fat || 0}<span style={{ fontSize: 13, fontWeight: 700, opacity: 0.85 }}>g</span>
             </div>
@@ -759,8 +774,8 @@ export default function Dashboard({ user, setCurrentPage }) {
             }}>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                  <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Dumbbell size={13} /> ACTIVE TRAINING SCHEDULE
+                  <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Dumbbell size={13} /> Active training schedule
                   </span>
                   <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--brand-primary-light)', display: 'flex', alignItems: 'center', gap: 4 }}>
                     <Flame size={12} fill="var(--brand-primary-light)" /> {workoutStreak} Streak
@@ -799,12 +814,12 @@ export default function Dashboard({ user, setCurrentPage }) {
               borderRadius: 'var(--radius-card)',
               padding: '18px 22px',
             }}>
-              <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: 'var(--brand-primary-light)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, letterSpacing: '0.06em' }}>
-                <Sparkles size={12} /> DAILY NUTRITION INSIGHT
+              <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, letterSpacing: '0.06em' }}>
+                <Sparkles size={12} /> Daily nutrition insight
               </span>
               <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
                 {(() => {
-                  const name = user?.fullName?.split(' ')[0] || 'Athlete';
+                  const name = toTitleCase(user?.fullName?.split(' ')[0] || 'Athlete');
                   const budget = user?.budgetRange || 'moderate';
                   if (!consumedCalories) {
                     return `Start logging meals for today, ${name}. Tracking your intake keeps your energy steady and ensures your macros hit optimal muscle protein synthesis.`;

@@ -2752,7 +2752,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
                     {[
                       { key: 'hypertrophy', label: 'Hypertrophy', desc: 'Maximum muscle mass & aesthetic fullness' },
-                      { key: 'strength', label: 'Raw Strength', desc: 'CNS adaptation & high 1RM load' },
+                      { key: 'strength', label: 'Strength & Power', desc: 'CNS adaptation and high 1RM load' },
                       { key: 'fat_loss', label: 'Athletic Conditioning', desc: 'Fat loss & metabolic density' },
                       { key: 'endurance', label: 'Muscular Stamina', desc: 'High-rep capacity & durability' }
                     ].map(opt => {
@@ -2859,11 +2859,13 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                   <p style={{ fontSize: 10, color: 'var(--text-muted)', margin: '0 0 8px' }}>
                     Select active joint restrictions to substitute high-shear movements.
                   </p>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 14 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 8, marginBottom: 14 }}>
                     {[
                       { key: 'knee', label: 'Knee Issue', desc: 'Swaps deep knee flexion' },
                       { key: 'shoulder', label: 'Shoulder Issue', desc: 'Swaps extreme overhead' },
-                      { key: 'lower_back', label: 'Lower Back', desc: 'Reduces axial load' }
+                      { key: 'lower_back', label: 'Lower Back', desc: 'Reduces axial load' },
+                      { key: 'wrist', label: 'Wrist issue', desc: 'Modifies grip-intensive movements' },
+                      { key: 'hip', label: 'Hip issue', desc: 'Avoids deep hip flexion loads' }
                     ].map(opt => {
                       const active = (intakeForm.trainingInjuries || []).includes(opt.key);
                       return (
@@ -2946,7 +2948,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                   className="btn btn-primary"
                   style={{ padding: '8px 20px', borderRadius: 'var(--radius-sm)', fontWeight: 800, fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}
                 >
-                  <Sparkles size={13} /> Build 4-Week Plan
+                  <Sparkles size={13} /> Build 4-week plan
                 </button>
               )}
             </div>
@@ -3535,7 +3537,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                 <span className="tabular-nums" style={{ color: '#10B981', fontWeight: 800 }}>
                   {formatMMSS(elapsedSeconds)}
                 </span>
-                <span style={{ fontSize: 10, color: '#71717a' }}>•</span>
+                <span style={{ fontSize: 10, color: '#71717a' }}>|</span>
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 110 }}>
                   {workoutName}
                 </span>
@@ -4204,12 +4206,12 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                               marginBottom: 12,
                               alignItems: 'center'
                             }}>
-                              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase' }}>SET</span>
-                              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase' }}>PREVIOUS</span>
-                              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase' }}>WEIGHT (KG)</span>
-                              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase' }}>REPS</span>
-                              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase' }}>EFFORT (1-10)</span>
-                              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase', textAlign: 'center' }}>DONE</span>
+                              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)' }}>Set</span>
+                              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)' }}>Previous</span>
+                              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)' }}>Weight (kg)</span>
+                              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)' }}>Reps</span>
+                              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)' }}>Effort (1-10)</span>
+                              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)', textAlign: 'center' }}>Done</span>
                             </div>
     
                             {/* Sets Rows */}
@@ -4473,6 +4475,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                   onOpenRpe={(setIdx) => setOpenRpePicker({ exIdx: currentExIndex, setIdx })}
                   onSwapExercise={() => setActiveDrawer(activeDrawer === 'swap' ? null : 'swap')}
                   onAddExercise={() => setShowExerciseSearchModal(true)}
+                  showRpe={((generatedProgram?.profile?.trainingExperience || user?.trainingExperience || intakeForm?.trainingExperience || 'beginner').toLowerCase() !== 'beginner')}
                 />
               ) : (
                 <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)' }}>
@@ -5476,30 +5479,52 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={handleToggleStreakShield}
-              style={{
-                background: streakShield ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.04)',
-                border: streakShield ? '1px solid rgba(16, 185, 129, 0.5)' : '1px solid rgba(255, 255, 255, 0.08)',
-                boxShadow: streakShield ? '0 0 12px rgba(16, 185, 129, 0.2)' : 'none',
-                padding: '6px 14px',
-                borderRadius: 9999,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                cursor: 'pointer',
-                color: streakShield ? '#34D399' : '#D4D4D8',
-                fontSize: 12,
-                fontWeight: 600,
-                transition: 'all 0.15s ease'
-              }}
-              className="active:scale-95 transition"
-              title="Toggle Streak Shield"
-            >
-              <Shield size={13} color={streakShield ? '#10B981' : '#A1A1AA'} />
-              <span>Shield {streakShield ? 'Active' : 'Off'}</span>
-            </button>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <button
+                type="button"
+                onClick={handleToggleStreakShield}
+                style={{
+                  background: streakShield ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                  border: streakShield ? '1px solid rgba(16, 185, 129, 0.5)' : '1px solid rgba(255, 255, 255, 0.08)',
+                  boxShadow: streakShield ? '0 0 12px rgba(16, 185, 129, 0.2)' : 'none',
+                  padding: '6px 14px',
+                  borderRadius: 9999,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  cursor: 'pointer',
+                  color: streakShield ? '#34D399' : '#D4D4D8',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  transition: 'all 0.15s ease'
+                }}
+                className="active:scale-95 transition"
+                title="Toggle Streak Shield"
+              >
+                <Shield size={13} color={streakShield ? '#10B981' : '#A1A1AA'} />
+                <span>Streak Shield {streakShield ? 'Active' : 'Off'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  alert("Streak Shield protects your streak if you miss one day. Earn it by maintaining a 7-day streak.");
+                }}
+                title="Streak Shield protects your streak if you miss one day. Earn it by maintaining a 7-day streak."
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  borderRadius: '50%'
+                }}
+              >
+                <Info size={14} />
+              </button>
+            </div>
           </div>
 
           {/* 4 SUB-TABS NAVIGATION (Pill Container) */}
@@ -5663,14 +5688,14 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                   className="active:scale-[0.99] transition"
                 >
                   <span 
-                    style={{ fontSize: 11, fontWeight: 800, color: '#10B981', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 6, letterSpacing: '0.06em', textTransform: 'uppercase' }}
+                    style={{ fontSize: 11, fontWeight: 800, color: '#10B981', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 6, letterSpacing: '0.06em' }}
                   >
-                    <Sparkles size={13} color="#10B981" /> 4-WEEK PERIODIZED PROGRAM
+                    <Sparkles size={13} color="#10B981" /> 4-Week periodized program
                   </span>
                   <h3 
                     style={{ fontSize: 18, fontWeight: 800, color: '#FFFFFF', margin: '4px 0', fontFamily: 'var(--font-heading)', letterSpacing: '-0.015em' }}
                   >
-                    Build Your 4-Week Workout Plan
+                    Build 4-week plan
                   </h3>
                   <p 
                     style={{ fontSize: 12, color: '#A1A1AA', margin: '4px 0 16px', lineHeight: 1.45 }}
@@ -5697,7 +5722,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                     }}
                     className="active:scale-[0.98] transition"
                   >
-                    <Sparkles size={14} color="#000000" /> Build 4-Week Plan →
+                    <Sparkles size={14} color="#000000" /> Build 4-week plan
                   </button>
                 </div>
               )}

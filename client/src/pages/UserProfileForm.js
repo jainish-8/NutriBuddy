@@ -2,14 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { API_BASE } from '../config';
 import { 
   Utensils, UtensilsCrossed, BarChart2, Dumbbell, User, Target, Leaf, 
-  Sliders, Sparkles, AlertCircle, ArrowLeft, ArrowRight, Briefcase, ChevronDown
+  Sliders, Check, AlertCircle, ArrowLeft, ArrowRight, Briefcase, ChevronDown
 } from 'lucide-react';
 import MobileSelectSheet from '../components/MobileSelectSheet';
 import { 
   calculateTDEE, 
   calculateTargetCalories, 
   calculateMacros, 
-  searchProfessions 
+  searchProfessions,
+  toTitleCase
 } from '../utils/nutritionEngine';
 
 // Standardized options for mobile bottom-sheet picker
@@ -45,7 +46,7 @@ const GOAL_OPTIONS = [
 const DIETARY_OPTIONS = [
   { value: '', label: 'No specific preference (All foods)', subtitle: 'All Indian foods, dairy, eggs, and meats' },
   { value: 'vegetarian', label: 'Vegetarian (No meat/fish)', subtitle: 'Plant foods, grains, pulses, dairy & paneer' },
-  { value: 'eggitarian', label: 'Eggitarian (Vegetarian + Eggs)', subtitle: 'Vegetarian foundation plus whole & egg whites' },
+  { value: 'eggitarian', label: 'Eggetarian (Vegetarian + Eggs)', subtitle: 'Vegetarian foundation plus whole & egg whites' },
   { value: 'vegan', label: 'Vegan (Plant-based only)', subtitle: '100% plant-derived foods, no dairy or animal products' },
   { value: 'gluten-free', label: 'Gluten Free', subtitle: 'Wheat, maida, and barley eliminated' },
   { value: 'keto', label: 'Keto (Low carb, healthy fat)', subtitle: 'High fat, moderate protein, very low carbohydrate' },
@@ -54,11 +55,13 @@ const DIETARY_OPTIONS = [
 
 const CUISINE_OPTIONS = [
   { value: 'all', label: 'Universal Pan-Indian', subtitle: 'Balanced mix of dishes from all Indian regions' },
+  { value: 'bengali', label: 'Bengali', subtitle: 'Shorshe Ilish, Dal, Rice, Mishti Doi' },
+  { value: 'east', label: 'East Indian', subtitle: 'Cholar Dal, Khichuri, Ghugni, Fish Curry' },
   { value: 'gujarati', label: 'Gujarati', subtitle: 'Thali, Thepla, Kathol, Dhokla, Khichdi' },
-  { value: 'north', label: 'North Indian & Punjabi', subtitle: 'Rajma, Dal Makhani, Phulkas, Chhole, Paneer' },
-  { value: 'south', label: 'South Indian', subtitle: 'Idli, Dosa, Sambar, Pesarattu, Curd Rice' },
   { value: 'west', label: 'Maharashtrian', subtitle: 'Poha, Pithla Bhakri, Sprouted Usal, Poli' },
-  { value: 'east', label: 'East Indian', subtitle: 'Cholar Dal, Khichuri, Ghugni, Fish Curry' }
+  { value: 'north', label: 'North Indian & Punjabi', subtitle: 'Rajma, Dal Makhani, Phulkas, Chhole, Paneer' },
+  { value: 'rajasthani', label: 'Rajasthani', subtitle: 'Dal Baati Churma, Ker Sangri, Bajra Roti' },
+  { value: 'south', label: 'South Indian', subtitle: 'Idli, Dosa, Sambar, Pesarattu, Curd Rice' }
 ];
 
 const COOKING_OPTIONS = [
@@ -70,19 +73,25 @@ const COOKING_OPTIONS = [
 
 const BUDGET_OPTIONS = [
   { value: 'tight', label: 'Tight Budget (₹3,000 - ₹5,000 / month)', subtitle: 'Budget-focused seasonal Indian staples' },
-  { value: 'moderate', label: 'Moderate Budget (₹5,000 - ₹10,000 / month)', subtitle: 'Balanced whole-food Indian diet' },
+  { value: 'moderate', label: 'Moderate — ₹5k–₹10k/mo', subtitle: 'Moderate Budget (₹5,000 – ₹10,000 / month) · Balanced whole-food Indian diet' },
   { value: 'flexible', label: 'Flexible Budget (₹10,000 - ₹15,000 / month)', subtitle: 'Premium dairy, whey, nuts & paneer' },
   { value: 'premium', label: 'Premium Budget (₹15,000+ / month)', subtitle: 'Unrestricted premium organic & high-protein foods' }
 ];
 
 const PREP_TIME_OPTIONS = [
-  { value: 'under_15_mins', label: 'Quick (under 15 mins)', subtitle: 'Rapid prep & 1-pot quick meals' },
-  { value: '15_to_30_mins', label: 'Moderate (15 to 30 mins)', subtitle: 'Standard everyday Indian cooking' },
-  { value: '30_to_60_mins', label: 'Standard (30 to 60 mins)', subtitle: 'Full multi-course meal preparation' },
-  { value: 'above_60_mins', label: 'Dedicated (60+ mins)', subtitle: 'Slow-simmered & detailed batch-cooking' }
+  { value: '15_mins', label: '15 minutes', subtitle: 'Quick (under 15 mins) · Rapid prep & 1-pot quick meals' },
+  { value: '30_mins', label: '30 minutes', subtitle: 'Moderate (15 to 30 mins) · Standard everyday Indian cooking' },
+  { value: '45_mins', label: '45 minutes', subtitle: 'Standard (30 to 45 mins) · Multi-course meal preparation' },
+  { value: '60_mins', label: '60+ minutes', subtitle: 'Dedicated (60+ mins) · Slow-simmered & detailed batch-cooking' }
 ];
 
 const getOptionLabel = (options, val, fallback = 'Select option') => {
+  if (options === PREP_TIME_OPTIONS) {
+    if (!val || val === 'moderate' || val === '15_to_30_mins' || val === '30_mins') return '30 minutes';
+    if (val === 'under_15_mins' || val === '15_mins') return '15 minutes';
+    if (val === '30_to_60_mins' || val === '45_mins') return '45 minutes';
+    if (val === 'above_60_mins' || val === '60_mins') return '60+ minutes';
+  }
   const match = options.find(o => String(o.value) === String(val));
   return match ? match.label : fallback;
 };
@@ -108,7 +117,7 @@ export default function UserProfileForm({ user, setUser, setCurrentPage }) {
     allergies: user?.allergies || [],
     cookingSkill: user?.cookingSkill || 'basic',
     budgetRange: user?.budgetRange || 'moderate',
-    mealPrepTime: user?.mealPrepTime || 'moderate'
+    mealPrepTime: user?.mealPrepTime || '30_mins'
   });
 
   const [errors, setErrors] = useState({});
@@ -185,7 +194,7 @@ export default function UserProfileForm({ user, setUser, setCurrentPage }) {
         allergies: user.allergies || [],
         cookingSkill: user.cookingSkill || 'basic',
         budgetRange: user.budgetRange || 'moderate',
-        mealPrepTime: user.mealPrepTime || 'moderate'
+        mealPrepTime: user.mealPrepTime || '30_mins'
       });
     }
   }, [user]);
@@ -210,10 +219,10 @@ export default function UserProfileForm({ user, setUser, setCurrentPage }) {
   };
 
   const handleCheckboxChange = (fieldName, value, checked) => {
-    if (value === 'none') {
+    if (value === 'no_known_allergies' || value === 'none') {
       setForm(prev => ({
         ...prev,
-        [fieldName]: checked ? ['none'] : []
+        [fieldName]: checked ? ['no_known_allergies'] : []
       }));
       return;
     }
@@ -221,7 +230,7 @@ export default function UserProfileForm({ user, setUser, setCurrentPage }) {
     if (checked) {
       setForm(prev => ({ 
         ...prev, 
-        [fieldName]: [...(prev[fieldName] || []).filter(item => item !== 'none'), value] 
+        [fieldName]: [...(prev[fieldName] || []).filter(item => item !== 'none' && item !== 'no_known_allergies'), value] 
       }));
     } else {
       setForm(prev => ({ 
@@ -315,8 +324,11 @@ export default function UserProfileForm({ user, setUser, setCurrentPage }) {
       isGymGoer
     });
 
+    const formattedFullName = toTitleCase(form.fullName.trim());
+
     const userData = {
       ...form,
+      fullName: formattedFullName,
       profession: resolvedProfession,
       id: user?.id || Date.now(),
       bmr: tdeeResults.bmr,
@@ -328,6 +340,11 @@ export default function UserProfileForm({ user, setUser, setCurrentPage }) {
       isGymGoer,
       createdAt: user?.createdAt || new Date().toISOString()
     };
+
+    // Auto-unlock "First Step" milestone on account creation / setup
+    try {
+      localStorage.setItem(`nutribuddy_first_step_unlocked_${userData.id}`, 'true');
+    } catch (err) {}
 
     // Auto sync training profile for Workout Console
     const trainingProfile = {
@@ -479,7 +496,7 @@ export default function UserProfileForm({ user, setUser, setCurrentPage }) {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Sex</label>
+                    <label className="form-label">Biological sex</label>
                     <button
                       type="button"
                       onClick={() => setActiveSheet('gender')}
@@ -488,6 +505,9 @@ export default function UserProfileForm({ user, setUser, setCurrentPage }) {
                       <span>{getOptionLabel(GENDER_OPTIONS, form.gender)}</span>
                       <ChevronDown size={16} color="var(--text-muted)" />
                     </button>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                      Used to calculate your metabolic rate accurately
+                    </div>
                   </div>
                 </div>
 
@@ -501,7 +521,7 @@ export default function UserProfileForm({ user, setUser, setCurrentPage }) {
                   }}
                   ref={profDropdownRef}
                 >
-                  <label className="form-label">Profession / Occupation *</label>
+                  <label className="form-label">Occupation *</label>
                   
                   <div style={{ position: 'relative' }}>
                     <input
@@ -510,7 +530,7 @@ export default function UserProfileForm({ user, setUser, setCurrentPage }) {
                       value={form.profession}
                       onChange={handleChange}
                       onFocus={() => setShowProfDropdown(true)}
-                      placeholder="e.g. Student, Software Engineer, Teacher, Nurse, Builder..."
+                      placeholder="e.g. Student, Software Engineer, Teacher"
                       autoComplete="off"
                       className={errors.profession ? "form-control error" : "form-control"}
                       style={{ paddingRight: 36 }}
@@ -755,30 +775,45 @@ export default function UserProfileForm({ user, setUser, setCurrentPage }) {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label" style={{ color: 'var(--text-primary)', fontWeight: '600', marginBottom: 10, display: 'block' }}>
-                    Food Allergies (Excluded from meal plans)
+                  <label className="form-label" style={{ color: 'var(--text-primary)', fontWeight: '600', marginBottom: 4, display: 'block' }}>
+                    Food allergies & intolerances
                   </label>
+                  <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '0 0 10px' }}>
+                    These foods will be excluded from all your meal plans
+                  </p>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 10 }}>
-                    {['Dairy', 'Nuts', 'Eggs', 'Soy', 'Gluten', 'Fish', 'Peanuts', 'None'].map(allergy => (
-                      <label 
-                        key={allergy}
-                        className="allergy-checkbox-tile"
-                        style={{
-                          background: form.allergies.includes(allergy.toLowerCase()) ? 'var(--brand-primary-subtle)' : 'var(--bg-surface-raised)',
-                          border: form.allergies.includes(allergy.toLowerCase()) ? '1px solid var(--border-focus)' : '1px solid var(--border-subtle)',
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={form.allergies.includes(allergy.toLowerCase())}
-                          onChange={(e) => handleCheckboxChange('allergies', allergy.toLowerCase(), e.target.checked)}
-                          style={{ accentColor: 'var(--brand-primary)', width: 16, height: 16 }}
-                        />
-                        <span style={{ fontSize: 13, fontWeight: 700, color: form.allergies.includes(allergy.toLowerCase()) ? 'var(--brand-primary-light)' : 'var(--text-primary)' }}>
-                          {allergy}
-                        </span>
-                      </label>
-                    ))}
+                    {[
+                      { key: 'dairy', label: 'Dairy' },
+                      { key: 'nuts', label: 'Nuts' },
+                      { key: 'eggs', label: 'Eggs' },
+                      { key: 'soy', label: 'Soy' },
+                      { key: 'gluten', label: 'Gluten' },
+                      { key: 'fish', label: 'Fish' },
+                      { key: 'peanuts', label: 'Peanuts' },
+                      { key: 'no_known_allergies', label: 'No known allergies' }
+                    ].map(allergy => {
+                      const isChecked = form.allergies.includes(allergy.key);
+                      return (
+                        <label 
+                          key={allergy.key}
+                          className="allergy-checkbox-tile"
+                          style={{
+                            background: isChecked ? 'var(--brand-primary-subtle)' : 'var(--bg-surface-raised)',
+                            border: isChecked ? '1px solid var(--border-focus)' : '1px solid var(--border-subtle)',
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => handleCheckboxChange('allergies', allergy.key, e.target.checked)}
+                            style={{ accentColor: 'var(--brand-primary)', width: 16, height: 16 }}
+                          />
+                          <span style={{ fontSize: 12.5, fontWeight: 700, color: isChecked ? 'var(--brand-primary-light)' : 'var(--text-primary)' }}>
+                            {allergy.label}
+                          </span>
+                        </label>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -817,7 +852,7 @@ export default function UserProfileForm({ user, setUser, setCurrentPage }) {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Meal Prep Time Limit</label>
+                    <label className="form-label">Max prep time per meal</label>
                     <button
                       type="button"
                       onClick={() => setActiveSheet('mealPrepTime')}
@@ -863,7 +898,7 @@ export default function UserProfileForm({ user, setUser, setCurrentPage }) {
                   className={loading ? "btn btn-primary btn-disabled" : "btn btn-primary"}
                   style={{ flex: 2, padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 48 }}
                 >
-                  <Sparkles size={16} /> {loading ? 'Calibrating profile...' : 'Save & View Plan'}
+                  <Check size={16} /> {loading ? 'Calibrating profile...' : 'Save & View Plan'}
                 </button>
               )}
             </div>

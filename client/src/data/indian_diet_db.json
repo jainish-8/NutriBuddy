@@ -59,11 +59,11 @@
     "difficulty": "basic",
     "cuisine": "indian",
     "allergies": [
-      "gluten"
+      "gluten",
+      "dairy"
     ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "diabetic"
     ],
     "ingredients": [
@@ -138,10 +138,11 @@
     "prepTime": 30,
     "difficulty": "basic",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "diabetic"
     ],
@@ -296,7 +297,9 @@
     "prepTime": 15,
     "difficulty": "basic",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "nuts"
+    ],
     "dietaryStyle": [
       "vegetarian",
       "vegan",
@@ -337,11 +340,11 @@
     "difficulty": "basic",
     "cuisine": "indian",
     "allergies": [
-      "gluten"
+      "gluten",
+      "dairy"
     ],
     "dietaryStyle": [
-      "vegetarian",
-      "vegan"
+      "vegetarian"
     ],
     "ingredients": [
       "Whole wheat flour - 1/2 cup",
@@ -749,10 +752,11 @@
     "prepTime": 30,
     "difficulty": "moderate",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "diabetic"
     ],
@@ -997,10 +1001,11 @@
     "prepTime": 15,
     "difficulty": "basic",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "diabetic",
       "low-carb"
@@ -1078,7 +1083,8 @@
     "difficulty": "moderate",
     "cuisine": "indian",
     "allergies": [
-      "dairy"
+      "dairy",
+      "nuts"
     ],
     "dietaryStyle": [
       "vegetarian",
@@ -1391,11 +1397,11 @@
     "difficulty": "no-cook",
     "cuisine": "indian",
     "allergies": [
-      "soy"
+      "soy",
+      "dairy"
     ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "diabetic",
       "low-carb"
@@ -1845,10 +1851,11 @@
     "prepTime": 10,
     "difficulty": "moderate",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free"
     ],
     "ingredients": [
@@ -1992,10 +1999,11 @@
     "prepTime": 8,
     "difficulty": "basic",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "diabetic",
       "low-carb"
@@ -2066,10 +2074,11 @@
     "prepTime": 20,
     "difficulty": "moderate",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free"
     ],
     "ingredients": [
@@ -2105,7 +2114,8 @@
     "difficulty": "basic",
     "cuisine": "indian",
     "allergies": [
-      "peanuts"
+      "peanuts",
+      "nuts"
     ],
     "dietaryStyle": [
       "vegetarian",
@@ -2355,12 +2365,12 @@
     "prepTime": 25,
     "difficulty": "basic",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
-      "gluten-free",
-      "diabetic"
+      "gluten-free"
     ],
     "ingredients": [
       "Split yellow Moong Dal - 1/2 cup",
@@ -2705,8 +2715,7 @@
     "dietaryStyle": [
       "vegetarian",
       "vegan",
-      "gluten-free",
-      "diabetic"
+      "gluten-free"
     ],
     "ingredients": [
       "Sweet potato - 1 medium (boiled)",
@@ -2929,10 +2938,11 @@
     "prepTime": 20,
     "difficulty": "basic",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "diabetic"
     ],
@@ -3161,11 +3171,12 @@
     "cuisine": "indian",
     "allergies": [
       "peanuts",
-      "gluten"
+      "gluten",
+      "dairy",
+      "nuts"
     ],
     "dietaryStyle": [
-      "vegetarian",
-      "vegan"
+      "vegetarian"
     ],
     "ingredients": [
       "Whole wheat bread - 2 slices",
@@ -3341,7 +3352,7 @@
       "breakfast",
       "post_workout"
     ],
-    "calories": 180,
+    "calories": 157,
     "protein": 26,
     "carbs": 2,
     "fat": 5,
@@ -3615,7 +3626,8 @@
     "cuisine": "global",
     "allergies": [
       "peanuts",
-      "dairy"
+      "dairy",
+      "nuts"
     ],
     "dietaryStyle": [
       "vegetarian"
@@ -3722,7 +3734,8 @@
     "difficulty": "moderate",
     "cuisine": "indian",
     "allergies": [
-      "dairy"
+      "dairy",
+      "nuts"
     ],
     "dietaryStyle": [
       "vegetarian",
@@ -3833,11 +3846,11 @@
     "difficulty": "no-cook",
     "cuisine": "global",
     "allergies": [
-      "nuts"
+      "nuts",
+      "dairy"
     ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "low-carb"
     ],
@@ -3871,7 +3884,8 @@
     "difficulty": "moderate",
     "cuisine": "indian",
     "allergies": [
-      "fish"
+      "fish",
+      "dairy"
     ],
     "dietaryStyle": [
       "non-vegetarian",
@@ -3905,10 +3919,11 @@
     "prepTime": 7,
     "difficulty": "basic",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "low-carb"
     ],
@@ -4087,10 +4102,11 @@
     "prepTime": 25,
     "difficulty": "moderate",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free"
     ],
     "ingredients": [
@@ -4375,10 +4391,11 @@
     "prepTime": 8,
     "difficulty": "basic",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free"
     ],
     "ingredients": [
@@ -4409,10 +4426,11 @@
     "prepTime": 25,
     "difficulty": "basic",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free"
     ],
     "ingredients": [
@@ -4663,10 +4681,11 @@
     "prepTime": 20,
     "difficulty": "basic",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free"
     ],
     "ingredients": [
@@ -4699,7 +4718,8 @@
     "difficulty": "no-cook",
     "cuisine": "indian",
     "allergies": [
-      "peanuts"
+      "peanuts",
+      "nuts"
     ],
     "dietaryStyle": [
       "vegetarian",
@@ -4732,10 +4752,11 @@
     "prepTime": 5,
     "difficulty": "no-cook",
     "cuisine": "global",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "keto",
       "low-carb"
@@ -4805,7 +4826,8 @@
     "difficulty": "basic",
     "cuisine": "indian",
     "allergies": [
-      "peanuts"
+      "peanuts",
+      "nuts"
     ],
     "dietaryStyle": [
       "vegetarian",
@@ -4883,11 +4905,11 @@
     "difficulty": "no-cook",
     "cuisine": "global",
     "allergies": [
-      "soy"
+      "soy",
+      "dairy"
     ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "low-carb"
     ],
@@ -5028,7 +5050,8 @@
     "difficulty": "no-cook",
     "cuisine": "indian",
     "allergies": [
-      "peanuts"
+      "peanuts",
+      "nuts"
     ],
     "dietaryStyle": [
       "vegetarian",
@@ -5363,7 +5386,9 @@
     "allergies": [
       "eggs",
       "peanuts",
-      "gluten"
+      "gluten",
+      "dairy",
+      "nuts"
     ],
     "dietaryStyle": [
       "eggitarian",
@@ -5519,9 +5544,10 @@
     "prepTime": 5,
     "difficulty": "no-cook",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
-      "vegan",
       "vegetarian",
       "gluten-free"
     ],
@@ -5558,7 +5584,8 @@
     "cuisine": "global",
     "allergies": [
       "dairy",
-      "tree-nuts"
+      "tree-nuts",
+      "nuts"
     ],
     "dietaryStyle": [
       "vegetarian",
@@ -5798,10 +5825,11 @@
     "region": "north",
     "servingUnit": "1 Platter (1 bowl Rice + 1 bowl Rajma + Salad)",
     "budgetTier": "tight",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free"
     ],
     "ingredients": [
@@ -5935,7 +5963,7 @@
       "lunch",
       "dinner"
     ],
-    "calories": 475,
+    "calories": 454,
     "protein": 24,
     "carbs": 58,
     "fat": 14,
@@ -5973,7 +6001,7 @@
       "lunch",
       "dinner"
     ],
-    "calories": 540,
+    "calories": 500,
     "protein": 44,
     "carbs": 54,
     "fat": 12,
@@ -5985,7 +6013,8 @@
     "servingUnit": "1 High-Protein Athlete Platter",
     "budgetTier": "moderate",
     "allergies": [
-      "gluten"
+      "gluten",
+      "dairy"
     ],
     "dietaryStyle": [
       "non-vegetarian"
@@ -6061,10 +6090,11 @@
     "region": "east",
     "servingUnit": "1 Large Glass (350ml)",
     "budgetTier": "tight",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "diabetic"
     ],
@@ -6287,7 +6317,7 @@
       "post_workout",
       "snacks"
     ],
-    "calories": 330,
+    "calories": 304,
     "protein": 26,
     "carbs": 32,
     "fat": 8,
@@ -6377,7 +6407,8 @@
     "budgetTier": "flexible",
     "allergies": [
       "dairy",
-      "gluten"
+      "gluten",
+      "nuts"
     ],
     "dietaryStyle": [
       "vegetarian"
@@ -6414,11 +6445,11 @@
     "budgetTier": "tight",
     "allergies": [
       "nuts",
-      "peanuts"
+      "peanuts",
+      "dairy"
     ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "diabetic"
     ],
@@ -6490,10 +6521,11 @@
     "region": "east",
     "servingUnit": "1 Bowl Rice + 1 Large Bowl Dalma",
     "budgetTier": "tight",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "diabetic"
     ],
@@ -6566,7 +6598,8 @@
     "servingUnit": "1 Bowl Keema + 2 Phulkas + Salad",
     "budgetTier": "moderate",
     "allergies": [
-      "gluten"
+      "gluten",
+      "dairy"
     ],
     "dietaryStyle": [
       "non-vegetarian"
@@ -6792,7 +6825,8 @@
     "servingUnit": "1 Bowl Chholar Dal + 2 Rotis + Salad",
     "budgetTier": "tight",
     "allergies": [
-      "gluten"
+      "gluten",
+      "dairy"
     ],
     "dietaryStyle": [
       "vegetarian"
@@ -6866,7 +6900,8 @@
     "servingUnit": "1 Bowl Goan Fish Curry + 1 Bowl Steamed Rice",
     "budgetTier": "moderate",
     "allergies": [
-      "fish"
+      "fish",
+      "dairy"
     ],
     "dietaryStyle": [
       "non-vegetarian",
@@ -6983,11 +7018,11 @@
     "servingUnit": "1 Glass Mason Jar (250g)",
     "budgetTier": "moderate",
     "allergies": [
-      "nuts"
+      "nuts",
+      "dairy"
     ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free"
     ],
     "ingredients": [
@@ -7021,7 +7056,9 @@
     "region": "east",
     "servingUnit": "1 Large Bowl Khichuri + 2 Eggplant Slices",
     "budgetTier": "tight",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
       "gluten-free",
@@ -7337,7 +7374,7 @@
     "prepTime": 12,
     "difficulty": "basic",
     "allergies": [
-      "egg",
+      "eggs",
       "gluten"
     ],
     "ingredients": [
@@ -7377,7 +7414,8 @@
     "prepTime": 20,
     "difficulty": "basic",
     "allergies": [
-      "egg"
+      "eggs",
+      "dairy"
     ],
     "ingredients": [
       "Boiled Eggs - 2",
@@ -7419,7 +7457,7 @@
     "prepTime": 8,
     "difficulty": "no-cook",
     "allergies": [
-      "egg"
+      "eggs"
     ],
     "ingredients": [
       "Boiled Egg Whites - 4",
@@ -7456,8 +7494,9 @@
     "prepTime": 10,
     "difficulty": "basic",
     "allergies": [
-      "egg",
-      "gluten"
+      "eggs",
+      "gluten",
+      "dairy"
     ],
     "ingredients": [
       "Whole Eggs - 2",
@@ -7496,7 +7535,8 @@
     "prepTime": 15,
     "difficulty": "basic",
     "allergies": [
-      "gluten"
+      "gluten",
+      "soy"
     ],
     "ingredients": [
       "Soya Granules (Dry) - 50g",
@@ -7534,7 +7574,8 @@
     "prepTime": 20,
     "difficulty": "basic",
     "allergies": [
-      "gluten"
+      "gluten",
+      "soy"
     ],
     "ingredients": [
       "Firm Tofu (Cubed) - 120g",
@@ -7602,7 +7643,7 @@
     ],
     "budgetTier": "moderate",
     "cost": 65,
-    "calories": 510,
+    "calories": 478,
     "protein": 42,
     "carbs": 46,
     "fat": 14,
@@ -7680,7 +7721,7 @@
     ],
     "budgetTier": "moderate",
     "cost": 70,
-    "calories": 480,
+    "calories": 444,
     "protein": 40,
     "carbs": 44,
     "fat": 12,
@@ -7727,7 +7768,9 @@
     "servingUnit": "2 medium Pesarattus + Allam (Ginger) Chutney",
     "prepTime": 15,
     "difficulty": "basic",
-    "allergies": [],
+    "allergies": [
+      "nuts"
+    ],
     "ingredients": [
       "Whole Green Moong (Soaked) - 70g",
       "Ginger - 1 inch",
@@ -7763,7 +7806,8 @@
     "prepTime": 20,
     "difficulty": "basic",
     "allergies": [
-      "dairy"
+      "dairy",
+      "eggs"
     ],
     "ingredients": [
       "Toor Dal - 50g",
@@ -7802,7 +7846,8 @@
     "prepTime": 12,
     "difficulty": "basic",
     "allergies": [
-      "peanuts"
+      "peanuts",
+      "nuts"
     ],
     "ingredients": [
       "Thick Poha (Flattened Rice) - 70g",
@@ -7952,7 +7997,8 @@
     "prepTime": 12,
     "difficulty": "basic",
     "allergies": [
-      "peanuts"
+      "peanuts",
+      "nuts"
     ],
     "ingredients": [
       "Rolled Oats - 60g",
@@ -8141,7 +8187,8 @@
     "prepTime": 25,
     "difficulty": "intermediate",
     "allergies": [
-      "dairy"
+      "dairy",
+      "soy"
     ],
     "ingredients": [
       "Soya Chunks - 45g dry",
@@ -8325,7 +8372,9 @@
     "servingUnit": "1 large bowl (40g)",
     "prepTime": 6,
     "difficulty": "basic",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "ingredients": [
       "Phool Makhana (Foxnuts) - 40g",
       "Desi Ghee - 1 tsp",
@@ -8336,1075 +8385,340 @@
     "tips": "Roast on low heat; high heat burns the outer shell while leaving the core chewy."
   },
   {
-    "id": 1035,
-    "name": "Gujarati Dal, 2 Phulkas, Bhindi Sambhariya & Kachumber Salad",
-    "category": "legumes",
-    "mealTypes": [
-      "lunch",
-      "dinner"
-    ],
-    "calories": 460,
-    "protein": 16,
-    "carbs": 74,
-    "fat": 11,
-    "cost": 28,
-    "prepTime": 25,
-    "difficulty": "basic",
-    "cuisine": "indian",
-    "region": "gujarati",
-    "allergies": [
-      "gluten"
-    ],
-    "dietaryStyle": [
-      "vegetarian",
-      "jain"
-    ],
-    "servingUnit": "1 thali",
-    "budgetTier": "tight",
-    "ingredients": [
-      "Toor Dal - 40g",
-      "Whole Wheat Atta - 60g",
-      "Bhindi (Okra) - 100g",
-      "Peanut Powder & Desi Spices - 1 tbsp",
-      "Desi Ghee - 1 tsp",
-      "Cucumber & Tomato Kachumber - 1 bowl"
-    ],
-    "recipe": "1. Boil toor dal with turmeric and salt; temper with mustard, cumin, curry leaves, hing, and a touch of lemon. 2. Sauté bhindi with peanut-coriander sambhariya masala. 3. Roll and roast 2 whole wheat phulkas on tava. 4. Serve with fresh kachumber salad.",
-    "benefits": "Authentic Gujarati gut-friendly lunch. Toor dal provides clean plant protein and easily digestible complex carbohydrates.",
-    "tips": "Squeeze fresh lemon into the dal just before eating to enhance plant iron bioavailability."
-  },
-  {
-    "id": 1036,
-    "name": "Methi Thepla (3 pieces) with Fresh Dahi & Mint Chutney",
-    "category": "grains",
+    "id": 220,
+    "name": "Banana (1 medium)",
+    "category": "fruits",
     "mealTypes": [
       "breakfast",
       "snacks",
       "pre_workout"
     ],
-    "calories": 380,
-    "protein": 14,
-    "carbs": 58,
-    "fat": 10,
-    "cost": 22,
-    "prepTime": 20,
+    "calories": 89,
+    "protein": 1,
+    "carbs": 23,
+    "fat": 0,
+    "cost": 5,
+    "prepTime": 0,
     "difficulty": "basic",
     "cuisine": "indian",
-    "region": "gujarati",
-    "allergies": [
-      "gluten",
-      "dairy"
-    ],
-    "dietaryStyle": [
-      "vegetarian",
-      "jain"
-    ],
-    "servingUnit": "3 theplas",
-    "budgetTier": "tight",
-    "ingredients": [
-      "Whole Wheat Atta - 60g",
-      "Besan (Gram Flour) - 20g",
-      "Fresh Fenugreek (Methi) Leaves - 1 cup chopped",
-      "Fresh Curd (Dahi) - 100g",
-      "Desi Ghee / Sesame Oil - 1 tsp",
-      "Ajwain, Turmeric & Sesame Seeds - 1 tsp"
-    ],
-    "recipe": "1. Knead atta, besan, chopped methi leaves, ajwain, sesame seeds, turmeric, and 2 tbsp curd into a soft dough. 2. Roll into thin rotis and cook on hot tava with a drop of ghee until golden speckles appear. 3. Serve hot with a bowl of fresh chilled curd.",
-    "benefits": "Methi (fenugreek) regulates insulin sensitivity and blood glucose, while besan and curd deliver balanced amino acids.",
-    "tips": "Pack for travel or office lunches; stays fresh and soft all day."
-  },
-  {
-    "id": 1037,
-    "name": "Gujarati Kathol (Sprouted Green Moong & Kala Chana) with 2 Rotlis",
-    "category": "legumes",
-    "mealTypes": [
-      "lunch",
-      "dinner"
-    ],
-    "calories": 480,
-    "protein": 24,
-    "carbs": 72,
-    "fat": 10,
-    "cost": 24,
-    "prepTime": 20,
-    "difficulty": "basic",
-    "cuisine": "indian",
-    "region": "gujarati",
-    "allergies": [
-      "gluten"
-    ],
+    "allergies": [],
     "dietaryStyle": [
       "vegetarian",
       "vegan",
-      "jain"
+      "gluten-free",
+      "diabetic"
     ],
-    "servingUnit": "1 meal",
+    "region": "pan-indian",
+    "servingUnit": "1 medium",
     "budgetTier": "tight",
     "ingredients": [
-      "Sprouted Green Moong & Black Chana - 80g",
-      "Whole Wheat Atta - 60g",
-      "Tomato - 1 chopped",
-      "Ginger & Green Chili - 1 tsp",
-      "Mustard Oil / Ghee - 1 tsp",
-      "Gujarati Spices (Cumin, Coriander, Hing)"
+      "Banana - 1 medium (ripe)"
     ],
-    "recipe": "1. Pressure cook sprouted moong and chana for 2 whistles. 2. In a pan, temper mustard seeds, cumin, hing, ginger, and green chilies. 3. Add tomatoes and cooked sprouts with a cup of water, simmer for 6 minutes with coriander-cumin powder. 4. Serve with 2 fresh whole wheat rotlis.",
-    "benefits": "High bioavailable protein and soluble dietary fiber from living sprouted legumes. Promotes strong gut microbiome and steady energy.",
-    "tips": "Sprouting pulses doubles Vitamin C content and lowers phytate anti-nutrients by 60%."
+    "recipe": "Peel and eat as is, or slice into a bowl.",
+    "benefits": "Rich in potassium, natural sugars for quick energy, and prebiotic fiber.",
+    "tips": "Eat pre-workout for a quick energy boost. Pair with peanut butter for sustained energy."
   },
   {
-    "id": 1038,
-    "name": "Sev Tameta Nu Shaak with 2 Bajra/Whole Wheat Bhakris & Chaas",
-    "category": "vegetables",
+    "id": 221,
+    "name": "Apple (1 medium)",
+    "category": "fruits",
     "mealTypes": [
-      "lunch",
-      "dinner"
+      "snacks",
+      "breakfast"
     ],
-    "calories": 490,
-    "protein": 15,
-    "carbs": 75,
-    "fat": 14,
-    "cost": 26,
-    "prepTime": 20,
+    "calories": 95,
+    "protein": 0,
+    "carbs": 25,
+    "fat": 0,
+    "cost": 20,
+    "prepTime": 0,
     "difficulty": "basic",
     "cuisine": "indian",
-    "region": "gujarati",
-    "allergies": [
-      "gluten",
-      "dairy"
-    ],
+    "allergies": [],
     "dietaryStyle": [
       "vegetarian",
-      "jain"
+      "vegan",
+      "gluten-free",
+      "diabetic"
     ],
-    "servingUnit": "1 meal",
-    "budgetTier": "tight",
+    "region": "pan-indian",
+    "servingUnit": "1 medium",
+    "budgetTier": "moderate",
     "ingredients": [
-      "Ripe Tomatoes - 2 large chopped",
-      "Nylon Sev / Roasted Besan Sev - 30g",
-      "Bajra Flour / Whole Wheat Atta - 70g",
-      "Fresh Buttermilk (Chaas) - 1 glass (200ml)",
-      "Mustard Seeds, Hing, Cumin & Jaggery - 1 tsp",
-      "Oil - 1 tsp"
+      "Apple - 1 medium (washed)"
     ],
-    "recipe": "1. Sauté mustard, cumin, hing, and chopped tomatoes in oil until soft and juicy. Add turmeric, chili powder, coriander powder, a pinch of jaggery, and 1/2 cup water. 2. Knead bajra flour with warm water and pat into thick bhakri, roast on tava on medium heat with minimal ghee. 3. Top tomato gravy with sev just before eating and pair with chilled spiced chaas.",
-    "benefits": "Lycopene-rich tomato antioxidant curry paired with mineral-dense, gluten-free bajra pearl millet.",
-    "tips": "Add the sev right before serving so it retains its delightful crunch."
+    "recipe": "Wash and eat whole, or slice and serve.",
+    "benefits": "High in quercetin, catechin, and pectin fiber. Supports gut health.",
+    "tips": "Eat with skin on for maximum fiber and polyphenol content."
   },
   {
-    "id": 1039,
-    "name": "Gujarati Khatta Dhokla (Steamed Fermented Dal Cake) with Green Chutney",
-    "category": "legumes",
+    "id": 222,
+    "name": "Mango (1 cup sliced)",
+    "category": "fruits",
     "mealTypes": [
       "breakfast",
       "snacks"
     ],
-    "calories": 260,
-    "protein": 11,
-    "carbs": 44,
-    "fat": 4.5,
-    "cost": 16,
-    "prepTime": 20,
-    "difficulty": "basic",
-    "cuisine": "indian",
-    "region": "gujarati",
-    "allergies": [
-      "dairy"
-    ],
-    "dietaryStyle": [
-      "vegetarian",
-      "gluten-free",
-      "jain"
-    ],
-    "servingUnit": "4 pieces",
-    "budgetTier": "tight",
-    "ingredients": [
-      "Rice & Urad Dal Batter - 100g",
-      "Sour Curd - 2 tbsp",
-      "Ginger-Green Chili Paste - 1 tsp",
-      "Mustard Seeds & Curry Leaves - 1 tsp",
-      "Oil - 1 tsp",
-      "Black Pepper powder & Green Chutney"
-    ],
-    "recipe": "1. Mix fermented rice-urad dal batter with sour curd, ginger-chili paste, salt, and black pepper. 2. Pour into greased steamer plate and steam for 12 minutes. 3. Temper mustard seeds and curry leaves in 1 tsp oil and pour over dhokla. 4. Cut into squares and enjoy with fresh mint-coriander chutney.",
-    "benefits": "100% steamed, zero-oil, gut-nourishing probiotic fermented snack with zero trans fat.",
-    "tips": "Fermented batter aids digestion and maximizes B-vitamin absorption."
-  },
-  {
-    "id": 1040,
-    "name": "Gujarati Vegetable Handvo (Baked Lentil & Lauki Cake) with Green Chutney",
-    "category": "legumes",
-    "mealTypes": [
-      "breakfast",
-      "snacks",
-      "pre_workout"
-    ],
-    "calories": 320,
-    "protein": 13,
-    "carbs": 50,
-    "fat": 7.5,
-    "cost": 20,
-    "prepTime": 25,
-    "difficulty": "moderate",
-    "cuisine": "indian",
-    "region": "gujarati",
-    "allergies": [
-      "dairy"
-    ],
-    "dietaryStyle": [
-      "vegetarian",
-      "gluten-free",
-      "jain"
-    ],
-    "servingUnit": "2 large slices",
-    "budgetTier": "tight",
-    "ingredients": [
-      "Mixed Dal & Rice Batter (Toor, Chana, Urad, Moong) - 100g",
-      "Grated Lauki (Bottle Gourd) - 1/2 cup",
-      "Fresh Curd - 2 tbsp",
-      "Sesame Seeds (Til) & Mustard Seeds - 1 tsp",
-      "Desi Ghee / Peanut Oil - 1 tsp",
-      "Green Chili & Ginger - 1 tsp"
-    ],
-    "recipe": "1. Combine mixed dal batter with grated lauki, curd, ginger-chili paste, turmeric, and salt. 2. Heat oil in a pan, add mustard seeds and sesame seeds until crackling. 3. Pour batter into pan, cover and cook on low flame for 8-10 minutes on each side until crust is crispy golden. 4. Slice and serve hot.",
-    "benefits": "Complete protein profile from 4 lentils combined with hydrating lauki fiber and calcium-rich sesame seeds.",
-    "tips": "Can be made in a non-stick skillet with minimal oil for an ultra-crisp outer crust."
-  },
-  {
-    "id": 1041,
-    "name": "Gujarati Moong Dal Khichdi with Sweet-Sour Besan Kadhi & Roasted Papad",
-    "category": "grains",
-    "mealTypes": [
-      "dinner",
-      "lunch"
-    ],
-    "calories": 440,
-    "protein": 17,
-    "carbs": 75,
-    "fat": 8,
-    "cost": 22,
-    "prepTime": 20,
-    "difficulty": "basic",
-    "cuisine": "indian",
-    "region": "gujarati",
-    "allergies": [
-      "dairy"
-    ],
-    "dietaryStyle": [
-      "vegetarian",
-      "gluten-free",
-      "jain"
-    ],
-    "servingUnit": "1 thali",
-    "budgetTier": "tight",
-    "ingredients": [
-      "Yellow Moong Dal - 40g",
-      "Rice - 40g",
-      "Besan (Gram Flour) - 20g",
-      "Fresh Curd - 80g",
-      "Desi Ghee - 1 tsp",
-      "Cumin, Mustard, Hing, Cinnamon, Cloves & Roasted Papad"
-    ],
-    "recipe": "1. Pressure cook rice and yellow moong dal with turmeric, salt, and water for 4 whistles. 2. Whisk curd, besan, water, ginger, and a pinch of jaggery; simmer on low heat for 10 minutes. Temper kadhi with ghee, mustard, cumin, hing, cinnamon, and curry leaves. 3. Serve warm khichdi with a bowl of kadhi and roasted urad papad.",
-    "benefits": "The quintessential Gujarati comfort dinner. Highly bioavailable amino acids, easy on digestion, and deeply grounding for restful sleep.",
-    "tips": "A spoonful of warm desi ghee on khichdi enhances fat-soluble vitamin assimilation."
-  },
-  {
-    "id": 1042,
-    "name": "Ringan No Olo (Kathiyawadi Baingan Bharta) with 2 Bajra Roti & Garlic Dip",
-    "category": "vegetables",
-    "mealTypes": [
-      "dinner",
-      "lunch"
-    ],
-    "calories": 460,
-    "protein": 14,
-    "carbs": 78,
-    "fat": 10,
+    "calories": 99,
+    "protein": 1,
+    "carbs": 25,
+    "fat": 1,
     "cost": 25,
-    "prepTime": 25,
-    "difficulty": "moderate",
-    "cuisine": "indian",
-    "region": "gujarati",
-    "allergies": [
-      "gluten"
-    ],
-    "dietaryStyle": [
-      "vegetarian",
-      "vegan"
-    ],
-    "servingUnit": "1 meal",
-    "budgetTier": "tight",
-    "ingredients": [
-      "Eggplant / Baingan - 1 large (roasted & mashed)",
-      "Bajra / Pearl Millet Flour - 70g",
-      "Spring Onion / Regular Onion - 1 chopped",
-      "Tomato - 1 chopped",
-      "Garlic - 4 cloves",
-      "Mustard Oil / Ghee - 1 tsp",
-      "Spices (Red chili, coriander, turmeric)"
-    ],
-    "recipe": "1. Roast eggplant directly over flame until skin is charred; peel and mash flesh. 2. Sauté garlic, onions, tomatoes, and dry spices in oil until aromatic. Add mashed eggplant and simmer for 5 minutes. 3. Knead bajra flour with warm water and roast on tava. 4. Serve rustic Kathiyawadi style.",
-    "benefits": "High mineral density (iron, magnesium, zinc) from bajra paired with low-calorie, high-fiber roasted eggplant.",
-    "tips": "Kathiyawadi specialty; provides long-lasting satiety and stable blood sugar."
-  },
-  {
-    "id": 1043,
-    "name": "Masala Chaas (Spiced Gujarati Buttermilk with Roasted Jeera & Mint)",
-    "category": "dairy",
-    "mealTypes": [
-      "snacks",
-      "post_workout"
-    ],
-    "calories": 85,
-    "protein": 5.5,
-    "carbs": 8,
-    "fat": 3.5,
-    "cost": 8,
     "prepTime": 5,
-    "difficulty": "no-cook",
+    "difficulty": "basic",
     "cuisine": "indian",
-    "region": "gujarati",
-    "allergies": [
-      "dairy"
-    ],
+    "allergies": [],
     "dietaryStyle": [
       "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "region": "pan-indian",
+    "servingUnit": "1 cup sliced",
+    "budgetTier": "moderate",
+    "ingredients": [
+      "Ripe mango - 1 cup (sliced)"
+    ],
+    "recipe": "Peel the mango and slice the flesh away from the seed. Serve chilled.",
+    "benefits": "Rich in Vitamin C, beta-carotene, and digestive enzymes like amylase.",
+    "tips": "Best consumed in the morning or pre-workout. Avoid at night for weight loss goals."
+  },
+  {
+    "id": 223,
+    "name": "Papaya (1 cup)",
+    "category": "fruits",
+    "mealTypes": [
+      "breakfast",
+      "snacks"
+    ],
+    "calories": 62,
+    "protein": 1,
+    "carbs": 16,
+    "fat": 0,
+    "cost": 15,
+    "prepTime": 5,
+    "difficulty": "basic",
+    "cuisine": "indian",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
       "gluten-free",
-      "jain",
-      "keto"
+      "diabetic"
     ],
-    "servingUnit": "1 tall glass (250ml)",
+    "region": "pan-indian",
+    "servingUnit": "1 cup",
     "budgetTier": "tight",
     "ingredients": [
-      "Fresh Curd (Dahi) - 100g",
-      "Chilled Water - 150ml",
-      "Roasted Cumin (Jeera) Powder - 1/2 tsp",
-      "Black Salt (Kala Namak) - 1/4 tsp",
-      "Fresh Mint & Coriander leaves - 1 tbsp chopped"
+      "Ripe papaya - 1 cup (cubed)"
     ],
-    "recipe": "1. Whisk fresh curd and chilled water with a traditional wooden churner (madhani) or hand blender until frothy. 2. Add roasted jeera powder, black salt, and finely chopped mint. 3. Pour into a tall glass and serve chilled.",
-    "benefits": "Natural electrolyte replenishment, active lactobacillus probiotics, and cooling digestive support.",
-    "tips": "Drink post-lunch to accelerate digestion and prevent afternoon sluggishness."
+    "recipe": "Scoop out seeds, peel the skin, and cube the flesh.",
+    "benefits": "Contains papain enzyme for protein digestion. Excellent for gut health and immunity.",
+    "tips": "Eat on an empty stomach in the morning for best digestive benefits."
   },
   {
-    "id": 1044,
-    "name": "Homestyle Rajma (Kidney Beans) with Jeera Rice & Onion Salad",
-    "category": "legumes",
+    "id": 224,
+    "name": "Guava (1 medium)",
+    "category": "fruits",
     "mealTypes": [
-      "lunch",
-      "dinner"
-    ],
-    "calories": 520,
-    "protein": 22,
-    "carbs": 90,
-    "fat": 8,
-    "cost": 26,
-    "prepTime": 25,
-    "difficulty": "basic",
-    "cuisine": "indian",
-    "region": "north",
-    "allergies": [],
-    "dietaryStyle": [
-      "vegetarian",
-      "vegan",
-      "gluten-free"
-    ],
-    "servingUnit": "1 bowl rajma + rice",
-    "budgetTier": "tight",
-    "ingredients": [
-      "Red Kidney Beans (Rajma) - 60g",
-      "Basmati Rice - 50g",
-      "Onion & Tomato Gravy - 1 cup",
-      "Ginger & Garlic - 1 tsp",
-      "Desi Ghee / Mustard Oil - 1 tsp",
-      "Whole Spices & Kasuri Methi"
-    ],
-    "recipe": "1. Pressure cook soaked rajma for 5-6 whistles until melt-in-mouth tender. 2. In a pan, sauté onions, ginger-garlic paste, and tomato puree until oil separates. 3. Add cooked rajma with broth and simmer on low for 15 minutes, mashing a few beans for rich natural gravy. 4. Serve over fragrant jeera rice with sliced onions.",
-    "benefits": "Classic Punjabi Sunday staple. Complete complementary protein when rajma and rice are eaten together; rich in folate and potassium.",
-    "tips": "Slow simmering the rajma allows starch from the beans to naturally thicken the curry without cream."
-  },
-  {
-    "id": 1045,
-    "name": "Amritsari Chhole with 2 Whole Wheat Phulkas & Boondi Raita",
-    "category": "legumes",
-    "mealTypes": [
-      "lunch",
-      "dinner"
-    ],
-    "calories": 540,
-    "protein": 24,
-    "carbs": 86,
-    "fat": 11,
-    "cost": 28,
-    "prepTime": 25,
-    "difficulty": "basic",
-    "cuisine": "indian",
-    "region": "north",
-    "allergies": [
-      "gluten",
-      "dairy"
-    ],
-    "dietaryStyle": [
-      "vegetarian"
-    ],
-    "servingUnit": "1 thali",
-    "budgetTier": "tight",
-    "ingredients": [
-      "Kabuli Chana (Chickpeas) - 60g",
-      "Whole Wheat Atta - 60g",
-      "Curd - 60g",
-      "Amritsari Chana Masala (Anardana, Amchur) - 1 tbsp",
-      "Mustard Oil - 1 tsp",
-      "Onion, Ginger & Green Chili"
-    ],
-    "recipe": "1. Boil chickpeas with a tea bag for deep dark color. 2. Sauté ginger, garlic, and onions; add roasted anardana-chana masala and boiled chickpeas with water. Simmer for 15 minutes. 3. Make 2 whole wheat phulkas on tava. 4. Serve with cool cucumber-boondi curd raita.",
-    "benefits": "High satiety index with low glycemic index complex carbs from chickpeas, promoting stable postprandial glucose.",
-    "tips": "Anardana (dried pomegranate seeds) gives authentic Punjabi tanginess without needing artificial souring agents."
-  },
-  {
-    "id": 1046,
-    "name": "Sarson Ka Saag with Makki Ki Roti & Desi Ghee",
-    "category": "vegetables",
-    "mealTypes": [
-      "lunch",
-      "dinner"
-    ],
-    "calories": 480,
-    "protein": 15,
-    "carbs": 66,
-    "fat": 18,
-    "cost": 32,
-    "prepTime": 30,
-    "difficulty": "moderate",
-    "cuisine": "indian",
-    "region": "north",
-    "allergies": [
-      "dairy"
-    ],
-    "dietaryStyle": [
-      "vegetarian",
-      "gluten-free"
-    ],
-    "servingUnit": "1 bowl saag + 2 rotis",
-    "budgetTier": "moderate",
-    "ingredients": [
-      "Fresh Mustard Greens (Sarson), Bathua & Spinach - 200g",
-      "Makki Atta (Cornmeal) - 70g",
-      "Makki Flour for Saag Binding - 1 tbsp",
-      "Desi Ghee - 1 tbsp",
-      "Garlic, Ginger & Green Chilies - 2 tbsp chopped"
-    ],
-    "recipe": "1. Chop and boil mustard greens, bathua, and spinach until tender; blend coarsely. 2. Return to pan, add a slurry of makki flour, and simmer for 15 minutes. Temper with generous garlic, ginger, and green chilies in desi ghee. 3. Knead makki flour with warm water and roast rotis on tava. 4. Serve steaming hot with ghee.",
-    "benefits": "Nutritional powerhouse rich in iron, lutein, calcium, and bioactive glucosinolates from fresh winter greens.",
-    "tips": "Adding bathua and spinach balances the natural sharp pungency of mustard leaves."
-  },
-  {
-    "id": 1047,
-    "name": "Steamed Idli (3 idlis) with Drumstick Sambar & Coconut Chutney",
-    "category": "legumes",
-    "mealTypes": [
-      "breakfast",
       "snacks"
     ],
-    "calories": 340,
-    "protein": 12,
-    "carbs": 62,
-    "fat": 4.5,
-    "cost": 18,
-    "prepTime": 15,
+    "calories": 68,
+    "protein": 3,
+    "carbs": 14,
+    "fat": 1,
+    "cost": 10,
+    "prepTime": 2,
     "difficulty": "basic",
     "cuisine": "indian",
-    "region": "south",
     "allergies": [],
     "dietaryStyle": [
       "vegetarian",
       "vegan",
-      "gluten-free"
+      "gluten-free",
+      "diabetic"
     ],
-    "servingUnit": "3 idlis + sambar",
-    "budgetTier": "tight",
-    "ingredients": [
-      "Fermented Rice & Urad Dal Batter - 120g",
-      "Toor Dal & Mixed Veg Sambar - 1 bowl",
-      "Fresh Coconut Chutney - 2 tbsp",
-      "Mustard Seeds, Curry Leaves, Hing - 1 tsp"
-    ],
-    "recipe": "1. Pour fermented idli batter into greased moulds and steam for 10 minutes until soft and spongy. 2. Prepare toor dal sambar with drumstick, carrots, tamarind, and sambar powder. 3. Grind coconut with roasted chana dal and green chilies, temper with mustard and curry leaves. 4. Serve warm.",
-    "benefits": "Zero-oil fermented breakfast with balanced carbs and protein; effortlessly digestible and gentle on the gut.",
-    "tips": "The natural fermentation process synthesizes B-vitamins and increases mineral bioavailability."
-  },
-  {
-    "id": 1048,
-    "name": "Traditional Curd Rice (Thayir Sadam) with Mustard Tadka & Pomegranate",
-    "category": "dairy",
-    "mealTypes": [
-      "lunch",
-      "dinner"
-    ],
-    "calories": 390,
-    "protein": 11,
-    "carbs": 66,
-    "fat": 9,
-    "cost": 20,
-    "prepTime": 10,
-    "difficulty": "basic",
-    "cuisine": "indian",
-    "region": "south",
-    "allergies": [
-      "dairy"
-    ],
-    "dietaryStyle": [
-      "vegetarian",
-      "gluten-free"
-    ],
-    "servingUnit": "1 bowl",
-    "budgetTier": "tight",
-    "ingredients": [
-      "Soft Cooked White/Brown Rice - 150g",
-      "Fresh Curd (Dahi) - 120g",
-      "Mustard Seeds, Urad Dal, Ginger & Green Chili - 1 tsp",
-      "Pomegranate Seeds & Coriander - 2 tbsp",
-      "Ghee/Oil - 1 tsp"
-    ],
-    "recipe": "1. Mash soft-cooked rice while warm; stir in fresh curd and a pinch of salt. 2. Heat 1 tsp oil/ghee, crackle mustard seeds, urad dal, curry leaves, and ginger. 3. Pour hot tadka over curd rice and fold gently. 4. Garnish with ruby pomegranate seeds and fresh coriander.",
-    "benefits": "Probiotic superfood that cools internal core body temperature, aids healthy digestion, and calms gut inflammation.",
-    "tips": "Adding a splash of milk when mixing keeps the curd rice from turning excessively sour if packed for lunch."
-  },
-  {
-    "id": 1049,
-    "name": "Kanda Poha with Roasted Peanuts & Lemon (1 bowl)",
-    "category": "grains",
-    "mealTypes": [
-      "breakfast",
-      "snacks"
-    ],
-    "calories": 310,
-    "protein": 8.5,
-    "carbs": 52,
-    "fat": 7.5,
-    "cost": 14,
-    "prepTime": 15,
-    "difficulty": "basic",
-    "cuisine": "indian",
-    "region": "west",
-    "allergies": [
-      "peanuts"
-    ],
-    "dietaryStyle": [
-      "vegetarian",
-      "vegan",
-      "gluten-free"
-    ],
-    "servingUnit": "1 bowl",
-    "budgetTier": "tight",
-    "ingredients": [
-      "Thick Poha (Flattened Rice) - 60g",
-      "Raw Peanuts - 20g",
-      "Onion - 1 medium chopped",
-      "Mustard Seeds, Curry Leaves & Green Chili - 1 tsp",
-      "Turmeric & Lemon Juice - 1 tsp",
-      "Oil - 1 tsp"
-    ],
-    "recipe": "1. Rinse poha in a colander and drain completely. 2. Heat oil, roast peanuts until crunchy. Add mustard seeds, curry leaves, green chilies, and onions; sauté until translucent. 3. Add turmeric and salt, followed by drained poha. Cover and steam for 2 minutes on low flame. 4. Finish with fresh lemon juice and coriander.",
-    "benefits": "Iron-rich, gluten-free traditional Maharashtrian breakfast with healthy fats and crunch from roasted peanuts.",
-    "tips": "Never soak poha in water; gently rinse in a sieve so it stays fluffy and separate."
-  },
-  {
-    "id": 1050,
-    "name": "Pithla Bhakri with Thecha & Fresh Onion Salad",
-    "category": "legumes",
-    "mealTypes": [
-      "lunch",
-      "dinner"
-    ],
-    "calories": 470,
-    "protein": 18,
-    "carbs": 75,
-    "fat": 10,
-    "cost": 22,
-    "prepTime": 20,
-    "difficulty": "basic",
-    "cuisine": "indian",
-    "region": "west",
-    "allergies": [
-      "gluten"
-    ],
-    "dietaryStyle": [
-      "vegetarian",
-      "vegan"
-    ],
-    "servingUnit": "1 meal",
-    "budgetTier": "tight",
-    "ingredients": [
-      "Besan (Gram Flour) - 50g",
-      "Jowar / Sorghum Flour - 70g",
-      "Garlic & Green Chili Thecha - 1 tbsp",
-      "Onion - 1 chopped",
-      "Mustard Seeds, Hing & Turmeric - 1 tsp",
-      "Peanut Oil - 1 tsp"
-    ],
-    "recipe": "1. Sauté onions, garlic, green chilies, mustard seeds, and hing in oil. 2. Whisk besan with water into a smooth lump-free slurry and pour into the pan. Cook stirring continuously for 6-8 minutes until thick and aromatic. 3. Knead jowar flour with warm water and roast bhakri on tava. 4. Serve rustic style with crushed chili-garlic thecha.",
-    "benefits": "High plant protein from besan paired with complex low-glycemic carbs and minerals from jowar millet.",
-    "tips": "Traditional farmer's staple in Maharashtra; delivers sustained high energy for physical work."
-  },
-  {
-    "id": 1051,
-    "name": "Yellow Moong Dal Tadka with 2 Phulkas & Kachumber Salad",
-    "category": "legumes",
-    "mealTypes": [
-      "lunch",
-      "dinner"
-    ],
-    "calories": 420,
-    "protein": 18,
-    "carbs": 68,
-    "fat": 8,
-    "cost": 22,
-    "prepTime": 20,
-    "difficulty": "basic",
-    "cuisine": "indian",
     "region": "pan-indian",
-    "allergies": [
-      "gluten"
-    ],
-    "dietaryStyle": [
-      "vegetarian",
-      "vegan",
-      "jain"
-    ],
-    "servingUnit": "1 thali",
+    "servingUnit": "1 medium",
     "budgetTier": "tight",
     "ingredients": [
-      "Yellow Moong Dal - 50g",
-      "Whole Wheat Atta - 60g",
-      "Tomato - 1 medium",
-      "Desi Ghee - 1 tsp",
-      "Cumin, Hing, Turmeric - 1 tsp",
-      "Cucumber & Tomato Salad - 1 bowl"
+      "Guava - 1 medium (washed)"
     ],
-    "recipe": "1. Pressure cook yellow moong dal with turmeric, salt, and 1.5 cups water for 3 whistles. 2. In a small pan, heat desi ghee, temper cumin seeds, hing, and chopped tomatoes. Pour tadka over hot dal. 3. Knead whole wheat dough and roll into 2 soft phulkas on a hot tava. 4. Serve fresh with a bowl of crisp kachumber salad.",
-    "benefits": "Light, easily digestible complete plant protein that is gentle on the stomach and suitable for all fitness goals.",
-    "tips": "Add a squeeze of fresh lemon juice over the dal before eating to boost iron absorption from lentils."
+    "recipe": "Wash, remove ends, and eat whole or cut into slices. Sprinkle chaat masala if preferred.",
+    "benefits": "Exceptionally high in Vitamin C (4× an orange). High fiber aids digestion.",
+    "tips": "Eat with the seeds for maximum fiber. Excellent for diabetics due to low GI."
   },
   {
-    "id": 1052,
-    "name": "Homestyle Grilled Chicken Breast with Steamed Rice & Salad",
-    "category": "poultry",
+    "id": 225,
+    "name": "Pomegranate (1/2 cup seeds)",
+    "category": "fruits",
     "mealTypes": [
-      "lunch",
-      "dinner",
-      "post_workout"
+      "snacks",
+      "breakfast"
     ],
-    "calories": 480,
-    "protein": 44,
-    "carbs": 52,
-    "fat": 9,
-    "cost": 58,
-    "prepTime": 20,
+    "calories": 83,
+    "protein": 2,
+    "carbs": 19,
+    "fat": 1,
+    "cost": 30,
+    "prepTime": 5,
     "difficulty": "basic",
     "cuisine": "indian",
-    "region": "pan-indian",
     "allergies": [],
     "dietaryStyle": [
-      "non-vegetarian",
-      "gluten-free"
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
     ],
-    "servingUnit": "1 plate",
+    "region": "pan-indian",
+    "servingUnit": "1/2 cup seeds",
     "budgetTier": "moderate",
     "ingredients": [
-      "Skinless Chicken Breast - 160g",
-      "Basmati Rice - 50g raw",
-      "Curd - 2 tbsp (for marination)",
-      "Ginger-Garlic Paste, Turmeric, Cumin - 1 tsp",
-      "Mustard Oil - 1 tsp",
-      "Sliced Cucumbers & Carrots - 1 bowl"
+      "Pomegranate - 1/2 fruit (seeds extracted)"
     ],
-    "recipe": "1. Marinate chicken breast pieces in curd, ginger-garlic paste, cumin powder, turmeric, red chili, and salt for 15 minutes. 2. Cook on a hot tava or grill pan with 1 tsp mustard oil for 5-6 minutes on each side until juicy and tender. 3. Steam basmati rice. 4. Plate the sliced chicken alongside warm rice and fresh sliced salad.",
-    "benefits": "Gold-standard lean animal protein high in leucine for muscle recovery, tissue repair, and high satiety.",
-    "tips": "Do not overcook chicken breast; remove from heat as soon as juices run clear to keep it tender."
+    "recipe": "Score the pomegranate, break it open underwater to avoid staining, and collect the seeds.",
+    "benefits": "Powerful antioxidant. Reduces inflammation and supports heart health.",
+    "tips": "Add to curd, salads, or chaats for flavor and nutrition boost."
   },
   {
-    "id": 1053,
-    "name": "Boiled Egg Platter with 2 Multigrain Toasts & Cucumber (3 Eggs)",
-    "category": "poultry",
+    "id": 226,
+    "name": "Dates (3 pieces)",
+    "category": "fruits",
     "mealTypes": [
-      "breakfast",
-      "post_workout",
-      "dinner"
-    ],
-    "calories": 410,
-    "protein": 26,
-    "carbs": 38,
-    "fat": 16,
-    "cost": 26,
-    "prepTime": 12,
-    "difficulty": "basic",
-    "cuisine": "indian",
-    "region": "pan-indian",
-    "allergies": [
-      "egg",
-      "gluten"
-    ],
-    "dietaryStyle": [
-      "eggitarian"
-    ],
-    "servingUnit": "3 eggs + 2 toasts",
-    "budgetTier": "tight",
-    "ingredients": [
-      "Whole Farm Eggs - 3",
-      "Whole Wheat / Multigrain Bread - 2 slices",
-      "Black Pepper & Salt - 1/2 tsp",
-      "Cucumber & Tomato Slices - 1 bowl"
-    ],
-    "recipe": "1. Place 3 eggs in boiling water for 8 minutes (medium-hard boil), then transfer to cold water and peel. 2. Toast 2 slices of whole wheat bread on tava until crisp. 3. Halve the boiled eggs, season with freshly cracked black pepper and black salt. 4. Serve immediately with fresh cucumber slices.",
-    "benefits": "High biological value protein with choline, lutein, and healthy essential fatty acids for cellular health.",
-    "tips": "Sprinkle a pinch of roasted cumin powder over the yolks for classic Indian seasoning."
-  },
-  {
-    "id": 1054,
-    "name": "Desi Egg Bhurji (3 Eggs) with 2 Whole Wheat Phulkas",
-    "category": "poultry",
-    "mealTypes": [
-      "breakfast",
-      "lunch",
-      "dinner"
-    ],
-    "calories": 460,
-    "protein": 25,
-    "carbs": 46,
-    "fat": 19,
-    "cost": 28,
-    "prepTime": 15,
-    "difficulty": "basic",
-    "cuisine": "indian",
-    "region": "pan-indian",
-    "allergies": [
-      "egg",
-      "gluten"
-    ],
-    "dietaryStyle": [
-      "eggitarian"
-    ],
-    "servingUnit": "1 plate",
-    "budgetTier": "tight",
-    "ingredients": [
-      "Whole Eggs - 3",
-      "Whole Wheat Atta - 60g",
-      "Onion - 1 chopped",
-      "Tomato - 1 chopped",
-      "Green Chili & Ginger - 1 tsp",
-      "Mustard Oil / Ghee - 1 tsp",
-      "Turmeric, Red Chili & Coriander Leaves"
-    ],
-    "recipe": "1. Sauté finely chopped onions, green chilies, ginger, and tomatoes in 1 tsp oil until soft. 2. Whisk 3 eggs with salt and turmeric, pour into pan, and scramble on medium heat for 3-4 minutes until fluffy. 3. Garnish with chopped coriander. 4. Serve with 2 warm, freshly puffed whole wheat phulkas.",
-    "benefits": "High-protein, micronutrient-dense quick meal providing long-lasting fullness and muscle support.",
-    "tips": "Cook on medium-low flame and take off heat slightly before it dries out for soft, creamy scrambled bhurji."
-  },
-  {
-    "id": 1055,
-    "name": "Besan Chilla with Grated Paneer Filling (2 Chillas + Green Chutney)",
-    "category": "legumes",
-    "mealTypes": [
-      "breakfast",
       "snacks",
       "pre_workout"
     ],
-    "calories": 430,
-    "protein": 24,
-    "carbs": 46,
-    "fat": 17,
-    "cost": 26,
-    "prepTime": 15,
+    "calories": 69,
+    "protein": 1,
+    "carbs": 18,
+    "fat": 0,
+    "cost": 15,
+    "prepTime": 0,
     "difficulty": "basic",
     "cuisine": "indian",
-    "region": "pan-indian",
-    "allergies": [
-      "dairy"
-    ],
+    "allergies": [],
     "dietaryStyle": [
       "vegetarian",
-      "gluten-free",
-      "jain"
+      "vegan",
+      "gluten-free"
     ],
-    "servingUnit": "2 chillas",
-    "budgetTier": "tight",
-    "ingredients": [
-      "Besan (Gram Flour) - 60g",
-      "Fresh Low-Fat Paneer - 50g grated",
-      "Ajwain, Turmeric & Green Chili - 1 tsp",
-      "Desi Ghee / Mustard Oil - 1 tsp",
-      "Fresh Mint & Coriander Chutney - 2 tbsp"
-    ],
-    "recipe": "1. Whisk besan with water, ajwain, turmeric, and salt into a smooth pourable batter. 2. Pour a ladle of batter onto a hot tava, spread in a circle, and cook with 1/2 tsp oil until golden. 3. Place seasoned grated paneer in the center, roll tightly, and repeat for the second chilla. 4. Serve hot with green mint chutney.",
-    "benefits": "Gluten-free, fiber-rich, and sustained protein release combining legume and dairy amino acid profiles.",
-    "tips": "Ajwain (carom seeds) prevents gas and aids smooth digestion of chickpea flour."
-  },
-  {
-    "id": 1056,
-    "name": "Homestyle Paneer Bhurji with 2 Whole Wheat Phulkas & Salad",
-    "category": "dairy",
-    "mealTypes": [
-      "lunch",
-      "dinner"
-    ],
-    "calories": 490,
-    "protein": 26,
-    "carbs": 48,
-    "fat": 21,
-    "cost": 36,
-    "prepTime": 15,
-    "difficulty": "basic",
-    "cuisine": "indian",
     "region": "pan-indian",
-    "allergies": [
-      "dairy",
-      "gluten"
-    ],
-    "dietaryStyle": [
-      "vegetarian",
-      "jain"
-    ],
-    "servingUnit": "1 thali",
+    "servingUnit": "3 pieces",
     "budgetTier": "moderate",
     "ingredients": [
-      "Fresh Low-Fat Paneer - 100g crumbled",
-      "Whole Wheat Atta - 60g",
-      "Onion - 1 chopped",
-      "Tomato - 1 chopped",
-      "Capsicum (Bell Pepper) - 1/2 chopped",
-      "Desi Ghee / Oil - 1 tsp",
-      "Spices & Fresh Coriander"
+      "Medjool or Deglet dates - 3 pieces (pitted)"
     ],
-    "recipe": "1. Sauté onions, tomatoes, and bell peppers in 1 tsp ghee until tender. 2. Add turmeric, coriander powder, garam masala, and salt. 3. Fold in crumbled fresh paneer and sauté for 2-3 minutes. 4. Serve with 2 hot whole wheat phulkas and fresh salad.",
-    "benefits": "Rich source of casein protein and dietary calcium for bone density and muscle preservation.",
-    "tips": "Do not cook paneer for more than 3 minutes to keep it moist and melt-in-the-mouth soft."
+    "recipe": "Remove pits and eat as is, or stuff with nut butter.",
+    "benefits": "Natural source of iron, potassium, and quick-release carbohydrates for energy.",
+    "tips": "Excellent pre-workout natural energy source. Avoid in large quantities for diabetics."
   },
   {
-    "id": 1057,
-    "name": "High-Protein Soya Bhurji with 2 Whole Wheat Phulkas & Moong Dal",
-    "category": "legumes",
-    "mealTypes": [
-      "lunch",
-      "dinner"
-    ],
-    "calories": 490,
-    "protein": 36,
-    "carbs": 62,
-    "fat": 10,
-    "cost": 22,
-    "prepTime": 20,
-    "difficulty": "basic",
+    "id": 227,
+    "name": "Mixed Nuts — 30g",
+    "category": "nuts",
     "cuisine": "indian",
-    "region": "pan-indian",
-    "allergies": [
-      "soy",
-      "gluten"
-    ],
-    "dietaryStyle": [
-      "vegetarian",
-      "vegan"
-    ],
-    "servingUnit": "1 thali",
-    "budgetTier": "tight",
-    "ingredients": [
-      "Soya Granules - 50g raw",
-      "Whole Wheat Atta - 60g",
-      "Yellow Moong Dal - 30g",
-      "Onion, Tomato & Green Chili - 1 bowl",
-      "Mustard Oil - 1 tsp",
-      "Homestyle Spices"
-    ],
-    "recipe": "1. Soak soya granules in boiling water for 10 minutes, then rinse in cold water and squeeze out all excess moisture completely. 2. Sauté onions, ginger, and tomatoes in 1 tsp oil with turmeric and garam masala. Add soya granules and sauté for 5 minutes. 3. Boil a small bowl of moong dal. 4. Serve soya bhurji with dal and 2 phulkas.",
-    "benefits": "Exceptional vegetarian protein density (52% protein by dry weight) and zero saturated animal fat.",
-    "tips": "Squeezing the soya granules thoroughly after boiling removes any raw soy taste and allows the spices to soak in."
-  },
-  {
-    "id": 1058,
-    "name": "Homestyle Punjabi Chicken Curry with 2 Whole Wheat Phulkas",
-    "category": "poultry",
     "mealTypes": [
-      "lunch",
-      "dinner"
+      "snacks"
     ],
-    "calories": 520,
-    "protein": 42,
-    "carbs": 48,
+    "calories": 173,
+    "protein": 5,
+    "carbs": 6,
     "fat": 15,
-    "cost": 65,
-    "prepTime": 25,
+    "cost": 30,
+    "prepTime": 0,
     "difficulty": "basic",
-    "cuisine": "indian",
-    "region": "north",
     "allergies": [
-      "gluten"
-    ],
-    "dietaryStyle": [
-      "non-vegetarian"
-    ],
-    "servingUnit": "1 thali",
-    "budgetTier": "moderate",
-    "ingredients": [
-      "Chicken Breast / Thighs - 160g",
-      "Whole Wheat Atta - 60g",
-      "Onion & Tomato Paste - 1 cup",
-      "Ginger-Garlic Paste - 1 tbsp",
-      "Mustard Oil - 1 tsp",
-      "Garam Masala, Kasuri Methi & Coriander"
-    ],
-    "recipe": "1. Brown onions and ginger-garlic paste in mustard oil until dark amber. Add chopped tomatoes and spices. 2. Add chicken pieces and sauté on high heat for 4 minutes to seal juices. Add 1 cup water, cover and simmer for 12 minutes. 3. Make 2 whole wheat phulkas. 4. Garnish curry with crushed kasuri methi and fresh coriander.",
-    "benefits": "Rich in complete animal protein, heme iron, and zinc for athletic recovery and hormonal health.",
-    "tips": "Browning the onions patiently is the secret to rich, deep North Indian homestyle gravy without cream."
-  },
-  {
-    "id": 1059,
-    "name": "Moong Dal Pesarattu (2 Dosas) with Ginger Chutney & Buttermilk",
-    "category": "legumes",
-    "mealTypes": [
-      "breakfast",
-      "snacks",
-      "pre_workout"
-    ],
-    "calories": 360,
-    "protein": 20,
-    "carbs": 52,
-    "fat": 7,
-    "cost": 20,
-    "prepTime": 15,
-    "difficulty": "basic",
-    "cuisine": "indian",
-    "region": "south",
-    "allergies": [
-      "dairy"
-    ],
-    "dietaryStyle": [
-      "vegetarian",
-      "gluten-free"
-    ],
-    "servingUnit": "2 dosas",
-    "budgetTier": "tight",
-    "ingredients": [
-      "Whole Green Moong Dal Batter - 100g",
-      "Ginger & Green Chili Paste - 1 tsp",
-      "Spiced Buttermilk (Chaas) - 1 glass",
-      "Sesame / Peanut Oil - 1 tsp",
-      "Allam Pachadi (Ginger Chutney) - 2 tbsp"
-    ],
-    "recipe": "1. Grind soaked whole green moong with ginger, green chilies, and cumin into a smooth batter. 2. Spread thinly on a hot tava, drizzle with 1/2 tsp oil, and cook until crisp and golden brown on both sides. 3. Serve hot with traditional ginger chutney and a glass of spiced buttermilk.",
-    "benefits": "High-protein, low glycemic index South Indian powerhouse made from whole unpolished mung lentils.",
-    "tips": "No fermentation required; batter can be ground fresh and used immediately."
-  },
-  {
-    "id": 1060,
-    "name": "Maharashtrian Sprouted Matki Usal with 2 Phulkas & Salad",
-    "category": "legumes",
-    "mealTypes": [
-      "lunch",
-      "dinner"
-    ],
-    "calories": 440,
-    "protein": 20,
-    "carbs": 70,
-    "fat": 8.5,
-    "cost": 20,
-    "prepTime": 20,
-    "difficulty": "basic",
-    "cuisine": "indian",
-    "region": "west",
-    "allergies": [
-      "gluten"
-    ],
-    "dietaryStyle": [
-      "vegetarian",
-      "vegan"
-    ],
-    "servingUnit": "1 meal",
-    "budgetTier": "tight",
-    "ingredients": [
-      "Sprouted Moth Beans (Matki) - 80g",
-      "Whole Wheat Atta - 60g",
-      "Onion & Tomato - 1 each",
-      "Goda Masala / Desi Spices - 1 tsp",
-      "Mustard Oil - 1 tsp",
-      "Grated Fresh Coconut - 1 tbsp"
-    ],
-    "recipe": "1. Sauté mustard seeds, curry leaves, onions, and goda masala in oil. 2. Add sprouted matki with 1 cup water, cover and cook on medium flame for 8 minutes until tender. 3. Garnish with fresh grated coconut and coriander. 4. Serve with 2 whole wheat phulkas.",
-    "benefits": "High fiber and zinc from living sprouted moth beans; helps regulate appetite and cholesterol.",
-    "tips": "Traditional Maharashtrian goda masala adds subtle aromatic warmth without fiery heat."
-  },
-  {
-    "id": 1061,
-    "name": "Bengali Cholar Dal with Coconut & 2 Multigrain Rotis",
-    "category": "legumes",
-    "mealTypes": [
-      "lunch",
-      "dinner"
-    ],
-    "calories": 470,
-    "protein": 19,
-    "carbs": 72,
-    "fat": 11,
-    "cost": 24,
-    "prepTime": 25,
-    "difficulty": "basic",
-    "cuisine": "indian",
-    "region": "east",
-    "allergies": [
-      "gluten"
+      "nuts"
     ],
     "dietaryStyle": [
       "vegetarian",
       "vegan",
-      "jain"
+      "gluten-free",
+      "keto",
+      "low-carb"
     ],
-    "servingUnit": "1 thali",
-    "budgetTier": "tight",
-    "ingredients": [
-      "Chana Dal (Bengal Gram) - 50g",
-      "Whole Wheat Atta - 60g",
-      "Fresh Coconut Bits - 1 tbsp fried in 1/2 tsp ghee",
-      "Ginger, Bay Leaf, Panch Phoron & Hing - 1 tsp",
-      "Desi Ghee - 1 tsp"
-    ],
-    "recipe": "1. Boil chana dal with turmeric, ginger, and salt until cooked yet retaining its distinct shape. 2. In ghee, temper bay leaf, whole garam masala, panch phoron, hing, and tiny coconut slices until golden. 3. Pour hot tadka over chana dal and simmer for 5 minutes. 4. Serve with 2 soft multigrain rotis.",
-    "benefits": "High prebiotic resistant starch and plant protein from Bengal gram lentils.",
-    "tips": "Do not over-mash the chana dal; keeping the lentils intact gives authentic Bengali texture."
-  },
-  {
-    "id": 1062,
-    "name": "Homestyle Fish Curry (Machher Jhol) with Steamed Rice & Salad",
-    "category": "fish",
-    "mealTypes": [
-      "lunch",
-      "dinner"
-    ],
-    "calories": 490,
-    "protein": 38,
-    "carbs": 56,
-    "fat": 12,
-    "cost": 65,
-    "prepTime": 25,
-    "difficulty": "moderate",
-    "cuisine": "indian",
-    "region": "east",
-    "allergies": [
-      "fish"
-    ],
-    "dietaryStyle": [
-      "non-vegetarian",
-      "gluten-free"
-    ],
-    "servingUnit": "1 thali",
+    "region": "pan-indian",
+    "servingUnit": "30g",
     "budgetTier": "moderate",
     "ingredients": [
-      "Fresh Rohu / Katla / Surmai Fish Fillet - 160g",
-      "Basmati Rice - 50g raw",
-      "Potato & Cauliflower florets - 1/2 cup",
-      "Mustard Oil - 1 tsp",
-      "Panch Phoron, Turmeric, Cumin & Ginger Paste"
+      "Almonds - 10g",
+      "Walnuts - 10g",
+      "Cashews - 10g"
     ],
-    "recipe": "1. Rub fish with turmeric and salt, lightly sear in 1 tsp hot mustard oil for 2 minutes and set aside. 2. In the same pan, temper panch phoron, sauté ginger paste, cumin, tomatoes, and vegetables with water until tender. 3. Gently slide fish into simmering broth and cook for 5 minutes. 4. Serve piping hot over steamed white rice.",
-    "benefits": "Clean marine omega-3 fatty acids (EPA/DHA) and high-protein light stew for cardiovascular and metabolic vitality.",
-    "tips": "Authentic light jhol uses no onion or garlic, relying on ginger and cumin for a soothing, light digestive broth."
+    "recipe": "Measure and eat as is.",
+    "benefits": "Healthy omega-3 and omega-6 fats, vitamin E, magnesium. Supports brain and heart health.",
+    "tips": "Soak almonds and walnuts overnight for better mineral absorption. Keep cashews raw."
+  },
+  {
+    "id": 228,
+    "name": "Peanuts — Roasted Plain (30g)",
+    "category": "nuts",
+    "cuisine": "indian",
+    "mealTypes": [
+      "snacks",
+      "pre_workout"
+    ],
+    "calories": 161,
+    "protein": 7,
+    "carbs": 5,
+    "fat": 14,
+    "cost": 5,
+    "prepTime": 0,
+    "difficulty": "basic",
+    "allergies": [
+      "nuts"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "region": "pan-indian",
+    "servingUnit": "30g",
+    "budgetTier": "tight",
+    "ingredients": [
+      "Roasted peanuts (plain, unsalted) - 30g"
+    ],
+    "recipe": "Eat as is, or season with salt and lime.",
+    "benefits": "High protein plant-based snack. Rich in niacin and resveratrol.",
+    "tips": "Budget-friendly protein source. Avoid salted versions for sodium-conscious users."
+  },
+  {
+    "id": 229,
+    "name": "Walnuts (4 halves / 14g)",
+    "category": "nuts",
+    "cuisine": "indian",
+    "mealTypes": [
+      "snacks"
+    ],
+    "calories": 93,
+    "protein": 2,
+    "carbs": 2,
+    "fat": 9,
+    "cost": 20,
+    "prepTime": 0,
+    "difficulty": "basic",
+    "allergies": [
+      "nuts"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "keto",
+      "low-carb"
+    ],
+    "region": "pan-indian",
+    "servingUnit": "4 halves (14g)",
+    "budgetTier": "moderate",
+    "ingredients": [
+      "Walnuts - 4 halves (14g)"
+    ],
+    "recipe": "Eat as is or add to oatmeal, salads, or curd.",
+    "benefits": "Richest plant source of omega-3 (ALA). Supports cognitive function and reduces inflammation.",
+    "tips": "Soak in water overnight to reduce phytic acid and improve digestion."
   }
 ]

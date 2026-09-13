@@ -15,6 +15,7 @@ export const ActiveExerciseView = ({
   onOpenRpe,
   onSwapExercise,
   onAddExercise,
+  showRpe = true,
 }) => {
   return (
     <div className="w-full max-w-md mx-auto overflow-x-hidden px-1 sm:px-2 py-2 flex flex-col gap-3" style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
@@ -179,13 +180,15 @@ export const ActiveExerciseView = ({
                 <span style={{ fontSize: 11, color: '#D4D4D8', fontFamily: 'JetBrains Mono, monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.2 }}>
                   {set.prev || '—'}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => onOpenRpe && onOpenRpe(idx)}
-                  style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer', fontSize: 9.5, fontWeight: 700, color: '#10B981', marginTop: 2 }}
-                >
-                  @{set.rpe || 8} RPE
-                </button>
+                {showRpe && (
+                  <button
+                    type="button"
+                    onClick={() => onOpenRpe && onOpenRpe(idx)}
+                    style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer', fontSize: 9.5, fontWeight: 700, color: '#10B981', marginTop: 2 }}
+                  >
+                    @{set.rpe || 8} RPE
+                  </button>
+                )}
               </div>
 
               {/* Col 3: Weight (Kg) Input */}

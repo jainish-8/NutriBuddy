@@ -4,9 +4,9 @@ import {
   Trophy, Flame, Shield, Award, Activity, Utensils, 
   ChevronDown, ChevronUp, Scale, Calculator, Bell, Check, Plus, X, 
   LineChart, TrendingDown, TrendingUp, Sparkles, CheckCircle2,
-  Lock, Trash2, Droplets, Zap, Calendar
+  Lock, Trash2, Droplets, Zap, Calendar, Info, LogOut
 } from 'lucide-react';
-import { getDetailedCalorieBreakdown } from '../utils/nutritionEngine';
+import { getDetailedCalorieBreakdown, toTitleCase } from '../utils/nutritionEngine';
 import WeightTrendChart from '../components/WeightTrendChart';
 
 const PR_PATTERNS = [
@@ -16,9 +16,10 @@ const PR_PATTERNS = [
   { key: 'press', label: 'Overhead Press (1RM)', iconColor: 'var(--accent-fat-text, #FB7185)' }
 ];
 
-export default function UserProfileDetails({ user, onEdit, onLogout }) {
+export default function UserProfileDetails({ user, onEdit, onLogout, setCurrentPage }) {
   const [workoutHistory, setWorkoutHistory] = useState([]);
   const [streakShield, setStreakShield] = useState(false);
+  const [showShieldTooltip, setShowShieldTooltip] = useState(false);
 
   // Accordion dropdown states
   const [openSections, setOpenSections] = useState({
@@ -74,7 +75,7 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
       workout: true,
       meals: true,
       hydration: true,
-      weekly: false
+      weekly: true
     };
   });
   const [reminderToast, setReminderToast] = useState(null);
@@ -162,10 +163,60 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
   };
 
   const initial = user.fullName ? user.fullName.charAt(0).toUpperCase() : 'U';
-  const profileTypeLabel = user.isGymGoer ? 'Athletic Member' : 'Lifestyle Member';
   const cleanProfession = user.profession && user.profession.toLowerCase() === 'st'
     ? 'Student'
     : (user.profession || 'Athlete');
+
+  const getGoalModeBadge = (goal) => {
+    const g = (goal || '').toLowerCase();
+    if (g.includes('lose') || g.includes('fat')) return 'Fat loss mode';
+    if (g.includes('gain') || g.includes('bulk')) return 'Bulk mode';
+    if (g.includes('perform') || g.includes('athletic')) return 'Performance mode';
+    return 'Maintenance mode';
+  };
+
+  const getGoalSubtitle = (goal) => {
+    const g = (goal || '').toLowerCase();
+    if (g.includes('lose') || g.includes('fat')) return 'Fat loss goal';
+    if (g.includes('gain') || g.includes('bulk')) return 'Muscle gain goal';
+    if (g.includes('perform') || g.includes('athletic')) return 'Athletic performance goal';
+    return 'Weight maintenance goal';
+  };
+
+  const PR_EMPTY_STATES = {
+    squat: {
+      text: 'Your squat record starts here',
+      subtext: 'Complete a Legs day to log your first squat'
+    },
+    bench: {
+      text: 'No bench press record yet',
+      subtext: 'Complete a Push day to set your first 1RM'
+    },
+    deadlift: {
+      text: 'No deadlift record yet',
+      subtext: 'Complete a Pull day to set your first 1RM'
+    },
+    press: {
+      text: 'No OHP record yet',
+      subtext: 'Complete a Push day to set your first 1RM'
+    }
+  };
+
+  const getNetVelocityColor = (delta, goal) => {
+    const g = (goal || '').toLowerCase();
+    const isLoss = g.includes('lose') || g.includes('fat');
+    const isGain = g.includes('gain') || g.includes('bulk');
+    if (isLoss) {
+      return delta <= 0 ? 'var(--brand-primary-light, #10B981)' : 'var(--accent-danger, #EF4444)';
+    }
+    if (isGain) {
+      return delta >= 0 ? 'var(--brand-primary-light, #10B981)' : 'var(--accent-danger, #EF4444)';
+    }
+    const abs = Math.abs(delta);
+    if (abs <= 1.0) return 'var(--brand-primary-light, #10B981)';
+    if (abs <= 2.0) return '#F5A623';
+    return 'var(--accent-danger, #EF4444)';
+  };
 
   // Calculate PRs from history
   const prHallOfFame = (() => {
@@ -202,6 +253,7 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
   const heightNum = parseFloat(user.height) || 175;
   const ageNum = parseInt(user.age, 10) || 24;
   const genderStr = (user.gender || 'male').toLowerCase();
+  const currentLoggedWeight = weightLogs[weightLogs.length - 1]?.weight || weightNum;
 
   const bmi = (weightNum / ((heightNum / 100) ** 2)).toFixed(1);
   const bmiCategory = bmi < 18.5 ? { label: 'Underweight', color: 'var(--accent-carbs-text, #38BDF8)' } :
@@ -221,6 +273,16 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
   const totalVolumeKg = Math.round(workoutHistory.reduce((sum, h) => sum + (h.totalVolume || 0), 0));
   const currentStreak = Math.min(totalWorkouts, 7);
   const totalSets = workoutHistory.reduce((acc, h) => acc + (h.exercises || []).reduce((eAcc, ex) => eAcc + (ex.sets || []).length, 0), 0);
+
+  const centuryProgress = totalSets < 10
+    ? `${Math.min(totalSets, 10)}/10 sets (first milestone)`
+    : totalSets < 25
+    ? `${Math.min(totalSets, 25)}/25 sets (second milestone)`
+    : totalSets < 50
+    ? `${Math.min(totalSets, 50)}/50 sets (third milestone)`
+    : totalSets < 100
+    ? `${Math.min(totalSets, 100)}/100 sets`
+    : 'Completed';
 
   // Check food & hydration adherence for badges
   const todayStr = new Date().toISOString().split('T')[0];
@@ -243,8 +305,8 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
       description: 'Logged your first meal of your nutrition journey.',
       icon: Utensils,
       color: '#10B981',
-      isUnlocked: hasFoodLogs || totalWorkouts > 0,
-      progress: hasFoodLogs || totalWorkouts > 0 ? 'Completed' : '0/1 meal',
+      isUnlocked: true,
+      progress: 'Completed',
       quote: 'The journey of a thousand miles begins with a single meal logged.'
     },
     {
@@ -277,7 +339,7 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
       icon: Trophy,
       color: '#38BDF8',
       isUnlocked: totalSets >= 100,
-      progress: `${Math.min(totalSets, 100)}/100 sets`,
+      progress: totalSets >= 100 ? 'Completed' : centuryProgress,
       quote: 'Hundred sets of focused effort forge real athletic discipline.'
     },
     {
@@ -305,7 +367,7 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
     {
       id: 'hydration_hero',
       name: 'Hydration Hero',
-      category: 'Recovery',
+      category: 'Wellness',
       description: 'Recorded 8 or more glasses of water in a single day.',
       icon: Droplets,
       color: '#06B6D4',
@@ -406,8 +468,8 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
 
           {/* Name + profile type */}
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--brand-primary-light)' }}>
-              {profileTypeLabel}
+            <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.04em', color: 'var(--brand-primary-light)' }}>
+              {getGoalModeBadge(user.goal)}
             </div>
             <h1 style={{
               margin: '2px 0 0',
@@ -415,9 +477,8 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
               fontSize: 24,
               fontWeight: 800,
               color: 'var(--text-primary)',
-              textTransform: 'capitalize',
             }}>
-              {user.fullName}
+              {toTitleCase(user.fullName || '')}
             </h1>
             <div style={{
               marginTop: 4,
@@ -425,7 +486,7 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
               fontWeight: 600,
               color: 'var(--text-muted)',
             }}>
-              {cleanProfession} · Joined NutriBuddy
+              {cleanProfession} · {getGoalSubtitle(user.goal)}
             </div>
           </div>
         </div>
@@ -443,52 +504,56 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
           >
             Edit Profile
           </button>
-          <button
-            onClick={onLogout}
-            className="btn btn-secondary"
-            style={{
-              padding: '9px 16px',
-              fontSize: 12.5,
-              fontWeight: 700,
-            }}
-          >
-            Logout
-          </button>
         </div>
       </div>
 
       {/* ── TOP KEY METRICS SUMMARY STRIP (Always Visible) ── */}
       <div className="mobile-2col-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
         <div style={{ background: 'var(--bg-surface)', padding: '16px 20px', borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)' }}>
-          <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>TARGET CALORIES</span>
+          <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>Calorie target</span>
           <div className="tabular-nums" style={{ fontSize: 20, fontWeight: 800, color: 'var(--brand-primary-light)', marginTop: 2 }}>
             {user.dailyCalories ? `${user.dailyCalories} kcal` : '—'}
           </div>
         </div>
         <div style={{ background: 'var(--bg-surface)', padding: '16px 20px', borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)' }}>
-          <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>DAILY PROTEIN</span>
+          <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>Daily protein</span>
           <div className="tabular-nums" style={{ fontSize: 20, fontWeight: 800, color: 'var(--accent-protein-text, #818CF8)', marginTop: 2 }}>
             {user.targetProtein ? `${user.targetProtein}g` : '—'}
           </div>
         </div>
         <div style={{ background: 'var(--bg-surface)', padding: '16px 20px', borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)' }}>
-          <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>BMI STATUS</span>
+          <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>BMI status</span>
           <div className="tabular-nums" style={{ fontSize: 18, fontWeight: 800, color: bmiCategory.color, marginTop: 2 }}>
             {bmi} · {bmiCategory.label}
           </div>
         </div>
-        <div style={{ background: 'var(--bg-surface)', padding: '16px 20px', borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)' }}>
-          <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>WORKOUT STREAK</span>
-          <div className="tabular-nums" style={{ fontSize: 20, fontWeight: 800, color: 'var(--brand-primary-light)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Flame size={18} fill="var(--brand-primary-light)" /> {currentStreak} Sessions
-          </div>
+        <div 
+          onClick={currentStreak === 0 && setCurrentPage ? () => setCurrentPage('exercise') : undefined}
+          style={{ 
+            background: 'var(--bg-surface)', 
+            padding: '16px 20px', 
+            borderRadius: 'var(--radius-panel)', 
+            border: '1px solid var(--border-subtle)',
+            cursor: currentStreak === 0 ? 'pointer' : 'default'
+          }}
+        >
+          <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>Workout streak</span>
+          {currentStreak === 0 ? (
+            <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--brand-primary-light)', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+              Start your first workout →
+            </div>
+          ) : (
+            <div className="tabular-nums" style={{ fontSize: 20, fontWeight: 800, color: 'var(--brand-primary-light)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Flame size={18} fill="var(--brand-primary-light)" /> {currentStreak} Sessions
+            </div>
+          )}
         </div>
       </div>
 
       {/* Section Controls Bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 6px' }}>
-        <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-          PROFILE SECTIONS
+        <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.06em' }}>
+          Profile sections
         </span>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <button
@@ -538,37 +603,37 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
           <div className="fadeInUp" style={{ marginTop: 20, paddingTop: 18, borderTop: '1px solid var(--border-subtle)' }}>
             <div className="mobile-2col-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
               <div style={{ background: 'var(--bg-surface-raised)', border: '1px solid var(--border-subtle)', borderRadius: 12, padding: '14px 16px' }}>
-                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>GENDER</span>
+                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)' }}>Biological sex</span>
                 <div style={{ fontSize: 17, fontWeight: 900, fontFamily: 'var(--font-heading)', color: 'var(--text-primary)', textTransform: 'capitalize', marginTop: 4 }}>
                   {user.gender || '—'}
                 </div>
               </div>
               <div style={{ background: 'var(--bg-surface-raised)', border: '1px solid var(--border-subtle)', borderRadius: 12, padding: '14px 16px' }}>
-                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>AGE</span>
+                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)' }}>Age</span>
                 <div style={{ fontSize: 17, fontWeight: 900, fontFamily: 'var(--font-heading)', color: 'var(--text-primary)', marginTop: 4 }}>
                   {user.age ? `${user.age} yrs` : '—'}
                 </div>
               </div>
               <div style={{ background: 'var(--bg-surface-raised)', border: '1px solid var(--border-subtle)', borderRadius: 12, padding: '14px 16px' }}>
-                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>HEIGHT</span>
+                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)' }}>Height</span>
                 <div style={{ fontSize: 17, fontWeight: 900, fontFamily: 'var(--font-heading)', color: 'var(--text-primary)', marginTop: 4 }}>
                   {user.height ? `${user.height} cm` : '—'}
                 </div>
               </div>
               <div style={{ background: 'var(--bg-surface-raised)', border: '1px solid var(--border-subtle)', borderRadius: 12, padding: '14px 16px' }}>
-                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>BODY WEIGHT</span>
+                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)' }}>Body weight</span>
                 <div style={{ fontSize: 17, fontWeight: 900, fontFamily: 'var(--font-heading)', color: 'var(--text-primary)', marginTop: 4 }}>
                   {user.weight ? `${user.weight} kg` : '—'}
                 </div>
               </div>
               <div style={{ background: 'var(--bg-surface-raised)', border: '1px solid var(--border-subtle)', borderRadius: 12, padding: '14px 16px' }}>
-                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>BODY MASS INDEX</span>
+                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)' }}>Body mass index</span>
                 <div style={{ fontSize: 17, fontWeight: 900, color: bmiCategory.color, marginTop: 4 }}>
                   {bmi} <span style={{ fontSize: 11, fontWeight: 700 }}>({bmiCategory.label})</span>
                 </div>
               </div>
               <div style={{ background: 'var(--bg-surface-raised)', border: '1px solid var(--border-subtle)', borderRadius: 12, padding: '14px 16px' }}>
-                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>BASAL METABOLISM</span>
+                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)' }}>Basal metabolism</span>
                 <div style={{ fontSize: 17, fontWeight: 900, color: 'var(--text-primary)', marginTop: 4 }}>
                   ~{bmr.toLocaleString()} kcal
                 </div>
@@ -597,7 +662,7 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--brand-primary-light)', background: 'var(--brand-primary-subtle)', padding: '4px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-focus)' }}>
-              Big 4 Movements
+              Big 4 movements
             </span>
             <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--bg-surface-raised)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
               {openSections.prs ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -620,7 +685,7 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
                       position: 'relative',
                       overflow: 'hidden'
                     }}>
-                      <span style={{ fontSize: 10, color: pattern.iconColor, display: 'flex', alignItems: 'center', gap: 4, fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 6 }}>
+                      <span style={{ fontSize: 10, color: pattern.iconColor, display: 'flex', alignItems: 'center', gap: 4, fontWeight: 800, letterSpacing: '0.04em', marginBottom: 6 }}>
                         <Award size={12} /> {pattern.label}
                       </span>
                       <div className="tabular-nums" style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 2 }}>
@@ -632,21 +697,51 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
                     </div>
                   );
                 }
+                const empty = PR_EMPTY_STATES[pattern.key] || {
+                  text: 'No record logged yet',
+                  subtext: 'Complete a workout session to set your first PR'
+                };
                 return (
                   <div key={pattern.key} style={{
                     background: 'var(--bg-surface-raised)',
                     border: '1px dashed var(--border-subtle)',
                     borderRadius: 'var(--radius-panel)',
                     padding: 16,
-                    opacity: 0.65
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    minHeight: 120
                   }}>
-                    <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 800, textTransform: 'uppercase', marginBottom: 6 }}>
-                      {pattern.label}
-                    </span>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 2 }}>
-                      No Record Logged Yet
+                    <div>
+                      <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 800, marginBottom: 6 }}>
+                        {pattern.label}
+                      </span>
+                      <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 2 }}>
+                        {empty.text}
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.3 }}>
+                        {empty.subtext}
+                      </div>
                     </div>
-                    <span style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>Log this exercise in Workout Console</span>
+                    <button
+                      onClick={() => setCurrentPage && setCurrentPage('exercise')}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        marginTop: 10,
+                        fontSize: 11.5,
+                        fontWeight: 700,
+                        color: 'var(--brand-primary-light, #10B981)',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4
+                      }}
+                    >
+                      → Start a workout
+                    </button>
                   </div>
                 );
               })}
@@ -688,13 +783,13 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
             {/* Goal & Activity Level */}
             <div className="form-grid-2" style={{ marginBottom: 16 }}>
               <div style={{ background: 'var(--bg-surface-raised)', padding: 14, borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)' }}>
-                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>FITNESS GOAL</span>
+                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)' }}>Fitness goal</span>
                 <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-primary)', marginTop: 4 }}>
                   {getGoalLabel(user.goal)}
                 </div>
               </div>
               <div style={{ background: 'var(--bg-surface-raised)', padding: 14, borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)' }}>
-                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>ACTIVITY LEVEL</span>
+                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)' }}>Activity level</span>
                 <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-primary)', marginTop: 4 }}>
                   {getActivityLabel(user.activityLevel)}
                 </div>
@@ -714,7 +809,7 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
                     textAlign: 'center',
                   }}
                 >
-                  <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>{label}</span>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)' }}>{label}</span>
                   <div className="tabular-nums" style={{
                     fontSize: 18,
                     fontWeight: 800,
@@ -730,15 +825,17 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
             {/* Diet & Allergies Row */}
             <div className="form-grid-2" style={{ marginBottom: 14 }}>
               <div>
-                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>DIETARY STYLE</span>
+                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)' }}>Dietary style</span>
                 <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginTop: 2, textTransform: 'capitalize' }}>
                   {user.dietaryPreferences || 'No specific restrictions'}
                 </div>
               </div>
               <div>
-                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>REGIONAL CUISINE</span>
+                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)' }}>Regional cuisine</span>
                 <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginTop: 2, textTransform: 'capitalize' }}>
-                  {user.cuisinePreference === 'gujarati' ? 'Gujarati' :
+                  {user.cuisinePreference === 'rajasthani' ? 'Rajasthani' :
+                   user.cuisinePreference === 'bengali' ? 'Bengali' :
+                   user.cuisinePreference === 'gujarati' ? 'Gujarati' :
                    user.cuisinePreference === 'north' ? 'North Indian & Punjabi' :
                    user.cuisinePreference === 'south' ? 'South Indian' :
                    user.cuisinePreference === 'west' ? 'Maharashtrian' :
@@ -749,13 +846,13 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
 
             <div className="form-grid-2" style={{ marginBottom: 14 }}>
               <div>
-                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>COOKING EXPERIENCE</span>
+                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)' }}>Cooking experience</span>
                 <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginTop: 2, textTransform: 'capitalize' }}>
                   {user.cookingSkill === 'no-cook' ? 'Beginner / Quick Prep' : (user.cookingSkill || 'Intermediate')}
                 </div>
               </div>
               <div>
-                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>MONTHLY BUDGET</span>
+                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)' }}>Monthly budget</span>
                 <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginTop: 2, textTransform: 'capitalize' }}>
                   {user.budgetRange === 'tight' ? 'Tight (₹3k - ₹5k)' :
                    user.budgetRange === 'moderate' ? 'Moderate (₹5k - ₹10k)' :
@@ -765,7 +862,7 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
             </div>
 
             <div>
-              <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>ALLERGY SAFEGUARDS</span>
+              <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)' }}>Allergy safeguards</span>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
                 {user.allergies && user.allergies.length > 0 ? (
                   user.allergies.map((allergy) => (
@@ -797,7 +894,7 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
                       padding: '4px 10px',
                     }}
                   >
-                    No Known Allergies
+                    No known allergies
                   </span>
                 )}
               </div>
@@ -811,8 +908,8 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
                 <div style={{ marginTop: 20, paddingTop: 18, borderTop: '1px solid var(--border-subtle)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                     <Calculator size={15} color="var(--brand-primary-light)" />
-                    <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--brand-primary-light)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                      SCIENTIFIC CALORIE CALCULATION BREAKDOWN
+                    <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.04em' }}>
+                      How your calorie target is calculated
                     </span>
                   </div>
 
@@ -886,26 +983,84 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
           <div className="fadeInUp" style={{ marginTop: 20, paddingTop: 18, borderTop: '1px solid var(--border-subtle)' }}>
             <div className="mobile-2col-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 16 }}>
               <div style={{ background: 'var(--bg-surface-raised)', padding: 14, borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)' }}>
-                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>TOTAL SESSIONS</span>
+                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)' }}>Total sessions</span>
                 <div className="tabular-nums" style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)', marginTop: 4 }}>{totalWorkouts} logs</div>
               </div>
 
               <div style={{ background: 'var(--bg-surface-raised)', padding: 14, borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)' }}>
-                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>LIFETIME VOLUME</span>
+                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)' }}>Lifetime volume</span>
                 <div className="tabular-nums" style={{ fontSize: 20, fontWeight: 800, color: 'var(--brand-primary-light)', marginTop: 4 }}>{totalVolumeKg.toLocaleString()} kg</div>
               </div>
 
               <div style={{ background: 'var(--bg-surface-raised)', padding: 14, borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)' }}>
-                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>ACTIVE STREAK</span>
-                <div className="tabular-nums" style={{ fontSize: 20, fontWeight: 800, color: 'var(--brand-primary-light)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Flame size={16} fill="var(--brand-primary-light)" /> {currentStreak} Sessions
-                </div>
+                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)' }}>Active streak</span>
+                {currentStreak === 0 ? (
+                  <button
+                    onClick={() => setCurrentPage && setCurrentPage('exercise')}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      color: 'var(--brand-primary-light)',
+                      fontSize: 12.5,
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      marginTop: 4,
+                      display: 'block'
+                    }}
+                  >
+                    Start your first workout →
+                  </button>
+                ) : (
+                  <div className="tabular-nums" style={{ fontSize: 20, fontWeight: 800, color: 'var(--brand-primary-light)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Flame size={16} fill="var(--brand-primary-light)" /> {currentStreak} Sessions
+                  </div>
+                )}
               </div>
 
-              <div style={{ background: 'var(--bg-surface-raised)', padding: 14, borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)' }}>
-                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>STREAK SHIELD</span>
+              <div style={{ background: 'var(--bg-surface-raised)', padding: 14, borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)', position: 'relative' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)' }}>Streak shield</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowShieldTooltip(prev => !prev)}
+                    title="Streak Shield info"
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      color: 'var(--text-muted)'
+                    }}
+                  >
+                    <Info size={12} />
+                  </button>
+                </div>
+                {showShieldTooltip && (
+                  <div style={{
+                    position: 'absolute',
+                    bottom: '100%',
+                    right: 0,
+                    marginBottom: 6,
+                    background: 'var(--bg-surface, #0D1117)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 'var(--radius-sm, 8px)',
+                    padding: '8px 12px',
+                    fontSize: 11,
+                    color: 'var(--text-secondary)',
+                    lineHeight: 1.4,
+                    width: 220,
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+                    zIndex: 10
+                  }}>
+                    Streak Shield protects your streak if you miss one day. Earn it by maintaining a 7-day streak.
+                  </div>
+                )}
                 <div style={{ fontSize: 13, fontWeight: 800, color: streakShield ? 'var(--brand-primary-light)' : 'var(--text-muted)', marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Shield size={15} /> {streakShield ? 'ACTIVE' : 'INACTIVE'}
+                  <Shield size={15} /> {streakShield ? 'Active' : 'Inactive'}
                 </div>
               </div>
             </div>
@@ -913,8 +1068,8 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
             {/* Recent Workouts Log preview */}
             {workoutHistory.length > 0 && (
               <div>
-                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: 8 }}>
-                  RECENT TRAINING ARCHIVE
+                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
+                  Recent training archive
                 </span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {workoutHistory.slice(0, 3).map((session, sIdx) => (
@@ -983,27 +1138,26 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
               const startW = weightLogs[0]?.weight || weightNum;
               const curW = weightLogs[weightLogs.length - 1]?.weight || weightNum;
               const netDelta = +(curW - startW).toFixed(1);
-              const isGoalAligned = (user.goal === 'lose' || user.goal === 'fat_loss') ? netDelta < 0 : (user.goal === 'gain' || user.goal === 'lean_bulk') ? netDelta > 0 : Math.abs(netDelta) <= 1;
 
               return (
                 <div className="mobile-2col-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
                   <div style={{ background: 'var(--bg-surface-raised)', padding: 14, borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)' }}>
-                    <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>START WEIGHT</span>
+                    <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)' }}>Start weight</span>
                     <div className="tabular-nums" style={{ fontSize: 19, fontWeight: 800, color: 'var(--text-primary)', marginTop: 4 }}>
                       {startW} <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)' }}>kg</span>
                     </div>
                   </div>
 
                   <div style={{ background: 'var(--bg-surface-raised)', padding: 14, borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)' }}>
-                    <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>CURRENT WEIGHT</span>
+                    <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)' }}>Current weight</span>
                     <div className="tabular-nums" style={{ fontSize: 19, fontWeight: 800, color: 'var(--brand-primary-light)', marginTop: 4 }}>
                       {curW} <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)' }}>kg</span>
                     </div>
                   </div>
 
                   <div style={{ background: 'var(--bg-surface-raised)', padding: 14, borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)' }}>
-                    <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>NET VELOCITY</span>
-                    <div className="tabular-nums" style={{ fontSize: 19, fontWeight: 800, color: isGoalAligned ? 'var(--brand-primary-light)' : '#EF4444', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)' }}>Net velocity</span>
+                    <div className="tabular-nums" style={{ fontSize: 19, fontWeight: 800, color: getNetVelocityColor(netDelta, user.goal), marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
                       {netDelta < 0 ? <TrendingDown size={16} /> : netDelta > 0 ? <TrendingUp size={16} /> : null}
                       {netDelta > 0 ? `+${netDelta}` : netDelta} kg
                     </div>
@@ -1022,7 +1176,7 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
                   max="300"
                   value={newWeightInput}
                   onChange={(e) => setNewWeightInput(e.target.value)}
-                  placeholder="Today's weigh-in (e.g. 72.4)"
+                  placeholder={'e.g. ' + (currentLoggedWeight + 0.1).toFixed(1)}
                   style={{
                     width: '100%',
                     padding: '11px 14px',
@@ -1067,13 +1221,18 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
             {/* Recent Weigh-ins Log List */}
             {weightLogs.length > 0 && (
               <div>
-                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: 8 }}>
-                  RECENT WEIGH-IN LOGS
+                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
+                  Recent weigh-in logs
                 </span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {[...weightLogs].reverse().slice(0, 5).map((log, idx, arr) => {
-                    const prevInChronology = arr[idx + 1];
+                  {[...weightLogs].reverse().slice(0, 5).map((log) => {
+                    const chronoIdx = weightLogs.findIndex(w => w.date === log.date);
+                    const prevInChronology = chronoIdx > 0 ? weightLogs[chronoIdx - 1] : null;
                     const diff = prevInChronology ? +(log.weight - prevInChronology.weight).toFixed(1) : null;
+                    const diffColor = diff === null ? 'var(--text-muted)' :
+                      (user.goal === 'lose' || user.goal === 'fat_loss') ? (diff <= 0 ? 'var(--brand-primary-light)' : 'var(--accent-danger, #EF4444)') :
+                      (user.goal === 'gain' || user.goal === 'lean_bulk' || user.goal === 'aggressive_bulk') ? (diff >= 0 ? 'var(--brand-primary-light)' : 'var(--accent-danger, #EF4444)') :
+                      (Math.abs(diff) <= 0.2 ? 'var(--brand-primary-light)' : '#F5A623');
                     return (
                       <div
                         key={log.date}
@@ -1095,11 +1254,9 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
                           </span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                          {diff !== null && (
-                            <span className="tabular-nums" style={{ fontSize: 11, fontWeight: 700, color: diff <= 0 ? 'var(--brand-primary-light)' : 'var(--accent-fat-text, #FB7185)' }}>
-                              {diff > 0 ? `+${diff}` : diff} kg
-                            </span>
-                          )}
+                          <span className="tabular-nums" style={{ fontSize: 11, fontWeight: 700, color: diffColor }}>
+                            {diff === null ? '—' : (diff > 0 ? `+${diff} kg` : `${diff} kg`)}
+                          </span>
                           <span className="tabular-nums" style={{ fontWeight: 800, color: 'var(--text-primary)' }}>
                             {log.weight} kg
                           </span>
@@ -1226,7 +1383,7 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
                       <div style={{ fontSize: 12, fontWeight: 800, color: badge.isUnlocked ? 'var(--text-primary)' : 'var(--text-muted)', lineHeight: 1.2 }}>
                         {badge.name}
                       </div>
-                      <span style={{ fontSize: 9, fontWeight: 700, color: badge.isUnlocked ? badge.color : 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      <span style={{ fontSize: 9, fontWeight: 700, color: badge.isUnlocked ? badge.color : 'var(--text-muted)', letterSpacing: '0.04em' }}>
                         {badge.category}
                       </span>
                     </div>
@@ -1297,7 +1454,7 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
                   key: 'hydration',
                   icon: Droplets,
                   title: 'Hydration Water Pings',
-                  desc: 'Hourly micro-prompts between 10:00 AM and 6:00 PM'
+                  desc: 'Smart reminders when no water logged (every 2 hours, 10 AM–6 PM)'
                 },
                 {
                   key: 'weekly',
@@ -1383,6 +1540,79 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
         )}
       </div>
 
+      {/* ── SECTION 8: ACCOUNT & SETTINGS ── */}
+      <div style={card}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(239, 68, 68, 0.12)', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <LogOut size={18} />
+          </div>
+          <div>
+            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
+              Account & Settings
+            </h3>
+            <p style={{ margin: 0, fontSize: 11, color: 'var(--text-muted)' }}>
+              Session controls and app references
+            </p>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{
+            padding: '14px 16px',
+            background: 'var(--bg-surface-raised)',
+            borderRadius: 'var(--radius-panel)',
+            border: '1px solid var(--border-subtle)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
+                {toTitleCase(user.fullName || 'User')}
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                {user.email || 'Active member'}
+              </div>
+            </div>
+            <button
+              onClick={onLogout}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#EF4444',
+                fontSize: 13,
+                fontWeight: 800,
+                cursor: 'pointer',
+                padding: '6px 12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6
+              }}
+            >
+              <LogOut size={15} /> Sign out
+            </button>
+          </div>
+        </div>
+
+        {/* Relocated Footer */}
+        <footer style={{
+          marginTop: 24, paddingTop: 16,
+          borderTop: '1px solid var(--border-subtle)',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          flexWrap: 'wrap', gap: 10
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 13, fontWeight: 800, fontFamily: 'var(--font-heading)', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+              Nutri<span style={{ color: 'var(--accent-lime-text, #10B981)' }}>Buddy</span>
+            </span>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>· Health Companion</span>
+          </div>
+          <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+            Trackers · Budget Planner · Gym Logs
+          </div>
+        </footer>
+      </div>
+
       {/* ── MILESTONE BADGE DETAIL MODAL (Portal) ── */}
       {selectedBadge && createPortal(
         <div
@@ -1452,7 +1682,7 @@ export default function UserProfileDetails({ user, onEdit, onLogout }) {
             </div>
 
             {/* Title & category */}
-            <div style={{ fontSize: 11, fontWeight: 800, color: selectedBadge.color, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: selectedBadge.color, letterSpacing: '0.04em' }}>
               {selectedBadge.category} • Milestone
             </div>
             <h3 style={{ margin: '6px 0 10px', fontSize: 20, fontWeight: 900, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>

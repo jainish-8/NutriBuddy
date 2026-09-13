@@ -59,8 +59,7 @@ export default function BudgetRing({
         <span style={{
           fontSize: 10.5,
           fontWeight: 800,
-          textTransform: 'uppercase',
-          letterSpacing: '0.07em',
+          letterSpacing: '0.04em',
           color: 'var(--text-muted, #94A3B8)'
         }}>
           {label}
@@ -130,11 +129,10 @@ export default function BudgetRing({
           <span style={{
             fontSize: 9.5,
             fontWeight: 800,
-            textTransform: 'uppercase',
-            letterSpacing: '0.06em',
+            letterSpacing: '0.04em',
             color: 'var(--text-muted, #94A3B8)'
           }}>
-            ESTIMATED SPEND
+            Estimated spend
           </span>
           <span className="tabular-nums" style={{
             fontSize: 22,
