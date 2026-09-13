@@ -17,7 +17,6 @@ import {
   Plus,
   Minus,
   Check,
-  Clock,
   RefreshCw,
   Search,
   X,
@@ -28,11 +27,6 @@ import {
   Copy,
   Sparkles,
   Flame,
-  Apple,
-  Coffee,
-  Sun,
-  Moon,
-  Dumbbell,
   Share2
 } from 'lucide-react';
 
@@ -121,28 +115,16 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
     snacks: 'Evening snack'
   };
 
-  const getMealIcon = (meal) => {
+  const getMealBadgeClass = (meal) => {
     switch (meal) {
-      case 'breakfast': return <Coffee size={14} color="#38BDF8" />;
-      case 'pre_workout': return <Flame size={14} color="#10B981" />;
-      case 'lunch': return <Sun size={14} color="#818CF8" />;
-      case 'post_workout': return <Dumbbell size={14} color="#F59E0B" />;
-      case 'dinner': return <Moon size={14} color="#A78BFA" />;
-      case 'snacks': return <Apple size={14} color="#FB923C" />;
-      default: return <Coffee size={14} color="var(--brand-primary-light)" />;
+      case 'breakfast': return 'badge-slot-breakfast';
+      case 'pre_workout': return 'badge-slot-preworkout';
+      case 'lunch': return 'badge-slot-lunch';
+      case 'post_workout': return 'badge-slot-postworkout';
+      case 'dinner': return 'badge-slot-dinner';
+      case 'snacks': return 'badge-slot-snack';
+      default: return 'badge-slot-breakfast';
     }
-  };
-
-  const getMealColor = (meal) => {
-    const colors = {
-      breakfast: '#38BDF8',
-      pre_workout: '#10B981',
-      lunch: '#818CF8',
-      post_workout: '#F59E0B',
-      dinner: '#A78BFA',
-      snacks: '#FB923C'
-    };
-    return colors[meal] || 'var(--text-muted)';
   };
 
   function getCurrentDay() {
@@ -355,7 +337,7 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
     } catch (_) { }
 
     setLoggedMeals(prev => ({ ...prev, [mealKey]: 'done' }));
-    setTimeout(() => setLoggedMeals(prev => ({ ...prev, [mealKey]: null })), 3000);
+    setTimeout(() => setLoggedMeals(prev => ({ ...prev, [mealKey]: null })), 1500);
   };
 
   const toggleGroceryCheck = (itemKey) => {
@@ -677,14 +659,14 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
               {/* Fats Target Box */}
               <div style={{ background: 'var(--bg-surface-raised)', padding: '12px 16px', borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                  <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--accent-fat-text, #FB7185)' }}>Planned fats</span>
+                  <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--color-fat, #f5a623)' }}>Planned fats</span>
                   <span className="tabular-nums" style={{ fontSize: 11, fontWeight: 700, color: getPercentColor(fatPercent) }}>{fatPercent}%</span>
                 </div>
                 <div className="tabular-nums" style={{ fontSize: 18, fontWeight: 900, color: 'var(--text-primary)' }}>
                   {totals.fat}g <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>/ {targetFat}g</span>
                 </div>
                 <div style={{ height: 4, borderRadius: 2, background: 'var(--border-subtle)', marginTop: 6, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${Math.min(100, Math.max(0, fatPercent))}%`, background: getBarColor(fatPercent, '#FB7185'), borderRadius: 2 }} />
+                  <div style={{ height: '100%', width: `${Math.min(100, Math.max(0, fatPercent))}%`, background: getBarColor(fatPercent, 'var(--color-fat, #f5a623)'), borderRadius: 2 }} />
                 </div>
               </div>
             </div>
@@ -755,189 +737,142 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
                 const mealData = weeklyPlan[selectedDay]?.[meal];
                 if (!mealData) return null;
 
-                const mealColor = getMealColor(meal);
                 const mealKey = `${selectedDay}-${meal}`;
                 const logStatus = loggedMeals[mealKey];
 
                 return (
                   <div
                     key={meal}
+                    className="nb-card"
                     style={{
-                      background: 'var(--bg-surface)',
-                      border: '1px solid var(--border-subtle)',
-                      borderRadius: 'var(--radius-card)',
-                      padding: '20px 24px',
+                      padding: '20px 22px',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: 16,
-                      transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                      boxShadow: 'var(--shadow-card)'
+                      gap: 0,
+                      transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
                     }}
                   >
-                    {/* TOP TIER: Meal Info Header & Macro Tag Ribbon */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 14 }}>
-                      
-                      {/* Left: Meal Indicator + Title + Indian Platter Composition */}
-                      <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flex: '1 1 320px', minWidth: 260 }}>
-                        <div style={{ width: 4, height: 46, borderRadius: 2, background: mealColor, flexShrink: 0, marginTop: 2 }} />
-                        <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                            <span style={{ fontSize: 11, fontWeight: 800, color: mealColor, textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: 5 }}>
-                              {getMealIcon(meal)} {mealLabels[meal] || meal.toUpperCase()}
-                            </span>
-                            {mealData.prepTime && (
-                              <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 3, background: 'var(--bg-surface-raised)', padding: '2px 8px', borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                <Clock size={10} /> {mealData.prepTime}m prep
-                              </span>
-                            )}
-                            {mealData.region && (
-                              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', background: 'var(--bg-surface-raised)', padding: '2px 8px', borderRadius: 6, border: '1px solid var(--border-subtle)', textTransform: 'capitalize' }}>
-                                {mealData.region} Cuisine
-                              </span>
-                            )}
-                          </div>
+                    {/* Row 1: [Meal slot badge] ............... [X kcal] */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span className={`nb-tag ${getMealBadgeClass(meal)}`}>
+                        {mealLabels[meal] || meal}
+                      </span>
+                      <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+                        {Math.round(mealData.calories)} <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-muted)' }}>kcal</span>
+                      </span>
+                    </div>
 
-                          <h3 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)', letterSpacing: '-0.01em' }}>
-                            {mealData.name}
-                          </h3>
+                    {/* Row 2: Meal name (16px weight 600, --text-primary, line-height 1.3) */}
+                    <h3 style={{ margin: '12px 0 2px', fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3 }}>
+                      {mealData.name}
+                    </h3>
 
-                          <div style={{ fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                            Serving: <span style={{ color: 'var(--text-secondary)', fontWeight: 700 }}>{getDynamicServingUnit(mealData, mealData.multiplier || 1)}</span>
-                          </div>
-                        </div>
+                    {/* Row 3: Serving description (12px, --text-secondary) */}
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 12 }}>
+                      {getDynamicServingUnit(mealData, mealData.multiplier || 1)}
+                    </div>
+
+                    {/* Row 4: [P Xg] [C Xg] [F Xg] in colored text, then [portion multiplier Xx] right-aligned */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 13, fontWeight: 700, letterSpacing: '-0.02em' }}>
+                        <span style={{ color: 'var(--color-protein)' }}>P {Math.round(mealData.protein)}g</span>
+                        <span style={{ color: 'var(--color-carbs)' }}>C {Math.round(mealData.carbs)}g</span>
+                        <span style={{ color: 'var(--color-fat)' }}>F {Math.round(mealData.fat)}g</span>
                       </div>
-
-                      {/* Right: Clean Macro Tag Grid */}
-                      <div className="tabular-nums" style={{
+                      <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 14,
-                        background: 'var(--bg-surface-raised)',
-                        border: '1px solid var(--border-subtle)',
-                        padding: '8px 18px',
-                        borderRadius: 'var(--radius-panel)',
-                        flexWrap: 'wrap'
+                        gap: 4,
+                        background: 'var(--color-raised)',
+                        borderRadius: 8,
+                        border: '0.5px solid var(--border-default)',
+                        padding: '3px 6px'
                       }}>
-                        <div style={{ textAlign: 'center', paddingRight: 12, borderRight: '1px solid var(--border-subtle)' }}>
-                          <div style={{ fontSize: 14.5, fontWeight: 900, color: 'var(--brand-primary-light)' }}>{mealData.calories}</div>
-                          <div style={{ fontSize: 9.5, fontWeight: 800, color: 'var(--text-muted)' }}>kcal</div>
-                        </div>
-                        <div style={{ textAlign: 'center' }}>
-                          <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--accent-protein-text, #818CF8)' }}>{mealData.protein}g</div>
-                          <div style={{ fontSize: 9.5, fontWeight: 800, color: 'var(--text-muted)' }}>Prot</div>
-                        </div>
-                        <div style={{ textAlign: 'center' }}>
-                          <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--brand-primary-light, #10B981)' }}>{mealData.carbs}g</div>
-                          <div style={{ fontSize: 9.5, fontWeight: 800, color: 'var(--text-muted)' }}>Carb</div>
-                        </div>
-                        <div style={{ textAlign: 'center' }}>
-                          <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--accent-fat-text, #FB7185)' }}>{mealData.fat}g</div>
-                          <div style={{ fontSize: 9.5, fontWeight: 800, color: 'var(--text-muted)' }}>Fat</div>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleAdjustPortion(selectedDay, meal, -0.25)}
+                          disabled={(mealData.multiplier || 1) <= 0.25}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: (mealData.multiplier || 1) <= 0.25 ? 'var(--text-muted)' : 'var(--text-secondary)',
+                            cursor: (mealData.multiplier || 1) <= 0.25 ? 'not-allowed' : 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: 2
+                          }}
+                          title="Decrease portion"
+                        >
+                          <Minus size={11} />
+                        </button>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', minWidth: 32, textAlign: 'center' }}>
+                          {mealData.multiplier || 1}×
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleAdjustPortion(selectedDay, meal, 0.25)}
+                          disabled={(mealData.multiplier || 1) >= 3.0}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: (mealData.multiplier || 1) >= 3.0 ? 'var(--text-muted)' : 'var(--text-secondary)',
+                            cursor: (mealData.multiplier || 1) >= 3.0 ? 'not-allowed' : 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: 2
+                          }}
+                          title="Increase portion"
+                        >
+                          <Plus size={11} />
+                        </button>
                       </div>
                     </div>
 
-                    {/* BOTTOM TIER: Well-Spaced Action Toolbar */}
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      paddingTop: 14,
-                      borderTop: '1px solid var(--border-subtle)',
-                      flexWrap: 'wrap',
-                      gap: 12
-                    }}>
-                      {/* Left: Portion Scale Stepper */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
-                          Portion:
-                        </span>
-                        <div style={{
+                    {/* Divider: 0.5px rgba(255,255,255,0.06) */}
+                    <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.06)', margin: '0 0 14px' }} />
+
+                    {/* Row 5: [Recipe] [Swap] [+ Log meal] buttons */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <button
+                        onClick={() => { setCheckedIngredients({}); setRecipeModalItem(mealData); }}
+                        className="nb-btn-secondary"
+                        style={{ flex: 1, height: 44, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+                      >
+                        <BookOpen size={13} /> Recipe
+                      </button>
+
+                      <button
+                        onClick={() => setSwapTarget({ day: selectedDay, mealType: meal, currentMeal: mealData })}
+                        className="nb-btn-secondary"
+                        style={{ flex: 1, height: 44, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+                      >
+                        <RefreshCw size={13} /> Swap
+                      </button>
+
+                      <button
+                        onClick={() => logMeal(meal, mealData)}
+                        disabled={logStatus === 'loading' || logStatus === 'done'}
+                        className={logStatus === 'done' ? 'nb-btn-secondary' : 'nb-btn-primary'}
+                        style={{
+                          flex: 2,
+                          height: 44,
+                          fontSize: 13,
                           display: 'flex',
                           alignItems: 'center',
-                          gap: 4,
-                          background: 'var(--bg-surface-raised)',
-                          padding: '4px 7px',
-                          borderRadius: 'var(--radius-panel)',
-                          border: '1px solid var(--border-subtle)'
-                        }}>
-                          <button
-                            type="button"
-                            onClick={() => handleAdjustPortion(selectedDay, meal, -0.25)}
-                            disabled={(mealData.multiplier || 1) <= 0.25}
-                            style={{
-                              width: 22, height: 22, borderRadius: 6,
-                              background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              cursor: (mealData.multiplier || 1) <= 0.25 ? 'not-allowed' : 'pointer',
-                              color: 'var(--text-primary)', fontSize: 12, fontWeight: 800
-                            }}
-                            title="Decrease portion"
-                          >
-                            <Minus size={11} />
-                          </button>
-                          <span className="tabular-nums" style={{ fontSize: 12, fontWeight: 900, color: 'var(--brand-primary-light)', minWidth: 38, textAlign: 'center' }}>
-                            {mealData.multiplier || 1}x
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleAdjustPortion(selectedDay, meal, 0.25)}
-                            disabled={(mealData.multiplier || 1) >= 3.0}
-                            style={{
-                              width: 22, height: 22, borderRadius: 6,
-                              background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              cursor: (mealData.multiplier || 1) >= 3.0 ? 'not-allowed' : 'pointer',
-                              color: 'var(--text-primary)', fontSize: 12, fontWeight: 800
-                            }}
-                            title="Increase portion"
-                          >
-                            <Plus size={11} />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Right: Distinct Action Buttons */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                        <button
-                          onClick={() => { setCheckedIngredients({}); setRecipeModalItem(mealData); }}
-                          className="btn btn-secondary"
-                          style={{ padding: '6px 12px', fontSize: 11.5, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}
-                        >
-                          <BookOpen size={13} /> Recipe
-                        </button>
-
-                        <button
-                          onClick={() => setSwapTarget({ day: selectedDay, mealType: meal, currentMeal: mealData })}
-                          className="btn btn-secondary"
-                          style={{ padding: '6px 12px', fontSize: 11.5, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}
-                        >
-                          <RefreshCw size={13} /> Swap
-                        </button>
-
-                        <button
-                          onClick={() => logMeal(meal, mealData)}
-                          disabled={logStatus === 'loading' || logStatus === 'done'}
-                          className={logStatus === 'done' ? 'btn btn-secondary' : 'btn btn-primary'}
-                          style={{
-                            padding: '6px 16px',
-                            fontSize: 12,
-                            fontWeight: 800,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 6,
-                            background: logStatus === 'done' ? 'rgba(16,185,129,0.2)' : undefined,
-                            color: logStatus === 'done' ? 'var(--brand-primary-light)' : undefined,
-                            borderColor: logStatus === 'done' ? 'var(--border-focus)' : undefined
-                          }}
-                        >
-                          {logStatus === 'done' ? (
-                            <><CheckCircle size={13} /> Logged</>
-                          ) : (
-                            <><Plus size={13} /> Log to Tracker</>
-                          )}
-                        </button>
-                      </div>
+                          justifyContent: 'center',
+                          gap: 6,
+                          background: logStatus === 'done' ? 'var(--color-green)' : undefined,
+                          color: logStatus === 'done' ? '#0a1a10' : undefined,
+                          borderColor: logStatus === 'done' ? 'var(--color-green)' : undefined,
+                          transition: 'all 0.25s ease'
+                        }}
+                      >
+                        {logStatus === 'done' ? (
+                          <><CheckCircle size={14} /> ✓ Logged</>
+                        ) : (
+                          <><Plus size={14} /> + Log meal</>
+                        )}
+                      </button>
                     </div>
                   </div>
                 );
@@ -965,11 +900,11 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
           <div
             onClick={e => e.stopPropagation()}
             style={{
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-modal)',
+              background: 'var(--color-card)',
+              border: '0.5px solid var(--border-default)',
+              borderRadius: '20px',
               width: '100%',
-              maxWidth: 740,
+              maxWidth: 680,
               maxHeight: '88vh',
               display: 'flex',
               flexDirection: 'column',
@@ -978,63 +913,48 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
             }}
           >
             {/* Header */}
-            <div style={{ padding: '22px 26px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '20px 24px', borderBottom: '0.5px solid var(--border-default)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.06em' }}>
-                  Your 7-day grocery list
+                <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-green)', letterSpacing: '0.08em' }}>
+                  Weekly grocery list
                 </span>
-                <h3 style={{ margin: '2px 0 0', fontSize: 19, fontWeight: 900, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
-                  Smart Kitchen Grocery Essentials
+                <h3 style={{ margin: '2px 0 0', fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>
+                  Smart grocery essentials
                 </h3>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <button
                   onClick={copyGroceryListText}
-                  className="btn btn-secondary"
-                  style={{ padding: '7px 14px', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}
+                  className="nb-btn-secondary"
+                  style={{ padding: '6px 12px', fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, height: 36 }}
                 >
-                  {copyToast ? <><Check size={13} color="var(--brand-primary-light)" /> Copied!</> : <><Copy size={13} /> Copy shopping list</>}
+                  {copyToast ? <><Check size={13} color="var(--color-green)" /> Copied!</> : <><Copy size={13} /> Copy list</>}
                 </button>
                 <button
                   onClick={shareGroceryList}
-                  className="btn btn-secondary"
-                  style={{ padding: '7px 14px', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}
+                  className="nb-btn-secondary"
+                  style={{ padding: '6px 12px', fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, height: 36 }}
                 >
-                  <Share2 size={13} /> Share list
+                  <Share2 size={13} /> Share
                 </button>
                 <button
                   onClick={() => setShowGroceryModal(false)}
-                  style={{ background: 'var(--bg-surface-raised)', border: '1px solid var(--border-subtle)', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}
+                  style={{ background: 'var(--color-raised)', border: '0.5px solid var(--border-default)', borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)' }}
                 >
-                  <X size={16} />
+                  <X size={18} />
                 </button>
               </div>
             </div>
 
-            {/* Inspiring Vision Banner */}
-            <div style={{ padding: '12px 26px', background: 'var(--bg-surface-raised)', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
-              <span style={{ fontSize: 12.5, color: 'var(--text-secondary)' }}>
-                Covers all meals in your weekly plan. Tap items to mark as purchased.
-              </span>
-              <span style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--brand-primary-light)', background: 'var(--brand-primary-subtle)', padding: '3px 10px', borderRadius: 8, border: '1px solid var(--border-focus)' }}>
-                {corePantry?.length || 12} Core Shared Staples
-              </span>
-            </div>
-
             {/* Aisles Content */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '20px 26px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
               {/* Weekly Staples with individual checkbox rows */}
               {corePantry && corePantry.length > 0 && (
-                <div style={{ background: 'var(--brand-primary-subtle)', border: '1px solid var(--border-focus)', borderRadius: 'var(--radius-card)', padding: '14px 18px' }}>
-                  <div style={{ marginBottom: 10 }}>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--brand-primary-light)' }}>
-                      Weekly staples
-                    </div>
-                    <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>
-                      Used across multiple meals this week
-                    </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 8, marginBottom: 8 }}>
+                    Weekly staples
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {corePantry.slice(0, 8).map((p, pIdx) => {
                       const itemKey = `staple-${p.name}`;
                       const isChecked = !!checkedGroceryItems[itemKey];
@@ -1045,31 +965,55 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
                           style={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: 9,
-                            padding: '8px 12px',
-                            borderRadius: 'var(--radius-sm)',
-                            background: isChecked ? 'var(--brand-primary-subtle)' : 'var(--bg-surface)',
-                            border: `1px solid ${isChecked ? 'var(--border-focus)' : 'var(--border-subtle)'}`,
+                            gap: 12,
+                            padding: '10px 14px',
+                            borderRadius: 12,
+                            background: isChecked ? 'rgba(34, 209, 122, 0.04)' : 'var(--color-raised)',
+                            border: `0.5px solid ${isChecked ? 'var(--border-accent)' : 'var(--border-default)'}`,
                             cursor: 'pointer',
                             transition: 'all 0.15s ease'
                           }}
                         >
                           <div style={{
-                            width: 16, height: 16, borderRadius: 4,
-                            border: `1.5px solid ${isChecked ? 'var(--brand-primary)' : 'var(--text-muted)'}`,
-                            background: isChecked ? 'var(--brand-primary)' : 'transparent',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: '#fff', fontSize: 10, flexShrink: 0
+                            width: 20,
+                            height: 20,
+                            borderRadius: 6,
+                            border: isChecked ? 'none' : '1.5px solid rgba(255,255,255,0.2)',
+                            background: isChecked ? 'var(--color-green)' : 'transparent',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#0a1a10',
+                            flexShrink: 0
                           }}>
-                            {isChecked && <Check size={12} />}
+                            {isChecked && <Check size={13} strokeWidth={3} />}
+                          </div>
+                          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+                            <span style={{
+                              fontSize: 14,
+                              fontWeight: 500,
+                              color: isChecked ? 'var(--text-muted)' : 'var(--text-primary)',
+                              textDecoration: isChecked ? 'line-through' : 'none',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis'
+                            }}>
+                              {p.name}
+                            </span>
+                            <span style={{ fontSize: 10, color: 'var(--text-muted)', flexShrink: 0 }}>
+                              ({p.count}×)
+                            </span>
                           </div>
                           <span style={{
-                            fontSize: 12.5,
-                            color: isChecked ? 'var(--text-muted)' : 'var(--text-primary)',
-                            textDecoration: isChecked ? 'line-through' : 'none',
-                            fontWeight: 600
+                            fontSize: 11,
+                            fontWeight: 600,
+                            background: 'var(--color-card)',
+                            color: 'var(--text-secondary)',
+                            borderRadius: 6,
+                            padding: '2px 8px',
+                            flexShrink: 0
                           }}>
-                            {p.name} <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>({p.count}×)</span>
+                            {p.count} {p.count === 1 ? 'meal' : 'meals'}
                           </span>
                         </div>
                       );
@@ -1085,11 +1029,11 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
                   if (itemsList.length === 0) return null;
 
                   return (
-                    <div key={catKey} style={{ background: 'var(--bg-surface-raised)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-card)', padding: '14px 18px' }}>
-                      <h4 style={{ margin: '0 0 10px 0', fontSize: 13.5, fontWeight: 800, color: 'var(--text-primary)' }}>
+                    <div key={catKey}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 16, marginBottom: 8 }}>
                         {catData.title}
-                      </h4>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8 }}>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                         {itemsList.map(([name, count]) => {
                           const itemKey = `${catKey}-${name}`;
                           const isChecked = !!checkedGroceryItems[itemKey];
@@ -1101,30 +1045,55 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
                               style={{
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: 9,
-                                padding: '7px 10px',
-                                borderRadius: 'var(--radius-sm)',
-                                background: isChecked ? 'var(--brand-primary-subtle)' : 'var(--bg-surface)',
-                                border: `1px solid ${isChecked ? 'var(--border-focus)' : 'var(--border-subtle)'}`,
+                                gap: 12,
+                                padding: '10px 14px',
+                                borderRadius: 12,
+                                background: isChecked ? 'rgba(34, 209, 122, 0.04)' : 'var(--color-raised)',
+                                border: `0.5px solid ${isChecked ? 'var(--border-accent)' : 'var(--border-default)'}`,
                                 cursor: 'pointer',
                                 transition: 'all 0.15s ease'
                               }}
                             >
                               <div style={{
-                                width: 16, height: 16, borderRadius: 4,
-                                border: `1.5px solid ${isChecked ? 'var(--brand-primary)' : 'var(--text-muted)'}`,
-                                background: isChecked ? 'var(--brand-primary)' : 'transparent',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                color: '#fff', fontSize: 10, flexShrink: 0
+                                width: 20,
+                                height: 20,
+                                borderRadius: 6,
+                                border: isChecked ? 'none' : '1.5px solid rgba(255,255,255,0.2)',
+                                background: isChecked ? 'var(--color-green)' : 'transparent',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#0a1a10',
+                                flexShrink: 0
                               }}>
-                                {isChecked && <Check size={12} />}
+                                {isChecked && <Check size={13} strokeWidth={3} />}
+                              </div>
+                              <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+                                <span style={{
+                                  fontSize: 14,
+                                  fontWeight: 500,
+                                  color: isChecked ? 'var(--text-muted)' : 'var(--text-primary)',
+                                  textDecoration: isChecked ? 'line-through' : 'none',
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis'
+                                }}>
+                                  {name}
+                                </span>
+                                <span style={{ fontSize: 10, color: 'var(--text-muted)', flexShrink: 0 }}>
+                                  ({count}×)
+                                </span>
                               </div>
                               <span style={{
-                                fontSize: 12,
-                                color: isChecked ? 'var(--text-muted)' : 'var(--text-primary)',
-                                textDecoration: isChecked ? 'line-through' : 'none'
+                                fontSize: 11,
+                                fontWeight: 600,
+                                background: 'var(--color-card)',
+                                color: 'var(--text-secondary)',
+                                borderRadius: 6,
+                                padding: '2px 8px',
+                                flexShrink: 0
                               }}>
-                                {name} <span style={{ fontSize: 10.5, color: 'var(--text-muted)', fontWeight: 600 }}>({count}x)</span>
+                                {count} {count === 1 ? 'meal' : 'meals'}
                               </span>
                             </div>
                           );
@@ -1209,7 +1178,7 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
                 </div>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)' }}>Fat</div>
-                  <div className="tabular-nums" style={{ fontSize: 16, fontWeight: 900, color: 'var(--accent-fat-text, #FB7185)' }}>{recipeModalItem.fat}g</div>
+                  <div className="tabular-nums" style={{ fontSize: 16, fontWeight: 900, color: 'var(--color-fat, #f5a623)' }}>{recipeModalItem.fat}g</div>
                 </div>
               </div>
 
@@ -1498,7 +1467,7 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
                         <span style={{ color: 'var(--brand-primary-light)', fontWeight: 700 }}>{dish.calories} kcal</span>
                         <span style={{ color: 'var(--accent-protein-text, #818CF8)' }}>P: {dish.protein}g</span>
                         <span style={{ color: 'var(--brand-primary-light, #10B981)' }}>C: {dish.carbs}g</span>
-                        <span style={{ color: 'var(--accent-fat-text, #FB7185)' }}>F: {dish.fat}g</span>
+                        <span style={{ color: 'var(--color-fat, #f5a623)' }}>F: {dish.fat}g</span>
                       </div>
                     </div>
 

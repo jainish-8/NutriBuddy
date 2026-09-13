@@ -379,3 +379,21 @@
   transform: scale(0.98);
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .set-row-completed {
+    animation: setRowFlash 400ms ease-out;
+  }
+  @keyframes setRowFlash {
+    0% { background-color: transparent; }
+    50% { background-color: rgba(34, 209, 122, 0.12); }
+    100% { background-color: rgba(34, 209, 122, 0.06); }
+  }
+  .checkmark-scale {
+    animation: checkmarkPulse 200ms ease-out;
+  }
+  @keyframes checkmarkPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+}

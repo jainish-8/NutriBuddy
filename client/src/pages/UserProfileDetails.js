@@ -10,10 +10,10 @@ import { getDetailedCalorieBreakdown, toTitleCase } from '../utils/nutritionEngi
 import WeightTrendChart from '../components/WeightTrendChart';
 
 const PR_PATTERNS = [
-  { key: 'squat', label: 'Barbell Squat (1RM)', iconColor: 'var(--brand-primary-light, #10B981)' },
-  { key: 'bench', label: 'Bench Press (1RM)', iconColor: 'var(--accent-protein-text, #818CF8)' },
-  { key: 'deadlift', label: 'Deadlift (1RM)', iconColor: 'var(--accent-carbs-text, #38BDF8)' },
-  { key: 'press', label: 'Overhead Press (1RM)', iconColor: 'var(--accent-fat-text, #FB7185)' }
+  { key: 'squat', label: 'Barbell Squat (1RM)', iconColor: 'var(--color-green, #22D17A)' },
+  { key: 'bench', label: 'Bench Press (1RM)', iconColor: 'var(--color-protein, #5B8AF5)' },
+  { key: 'deadlift', label: 'Deadlift (1RM)', iconColor: 'var(--color-water, #60D4F7)' },
+  { key: 'press', label: 'Overhead Press (1RM)', iconColor: 'var(--color-fat, #F5A623)' }
 ];
 
 export default function UserProfileDetails({ user, onEdit, onLogout, setCurrentPage }) {
@@ -258,7 +258,7 @@ export default function UserProfileDetails({ user, onEdit, onLogout, setCurrentP
   const bmi = (weightNum / ((heightNum / 100) ** 2)).toFixed(1);
   const bmiCategory = bmi < 18.5 ? { label: 'Underweight', color: 'var(--accent-carbs-text, #38BDF8)' } :
                       bmi < 24.9 ? { label: 'Normal / Healthy', color: 'var(--brand-primary-light, #10B981)' } :
-                      bmi < 29.9 ? { label: 'Overweight', color: 'var(--accent-fat-text, #FB7185)' } :
+                      bmi < 29.9 ? { label: 'Overweight', color: 'var(--color-fat, #F5A623)' } :
                       { label: 'Obese', color: 'var(--accent-danger, #EF4444)' };
 
   // Estimated BMR (Mifflin-St Jeor)
@@ -411,10 +411,10 @@ export default function UserProfileDetails({ user, onEdit, onLogout, setCurrentP
   ];
 
   const macros = [
-    { label: 'Calories', value: user.dailyCalories ? `${user.dailyCalories} kcal` : '—', color: 'var(--brand-primary-light)' },
-    { label: 'Protein',  value: user.targetProtein  ? `${user.targetProtein}g`   : '—', color: 'var(--accent-protein-text, #818CF8)' },
-    { label: 'Carbs',    value: user.targetCarbs    ? `${user.targetCarbs}g`     : '—', color: 'var(--brand-primary-light, #10B981)' },
-    { label: 'Fats',     value: user.targetFat      ? `${user.targetFat}g`       : '—', color: 'var(--accent-fat-text, #FB7185)' },
+    { label: 'Calories', value: user.dailyCalories ? `${user.dailyCalories} kcal` : '—', color: 'var(--color-green, #22D17A)' },
+    { label: 'Protein',  value: user.targetProtein  ? `${user.targetProtein}g`   : '—', color: 'var(--color-protein, #5B8AF5)' },
+    { label: 'Carbs',    value: user.targetCarbs    ? `${user.targetCarbs}g`     : '—', color: 'var(--color-carb, #22D17A)' },
+    { label: 'Fats',     value: user.targetFat      ? `${user.targetFat}g`       : '—', color: 'var(--color-fat, #F5A623)' },
   ];
 
   /* ─── Shared style tokens ─── */
@@ -443,110 +443,123 @@ export default function UserProfileDetails({ user, onEdit, onLogout, setCurrentP
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 18, paddingBottom: 40 }}>
 
-      {/* ── HERO PROFILE BANNER ── */}
-      <div style={{ ...card, padding: '24px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 18 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-          {/* Avatar circle */}
-          <div style={{
-            width: 72,
-            height: 72,
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #10B981, #059669)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-            color: '#fff',
-            fontFamily: 'var(--font-heading)',
-            fontSize: 28,
-            fontWeight: 800,
-            border: '2px solid rgba(255,255,255,0.2)',
-            boxShadow: '0 8px 24px rgba(16,185,129,0.25)'
-          }}>
-            {initial}
-          </div>
-
-          {/* Name + profile type */}
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.04em', color: 'var(--brand-primary-light)' }}>
-              {getGoalModeBadge(user.goal)}
-            </div>
-            <h1 style={{
-              margin: '2px 0 0',
+      {/* ── HERO PROFILE CARD ── */}
+      <div
+        className="nb-card"
+        style={{
+          background: 'linear-gradient(135deg, #141820 0%, #1a1e2a 100%)',
+          border: '0.5px solid var(--border-accent)',
+          borderRadius: 20,
+          padding: '24px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 20
+        }}
+      >
+        {/* Top: Avatar + Name + Dynamic Goal text + Edit Profile Button */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            {/* Avatar: 64×64px circle, --color-green background, 24px initials, weight 800 */}
+            <div style={{
+              width: 64,
+              height: 64,
+              borderRadius: '50%',
+              background: 'var(--color-green)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              color: '#0a1a10',
               fontFamily: 'var(--font-heading)',
               fontSize: 24,
-              fontWeight: 800,
-              color: 'var(--text-primary)',
+              fontWeight: 800
             }}>
-              {toTitleCase(user.fullName || '')}
-            </h1>
-            <div style={{
-              marginTop: 4,
-              fontSize: 12,
-              fontWeight: 600,
-              color: 'var(--text-muted)',
-            }}>
-              {cleanProfession} · {getGoalSubtitle(user.goal)}
+              {initial}
+            </div>
+
+            {/* User details */}
+            <div style={{ minWidth: 0 }}>
+              {/* Badge (dynamic goal text): above name, 10px weight 700, --color-green, letter-spacing 0.08em — no background */}
+              <div style={{
+                fontSize: 10,
+                fontWeight: 700,
+                color: 'var(--color-green)',
+                letterSpacing: '0.08em',
+                marginBottom: 2
+              }}>
+                {getGoalModeBadge(user.goal)}
+              </div>
+              <h1 style={{
+                margin: 0,
+                fontSize: 22,
+                fontWeight: 700,
+                color: 'var(--text-primary)',
+                letterSpacing: '-0.02em'
+              }}>
+                {toTitleCase(user.fullName || '')}
+              </h1>
+              <div style={{
+                marginTop: 4,
+                fontSize: 13,
+                color: 'var(--text-secondary)'
+              }}>
+                {cleanProfession} · {getGoalSubtitle(user.goal)}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Action buttons */}
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          {/* Edit Profile button: secondary style, 36px height */}
           <button
             onClick={onEdit}
-            className="btn btn-primary"
+            className="nb-btn-secondary"
             style={{
-              padding: '9px 18px',
-              fontSize: 12.5,
-              fontWeight: 800,
+              height: 36,
+              padding: '0 16px',
+              fontSize: 12,
+              fontWeight: 600,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center'
             }}
           >
-            Edit Profile
+            Edit profile
           </button>
         </div>
-      </div>
 
-      {/* ── TOP KEY METRICS SUMMARY STRIP (Always Visible) ── */}
-      <div className="mobile-2col-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
-        <div style={{ background: 'var(--bg-surface)', padding: '16px 20px', borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)' }}>
-          <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>Calorie target</span>
-          <div className="tabular-nums" style={{ fontSize: 20, fontWeight: 800, color: 'var(--brand-primary-light)', marginTop: 2 }}>
-            {user.dailyCalories ? `${user.dailyCalories} kcal` : '—'}
-          </div>
-        </div>
-        <div style={{ background: 'var(--bg-surface)', padding: '16px 20px', borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)' }}>
-          <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>Daily protein</span>
-          <div className="tabular-nums" style={{ fontSize: 20, fontWeight: 800, color: 'var(--accent-protein-text, #818CF8)', marginTop: 2 }}>
-            {user.targetProtein ? `${user.targetProtein}g` : '—'}
-          </div>
-        </div>
-        <div style={{ background: 'var(--bg-surface)', padding: '16px 20px', borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)' }}>
-          <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>BMI status</span>
-          <div className="tabular-nums" style={{ fontSize: 18, fontWeight: 800, color: bmiCategory.color, marginTop: 2 }}>
-            {bmi} · {bmiCategory.label}
-          </div>
-        </div>
-        <div 
-          onClick={currentStreak === 0 && setCurrentPage ? () => setCurrentPage('exercise') : undefined}
-          style={{ 
-            background: 'var(--bg-surface)', 
-            padding: '16px 20px', 
-            borderRadius: 'var(--radius-panel)', 
-            border: '1px solid var(--border-subtle)',
-            cursor: currentStreak === 0 ? 'pointer' : 'default'
-          }}
-        >
-          <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>Workout streak</span>
-          {currentStreak === 0 ? (
-            <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--brand-primary-light)', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
-              Start your first workout →
+        {/* Stats row below name (3 columns): [Calorie target] [Daily protein] [BMI] */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: 12,
+          paddingTop: 16,
+          borderTop: '0.5px solid rgba(255, 255, 255, 0.06)'
+        }}>
+          <div style={{ background: 'var(--color-raised)', padding: '12px 16px', borderRadius: 12, textAlign: 'center' }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>
+              {user.dailyCalories ? `${user.dailyCalories} kcal` : '—'}
             </div>
-          ) : (
-            <div className="tabular-nums" style={{ fontSize: 20, fontWeight: 800, color: 'var(--brand-primary-light)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Flame size={18} fill="var(--brand-primary-light)" /> {currentStreak} Sessions
+            <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', marginTop: 4 }}>
+              Calorie target
             </div>
-          )}
+          </div>
+
+          <div style={{ background: 'var(--color-raised)', padding: '12px 16px', borderRadius: 12, textAlign: 'center' }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>
+              {user.targetProtein ? `${user.targetProtein}g` : '—'}
+            </div>
+            <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', marginTop: 4 }}>
+              Daily protein
+            </div>
+          </div>
+
+          <div style={{ background: 'var(--color-raised)', padding: '12px 16px', borderRadius: 12, textAlign: 'center' }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>
+              {bmi}
+            </div>
+            <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', marginTop: 4 }}>
+              BMI
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1319,85 +1332,72 @@ export default function UserProfileDetails({ user, onEdit, onLogout, setCurrentP
           <div className="fadeInUp" style={{ marginTop: 20, paddingTop: 18, borderTop: '1px solid var(--border-subtle)' }}>
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-              gap: 12
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: 10
             }}>
               {badges.map((badge) => {
                 const IconComponent = badge.icon;
+                const isUnlocked = badge.isUnlocked;
+
                 return (
                   <button
                     key={badge.id}
                     onClick={() => setSelectedBadge(badge)}
                     style={{
-                      padding: 14,
-                      borderRadius: 'var(--radius-panel)',
-                      background: badge.isUnlocked ? 'var(--bg-surface-raised)' : 'rgba(22, 26, 34, 0.5)',
-                      border: badge.isUnlocked ? '1px solid var(--border-focus)' : '1px solid var(--border-subtle)',
+                      background: isUnlocked ? 'rgba(34, 209, 122, 0.08)' : '#141820',
+                      border: isUnlocked ? '1px solid rgba(34, 209, 122, 0.25)' : '0.5px solid rgba(255, 255, 255, 0.06)',
+                      borderRadius: 16,
+                      padding: '16px 12px',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
                       textAlign: 'center',
                       gap: 8,
                       cursor: 'pointer',
-                      position: 'relative',
-                      opacity: badge.isUnlocked ? 1 : 0.55,
-                      transition: 'all 0.2s ease',
-                      outline: 'none'
+                      outline: 'none',
+                      transition: 'all 0.2s ease'
                     }}
+                    className={isUnlocked ? 'badge-unlock-anim' : ''}
                   >
-                    {/* Badge Icon */}
+                    {/* Icon: 32px */}
                     <div style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: '50%',
-                      background: badge.isUnlocked ? `${badge.color}22` : 'var(--bg-surface)',
-                      color: badge.isUnlocked ? badge.color : 'var(--text-muted)',
+                      color: isUnlocked ? 'var(--color-green)' : 'var(--text-muted)',
+                      opacity: isUnlocked ? 1 : 0.25,
+                      filter: isUnlocked ? 'none' : 'grayscale(100%)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      border: `1.5px solid ${badge.isUnlocked ? badge.color : 'var(--border-subtle)'}`,
-                      position: 'relative'
+                      marginBottom: 2
                     }}>
-                      <IconComponent size={22} />
-                      {!badge.isUnlocked && (
-                        <div style={{
-                          position: 'absolute',
-                          bottom: -2,
-                          right: -2,
-                          width: 16,
-                          height: 16,
-                          borderRadius: '50%',
-                          background: 'var(--bg-surface-raised)',
-                          border: '1px solid var(--border-subtle)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'var(--text-muted)'
+                      <IconComponent size={32} />
+                    </div>
+
+                    <div style={{ fontSize: 10, fontWeight: 700, color: isUnlocked ? 'var(--color-green)' : 'var(--text-muted)', letterSpacing: '0.08em' }}>
+                      {badge.category}
+                    </div>
+
+                    <div style={{ fontSize: 12, fontWeight: 600, color: isUnlocked ? 'var(--text-primary)' : 'var(--text-muted)', lineHeight: 1.2 }}>
+                      {badge.name}
+                    </div>
+
+                    <div style={{ marginTop: 'auto' }}>
+                      {isUnlocked ? (
+                        <span style={{
+                          fontSize: 9,
+                          fontWeight: 700,
+                          background: 'rgba(34, 209, 122, 0.15)',
+                          color: '#22d17a',
+                          borderRadius: 4,
+                          padding: '2px 6px',
+                          display: 'inline-block'
                         }}>
-                          <Lock size={10} />
-                        </div>
+                          Achieved
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                          {badge.progress}
+                        </span>
                       )}
-                    </div>
-
-                    <div>
-                      <div style={{ fontSize: 12, fontWeight: 800, color: badge.isUnlocked ? 'var(--text-primary)' : 'var(--text-muted)', lineHeight: 1.2 }}>
-                        {badge.name}
-                      </div>
-                      <span style={{ fontSize: 9, fontWeight: 700, color: badge.isUnlocked ? badge.color : 'var(--text-muted)', letterSpacing: '0.04em' }}>
-                        {badge.category}
-                      </span>
-                    </div>
-
-                    <div style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      color: badge.isUnlocked ? 'var(--brand-primary-light)' : 'var(--text-muted)',
-                      background: badge.isUnlocked ? 'var(--brand-primary-subtle)' : 'var(--bg-surface)',
-                      padding: '2px 8px',
-                      borderRadius: 10,
-                      marginTop: 'auto'
-                    }}>
-                      {badge.isUnlocked ? 'Achieved' : badge.progress}
                     </div>
                   </button>
                 );

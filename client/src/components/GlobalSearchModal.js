@@ -365,16 +365,16 @@ export default function GlobalSearchModal({
                             {food.name}
                           </div>
                           <div style={{ display: 'flex', gap: 8, marginTop: 3, fontSize: 11 }}>
-                            <span className="tabular-nums" style={{ color: 'var(--brand-primary-light, #10B981)', fontWeight: 700 }}>
+                            <span className="tabular-nums" style={{ color: 'var(--color-green, #22D17A)', fontWeight: 700 }}>
                               {food.calories} kcal
                             </span>
-                            <span className="tabular-nums" style={{ color: 'var(--accent-protein-text, #818CF8)', fontWeight: 700 }}>
+                            <span className="tabular-nums" style={{ color: 'var(--color-protein, #5B8AF5)', fontWeight: 700 }}>
                               {food.protein}g P
                             </span>
-                            <span className="tabular-nums" style={{ color: 'var(--accent-carbs-text, #38BDF8)' }}>
+                            <span className="tabular-nums" style={{ color: 'var(--color-carb, #22D17A)' }}>
                               {food.carbs}g C
                             </span>
-                            <span className="tabular-nums" style={{ color: 'var(--accent-fat-text, #FB7185)' }}>
+                            <span className="tabular-nums" style={{ color: 'var(--color-fat, #F5A623)' }}>
                               {food.fat}g F
                             </span>
                           </div>

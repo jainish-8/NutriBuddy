@@ -61,10 +61,10 @@ export default function StrengthTrendChart({
   const totalGain = weights[weights.length - 1] - weights[0];
 
   return (
-    <div style={{
-      background: 'var(--bg-surface-raised, rgba(255, 255, 255, 0.03))',
-      border: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.08))',
-      borderRadius: 'var(--radius-card, 18px)',
+    <div className="nb-card" style={{
+      background: 'var(--color-card, #141820)',
+      border: '0.5px solid var(--border-default, rgba(255, 255, 255, 0.07))',
+      borderRadius: 20,
       padding: '18px 20px',
       position: 'relative'
     }}>
@@ -72,15 +72,13 @@ export default function StrengthTrendChart({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Trophy size={14} color="var(--brand-primary-light, #10B981)" />
+            <Trophy size={14} color="var(--color-green, #22D17A)" />
             <span style={{
-              fontSize: 10.5,
-              fontWeight: 800,
-              letterSpacing: '0.07em',
-              textTransform: 'uppercase',
-              color: 'var(--brand-primary-light, #10B981)'
+              fontSize: 11,
+              fontWeight: 700,
+              color: 'var(--color-green, #22D17A)'
             }}>
-              STRENGTH OVERLOAD TREND
+              Strength overload trend
             </span>
           </div>
           <h4 style={{
@@ -108,7 +106,7 @@ export default function StrengthTrendChart({
             gap: 3,
             fontSize: 11,
             fontWeight: 700,
-            color: totalGain >= 0 ? '#10B981' : '#FB7185',
+            color: totalGain >= 0 ? 'var(--color-green, #22D17A)' : '#EF4444',
             justifyContent: 'flex-end'
           }}>
             <TrendingUp size={11} />
@@ -125,8 +123,8 @@ export default function StrengthTrendChart({
         >
           <defs>
             <linearGradient id={`strengthGrad-${exerciseName.replace(/\s+/g, '')}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#10B981" stopOpacity="0.32" />
-              <stop offset="100%" stopColor="#10B981" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="#22D17A" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#22D17A" stopOpacity="0.0" />
             </linearGradient>
           </defs>
 
@@ -169,11 +167,11 @@ export default function StrengthTrendChart({
           <path
             d={pathD}
             fill="none"
-            stroke="#10B981"
+            stroke="var(--color-green, #22D17A)"
             strokeWidth="3"
             strokeLinecap="round"
             strokeLinejoin="round"
-            style={{ filter: 'drop-shadow(0 2px 8px rgba(16, 185, 129, 0.4))' }}
+            style={{ filter: 'drop-shadow(0 2px 8px rgba(34, 209, 122, 0.3))' }}
           />
 
           {/* Data Points */}
@@ -185,8 +183,8 @@ export default function StrengthTrendChart({
                   cx={pt.x}
                   cy={pt.y}
                   r={isHovered ? 6 : 4}
-                  fill={isHovered ? '#FFFFFF' : '#10B981'}
-                  stroke="var(--bg-surface, #0F172A)"
+                  fill={isHovered ? '#FFFFFF' : 'var(--color-green, #22D17A)'}
+                  stroke="var(--color-card, #141820)"
                   strokeWidth={2}
                   style={{ transition: 'all 0.15s ease' }}
                 />
@@ -194,9 +192,9 @@ export default function StrengthTrendChart({
                 <text
                   x={pt.x}
                   y={height - 8}
-                  fill="var(--text-muted, #94A3B8)"
+                  fill="var(--text-secondary, rgba(255, 255, 255, 0.55))"
                   fontSize="9"
-                  fontWeight="700"
+                  fontWeight="600"
                   textAnchor="middle"
                 >
                   {pt.date ? pt.date.slice(5) : `S${pIdx + 1}`}
@@ -212,8 +210,8 @@ export default function StrengthTrendChart({
             position: 'absolute',
             top: Math.max(4, points[activePoint].y * (160 / height) - 40),
             left: Math.min(width - 90, Math.max(10, points[activePoint].x * (width / 360) - 40)),
-            background: 'rgba(10, 15, 26, 0.95)',
-            border: '1px solid var(--border-focus, #10B981)',
+            background: 'rgba(20, 24, 32, 0.95)',
+            border: '1px solid rgba(34, 209, 122, 0.3)',
             borderRadius: 8,
             padding: '4px 8px',
             fontSize: 11,
@@ -223,7 +221,7 @@ export default function StrengthTrendChart({
             whiteSpace: 'nowrap',
             zIndex: 10
           }}>
-            <span className="tabular-nums" style={{ fontWeight: 800, color: '#10B981' }}>
+            <span className="tabular-nums" style={{ fontWeight: 800, color: 'var(--color-green, #22D17A)' }}>
               {points[activePoint].weight} {unit}
             </span>
             {points[activePoint].reps && <span> × {points[activePoint].reps} reps</span>}

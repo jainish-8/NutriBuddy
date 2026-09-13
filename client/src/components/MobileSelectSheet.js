@@ -107,10 +107,10 @@ export default function MobileSelectSheet({
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: 'var(--bg-surface, #0F172A)',
-          borderTop: '1px solid var(--border-focus, rgba(16, 185, 129, 0.4))',
-          borderLeft: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.08))',
-          borderRight: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.08))',
+          background: '#1a1e2a',
+          borderTop: '0.5px solid var(--border-default)',
+          borderLeft: '0.5px solid var(--border-default)',
+          borderRight: '0.5px solid var(--border-default)',
           borderTopLeftRadius: 24,
           borderTopRightRadius: 24,
           width: '100%',
@@ -118,19 +118,19 @@ export default function MobileSelectSheet({
           maxHeight: '86vh',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: '0 -20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(16, 185, 129, 0.12)',
+          boxShadow: '0 -20px 50px rgba(0, 0, 0, 0.8)',
           animation: 'slideUp 0.26s cubic-bezier(0.16, 1, 0.3, 1)',
           paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
           boxSizing: 'border-box'
         }}
       >
-        {/* Grab Handle */}
-        <div style={{ padding: '12px 0 6px', display: 'flex', justifyContent: 'center' }}>
+        {/* Drag handle: 36px wide, 4px tall, rgba(255,255,255,0.2), centered, 8px top margin */}
+        <div style={{ paddingTop: 8, paddingBottom: 6, display: 'flex', justifyContent: 'center' }}>
           <div style={{
-            width: 44,
-            height: 4.5,
-            borderRadius: 9999,
-            background: 'var(--text-muted, rgba(255, 255, 255, 0.2))'
+            width: 36,
+            height: 4,
+            borderRadius: 99,
+            background: 'rgba(255, 255, 255, 0.2)'
           }} />
         </div>
 
@@ -140,29 +140,27 @@ export default function MobileSelectSheet({
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          borderBottom: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.06))'
+          borderBottom: '0.5px solid var(--border-default)'
         }}>
           <div>
             <span style={{
-              fontSize: 10.5,
-              fontWeight: 800,
-              textTransform: 'uppercase',
+              fontSize: 10,
+              fontWeight: 700,
               letterSpacing: '0.08em',
-              color: 'var(--brand-primary-light, #10B981)'
+              color: 'var(--color-green)'
             }}>
-              SELECT OPTION
+              Select option
             </span>
             <h3 style={{
               margin: '2px 0 0',
               fontSize: 18,
-              fontWeight: 800,
-              fontFamily: 'var(--font-heading)',
-              color: 'var(--text-primary, #FFFFFF)'
+              fontWeight: 700,
+              color: 'var(--text-primary)'
             }}>
               {title}
             </h3>
             {subtitle && (
-              <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--text-muted, #94A3B8)' }}>
+              <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--text-muted)' }}>
                 {subtitle}
               </p>
             )}
@@ -172,20 +170,20 @@ export default function MobileSelectSheet({
             type="button"
             onClick={onClose}
             style={{
-              background: 'var(--bg-surface-raised, rgba(255, 255, 255, 0.06))',
-              border: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.1))',
+              background: 'var(--color-raised)',
+              border: '0.5px solid var(--border-default)',
               borderRadius: '50%',
-              width: 34,
-              height: 34,
+              width: 32,
+              height: 32,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: 'var(--text-muted, #94A3B8)',
+              color: 'var(--text-muted)',
               cursor: 'pointer',
               transition: 'all 0.15s ease'
             }}
           >
-            <X size={17} />
+            <X size={16} />
           </button>
         </div>
 
@@ -196,8 +194,8 @@ export default function MobileSelectSheet({
               display: 'flex',
               alignItems: 'center',
               gap: 8,
-              background: 'var(--bg-surface-raised, rgba(255, 255, 255, 0.04))',
-              border: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.1))',
+              background: 'var(--color-input)',
+              border: '0.5px solid var(--border-default)',
               borderRadius: 12,
               padding: '8px 12px'
             }}>
@@ -213,7 +211,7 @@ export default function MobileSelectSheet({
                   background: 'transparent',
                   border: 'none',
                   outline: 'none',
-                  color: 'var(--text-primary, #FFFFFF)',
+                  color: 'var(--text-primary)',
                   fontSize: 13.5
                 }}
               />
@@ -240,10 +238,10 @@ export default function MobileSelectSheet({
         <div style={{
           flex: 1,
           overflowY: 'auto',
-          padding: '10px 20px',
+          padding: '12px 20px',
           display: 'flex',
           flexDirection: 'column',
-          gap: 6
+          gap: 8
         }}>
           {filteredOptions.length === 0 ? (
             <div style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--text-muted)' }}>
@@ -262,15 +260,15 @@ export default function MobileSelectSheet({
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     gap: 12,
-                    padding: '13px 16px',
+                    padding: '14px 16px',
                     minHeight: 48,
-                    borderRadius: 14,
+                    borderRadius: 12,
                     border: isSelected
-                      ? '1.5px solid var(--brand-primary, #10B981)'
-                      : '1px solid var(--border-subtle, rgba(255, 255, 255, 0.07))',
+                      ? '1px solid rgba(34, 209, 122, 0.3)'
+                      : '0.5px solid rgba(255, 255, 255, 0.05)',
                     background: isSelected
-                      ? 'var(--brand-primary-subtle, rgba(16, 185, 129, 0.14))'
-                      : 'var(--bg-surface-raised, rgba(255, 255, 255, 0.03))',
+                      ? 'rgba(34, 209, 122, 0.08)'
+                      : '#141820',
                     cursor: 'pointer',
                     textAlign: 'left',
                     transition: 'all 0.15s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -281,15 +279,15 @@ export default function MobileSelectSheet({
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
                       fontSize: 14,
-                      fontWeight: isSelected ? 800 : 600,
-                      color: isSelected ? 'var(--brand-primary-light, #34D399)' : 'var(--text-primary, #FFFFFF)'
+                      fontWeight: isSelected ? 600 : 500,
+                      color: isSelected ? 'var(--color-green)' : 'var(--text-primary)'
                     }}>
                       {opt.label}
                     </div>
                     {opt.subtitle && (
                       <div style={{
-                        fontSize: 11.5,
-                        color: 'var(--text-muted, #94A3B8)',
+                        fontSize: 12,
+                        color: 'var(--text-muted)',
                         marginTop: 2
                       }}>
                         {opt.subtitle}
@@ -297,41 +295,9 @@ export default function MobileSelectSheet({
                     )}
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                    {opt.badge && (
-                      <span style={{
-                        fontSize: 10,
-                        fontWeight: 800,
-                        padding: '2px 7px',
-                        borderRadius: 9999,
-                        background: 'rgba(255, 255, 255, 0.08)',
-                        color: 'var(--text-muted)'
-                      }}>
-                        {opt.badge}
-                      </span>
-                    )}
-                    {isSelected ? (
-                      <div style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: '50%',
-                        background: 'var(--brand-primary, #10B981)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#FFFFFF'
-                      }}>
-                        <Check size={14} strokeWidth={3} />
-                      </div>
-                    ) : (
-                      <div style={{
-                        width: 22,
-                        height: 22,
-                        borderRadius: '50%',
-                        border: '1.5px solid var(--border-subtle, rgba(255, 255, 255, 0.15))'
-                      }} />
-                    )}
-                  </div>
+                  {isSelected && (
+                    <Check size={20} color="var(--color-green)" strokeWidth={2.5} />
+                  )}
                 </button>
               );
             })
@@ -341,7 +307,7 @@ export default function MobileSelectSheet({
         {/* Footer */}
         <div style={{
           padding: '12px 20px 4px',
-          borderTop: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.06))',
+          borderTop: '0.5px solid var(--border-default)',
           display: 'flex',
           gap: 10
         }}>

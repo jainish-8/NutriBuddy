@@ -428,30 +428,33 @@ export default function UserProfileForm({ user, setUser, setCurrentPage }) {
             }
           </p>
 
-          {/* Step Progress Bar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 32 }}>
-            {[1, 2, 3, 4].map((s) => (
-              <React.Fragment key={s}>
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 4,
-                  flex: 1
-                }}>
-                  <div style={{
-                    width: '100%',
-                    height: 4,
-                    borderRadius: 2,
-                    background: step >= s ? 'var(--brand-primary)' : 'var(--bg-surface-raised)',
-                    transition: 'background 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-                  }} />
-                  <span style={{ fontSize: 10, fontWeight: 800, color: step >= s ? 'var(--brand-primary-light)' : 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                    {s === 1 ? 'Details' : s === 2 ? 'Biometrics' : s === 3 ? 'Dietary' : 'Budget'}
-                  </span>
+          {/* Step Progress Tabs: sits directly on page background */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 28 }}>
+            {[
+              { num: 1, label: 'Details' },
+              { num: 2, label: 'Biometrics' },
+              { num: 3, label: 'Dietary' },
+              { num: 4, label: 'Budget' }
+            ].map(({ num, label }) => {
+              const isActive = step === num;
+              return (
+                <div
+                  key={num}
+                  style={{
+                    flex: 1,
+                    textAlign: 'center',
+                    paddingBottom: 8,
+                    borderBottom: isActive ? '2px solid var(--color-green)' : '2px solid transparent',
+                    color: isActive ? 'var(--color-green)' : 'var(--text-muted)',
+                    fontWeight: isActive ? 700 : 600,
+                    fontSize: 12,
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  {label}
                 </div>
-              </React.Fragment>
-            ))}
+              );
+            })}
           </div>
 
           <form onSubmit={handleSubmit}>
@@ -867,14 +870,14 @@ export default function UserProfileForm({ user, setUser, setCurrentPage }) {
             )}
 
             {/* Navigation Buttons (Sticky Bottom on Mobile) */}
-            <div className="onboarding-sticky-actions">
+            <div className="onboarding-sticky-actions" style={{ margin: '24px 0 0', gap: 10 }}>
               {step > 1 && (
                 <button
                   key="back-btn"
                   type="button"
                   onClick={handleBack}
-                  className="btn btn-secondary"
-                  style={{ flex: 1, padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 48 }}
+                  className="nb-btn-secondary active:scale-95"
+                  style={{ flex: 1, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 14, fontSize: 14, fontWeight: 600 }}
                 >
                   <ArrowLeft size={16} /> Back
                 </button>
@@ -885,20 +888,43 @@ export default function UserProfileForm({ user, setUser, setCurrentPage }) {
                   key="next-btn"
                   type="button"
                   onClick={handleNext}
-                  className="btn btn-primary"
-                  style={{ flex: 2, padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 48 }}
+                  className="nb-btn-primary active:scale-95"
+                  style={{
+                    flex: step > 1 ? 2 : 1,
+                    width: step > 1 ? undefined : '100%',
+                    height: 56,
+                    borderRadius: 14,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    fontSize: 15,
+                    fontWeight: 700
+                  }}
                 >
-                  Continue <ArrowRight size={16} />
+                  Continue <ArrowRight size={18} color="#0a1a10" />
                 </button>
               ) : (
                 <button
                   key="submit-btn"
                   type="submit"
                   disabled={loading}
-                  className={loading ? "btn btn-primary btn-disabled" : "btn btn-primary"}
-                  style={{ flex: 2, padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 48 }}
+                  className="nb-btn-primary active:scale-95"
+                  style={{
+                    flex: step > 1 ? 2 : 1,
+                    width: step > 1 ? undefined : '100%',
+                    height: 56,
+                    borderRadius: 14,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    fontSize: 15,
+                    fontWeight: 700,
+                    opacity: loading ? 0.6 : 1
+                  }}
                 >
-                  <Check size={16} /> {loading ? 'Calibrating profile...' : 'Save & View Plan'}
+                  <Check size={18} color="#0a1a10" strokeWidth={2.5} /> {loading ? 'Calibrating profile...' : 'Save & view plan'}
                 </button>
               )}
             </div>

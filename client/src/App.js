@@ -323,46 +323,51 @@ function App() {
       ) : (
         /* STANDARD APP SIDEBAR LAYOUT */
         <div className="main-layout-wrapper">
-          {/* MOBILE HEADER BAR */}
+          {/* MOBILE / TOP HEADER BAR */}
           <header className="mobile-header-bar">
-            <h1 style={{ fontSize: 20, margin: 0, fontWeight: 800, letterSpacing: '-0.02em', fontFamily: 'var(--font-heading)' }}>
-              Nutri<span style={{ color: 'var(--accent-lime-text)' }}>Buddy</span>
+            <h1 style={{ fontSize: 20, margin: 0, fontWeight: 700, letterSpacing: '-0.02em', display: 'flex', alignItems: 'center' }}>
+              <span style={{ color: '#ffffff', fontWeight: 700 }}>Nutri</span>
+              <span style={{ color: 'var(--color-green)', fontWeight: 700 }}>Buddy</span>
             </h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <button
                 onClick={() => setIsSearchOpen(true)}
                 style={{
-                  width: 32, height: 32, borderRadius: '50%',
+                  width: 36, height: 36, borderRadius: 10,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer', padding: 0,
-                  color: 'var(--text-primary)',
-                  background: 'var(--bg-surface-raised)',
-                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--text-muted)',
+                  background: 'transparent',
+                  border: 'none',
                   outline: 'none',
-                  transition: 'all 0.2s ease'
+                  transition: 'background 0.2s ease'
                 }}
+                onMouseDown={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+                onMouseUp={(e) => e.currentTarget.style.background = 'transparent'}
                 title="Search foods, exercises, recipes (Ctrl+K)"
               >
-                <Search size={14} />
+                <Search size={20} />
               </button>
               <button
                 onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
                 style={{
-                  width: 32, height: 32, borderRadius: '50%',
+                  width: 36, height: 36, borderRadius: 10,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', padding: 0, fontSize: 13,
-                  color: 'var(--text-primary)',
-                  background: 'var(--bg-surface-raised)',
-                  border: '1px solid var(--border-subtle)',
+                  cursor: 'pointer', padding: 0,
+                  color: 'var(--text-muted)',
+                  background: 'transparent',
+                  border: 'none',
                   outline: 'none',
-                  transition: 'all 0.2s ease'
+                  transition: 'background 0.2s ease'
                 }}
+                onMouseDown={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+                onMouseUp={(e) => e.currentTarget.style.background = 'transparent'}
                 title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
               >
                 {theme === 'light' ? (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
                 ) : (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
                 )}
               </button>
               <button
@@ -371,37 +376,19 @@ function App() {
                   setIsEditingProfile(false);
                 }}
                 style={{
-                  width: 32, height: 32, borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #10B981, #059669)',
-                  color: '#ffffff',
-                  border: currentPage === 'profile' ? '2px solid var(--brand-primary-light)' : '1.5px solid var(--border-strong)',
+                  width: 40, height: 40, borderRadius: '50%',
+                  background: 'var(--color-green)',
+                  color: '#0a1a10',
+                  border: '2px solid rgba(34, 209, 122, 0.3)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer', padding: 0,
-                  fontFamily: 'var(--font-heading)', fontSize: 12, fontWeight: 'bold',
-                  boxShadow: '0 2px 10px rgba(16, 185, 129, 0.25)',
+                  fontSize: 16, fontWeight: 700,
                   transition: 'all 0.2s ease',
                   outline: 'none'
                 }}
                 title="My Profile"
               >
                 {user.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
-              </button>
-              <button
-                onClick={handleLogout}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--text-muted)',
-                  cursor: 'pointer',
-                  padding: 4,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  outline: 'none'
-                }}
-                title="Logout"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
               </button>
             </div>
           </header>
@@ -661,14 +648,14 @@ function App() {
                   }}
                   className="sidebar-nav-item"
                   style={{
-                    width: 34, height: 34, borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #10B981, #059669)',
-                    color: '#ffffff',
-                    border: currentPage === 'profile' ? '2.5px solid var(--brand-primary-light)' : '1.5px solid var(--border-strong)',
+                    width: 36, height: 36, borderRadius: '50%',
+                    background: 'var(--color-green, #22d17a)',
+                    color: '#0a1a10',
+                    border: currentPage === 'profile' ? '2px solid rgba(255, 255, 255, 0.4)' : '1px solid rgba(255, 255, 255, 0.1)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     cursor: 'pointer', padding: 0,
-                    fontFamily: 'var(--font-heading)', fontSize: 13, fontWeight: 'bold',
-                    boxShadow: '0 2px 10px rgba(16, 185, 129, 0.25)', transition: 'all 0.2s ease',
+                    fontSize: 14, fontWeight: 700,
+                    boxShadow: '0 2px 10px rgba(34, 209, 122, 0.25)', transition: 'all 0.2s ease',
                     transform: currentPage === 'profile' ? 'scale(1.05)' : 'none',
                     outline: 'none'
                   }}
@@ -782,7 +769,7 @@ function App() {
                 )}
               ].map(nav => {
                 const isActive = currentPage === nav.key;
-                const activeColor = isActive ? 'var(--brand-primary-light)' : 'var(--text-muted)';
+                const activeColor = isActive ? 'var(--color-green)' : 'var(--text-muted)';
                 return (
                   <button
                     key={nav.key}
@@ -791,7 +778,6 @@ function App() {
                   >
                     {nav.icon(activeColor)}
                     <span>{nav.label}</span>
-                    {isActive && <div className="mobile-nav-dot" />}
                   </button>
                 );
               })}

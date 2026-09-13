@@ -1,5 +1,47 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
+/* =========================================================================
+   NUTRIBUDDY NEW DESIGN SYSTEM TOKENS (DARK MODE FIRST)
+   ========================================================================= */
+:root {
+  /* Background layers (creates perceived depth without shadows) */
+  --color-base: #0c0f16;
+  --color-card: #141820;
+  --color-raised: #1a1e2a;
+  --color-input: #1f2433;
+
+  /* Brand & accent */
+  --color-green: #22d17a;
+  --color-green-bg: rgba(34, 209, 122, 0.10);
+  --color-green-border: rgba(34, 209, 122, 0.20);
+
+  /* Semantic macro colors (consistent everywhere in app) */
+  --color-protein: #5b8af5; /* Always blue — protein */
+  --color-carbs: #22d17a;   /* Always green — carbs */
+  --color-fat: #f5a623;     /* Always amber — fats (NOT red) */
+  --color-water: #60d4f7;   /* Always cyan — hydration */
+
+  /* Status/alert colors */
+  --color-success: #22d17a;
+  --color-warning: #f5a623;
+  --color-danger: #f55b5b;
+  --color-neutral: #8b92a5;
+
+  /* Text hierarchy */
+  --text-primary: rgba(255, 255, 255, 0.92);
+  --text-secondary: rgba(255, 255, 255, 0.55);
+  --text-muted: rgba(255, 255, 255, 0.28);
+  --text-green: #22d17a;
+  --text-amber: #f5a623;
+  --text-red: #f55b5b;
+  --text-blue: #5b8af5;
+
+  /* Border */
+  --border-default: rgba(255, 255, 255, 0.07);
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --border-accent: rgba(34, 209, 122, 0.22);
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -9,7 +51,9 @@
 html, body {
   margin: 0;
   padding: 0;
-  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, 'SF Pro Display', 'Segoe UI', 'Plus Jakarta Sans', sans-serif;
+  background-color: var(--color-base);
+  color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -17,7 +61,7 @@ html, body {
 }
 
 ::selection {
-  background: rgba(16, 185, 129, 0.28);
+  background: rgba(34, 209, 122, 0.3);
   color: #ffffff;
 }
 
@@ -29,6 +73,287 @@ code, .tabular-nums, .font-mono {
 input, button, select, textarea {
   font-family: inherit;
 }
+
+/* =========================================================================
+   TYPOGRAPHY SYSTEM
+   ========================================================================= */
+.text-hero {
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.0;
+}
+
+.text-display {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.text-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.text-heading {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.text-body {
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0em;
+  line-height: 1.5;
+}
+
+.text-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.text-micro {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  text-transform: none; /* NEVER ALL CAPS */
+}
+
+/* =========================================================================
+   CORE COMPONENT DESIGN CLASSES
+   ========================================================================= */
+.nb-card {
+  background: var(--color-card);
+  border-radius: 20px;
+  border: 0.5px solid var(--border-default);
+  padding: 18px 20px;
+  box-shadow: none;
+}
+
+.nb-raised {
+  background: var(--color-raised);
+  border-radius: 14px;
+  border: 0.5px solid var(--border-subtle);
+  padding: 14px 16px;
+}
+
+.nb-input {
+  background: var(--color-input);
+  border-radius: 12px;
+  border: 0.5px solid var(--border-default);
+  color: var(--text-primary);
+  font-size: 15px;
+  padding: 14px 16px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  min-height: 44px;
+}
+.nb-input:focus {
+  border-color: var(--color-green);
+  box-shadow: 0 0 0 3px rgba(34, 209, 122, 0.12);
+}
+
+.nb-btn-primary {
+  background: var(--color-green);
+  color: #0a1a10;
+  border-radius: 14px;
+  padding: 15px 24px;
+  font-size: 15px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+.nb-btn-primary:active {
+  transform: scale(0.97);
+  background: #1ab868;
+}
+
+.nb-btn-secondary {
+  background: transparent;
+  border: 0.5px solid var(--border-default);
+  color: var(--text-secondary);
+  border-radius: 14px;
+  padding: 14px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.nb-btn-secondary:hover,
+.nb-btn-secondary:active {
+  background: var(--color-raised);
+}
+
+.nb-macro-pill {
+  background: rgba(255, 255, 255, 0.04);
+  border: 0.5px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 10px 8px;
+  text-align: center;
+}
+
+/* Meal Slot Badges */
+.badge-slot-breakfast {
+  background: rgba(34, 209, 122, 0.10);
+  color: #22d17a;
+}
+.badge-slot-preworkout {
+  background: rgba(245, 166, 35, 0.10);
+  color: #f5a623;
+}
+.badge-slot-lunch {
+  background: rgba(91, 138, 245, 0.10);
+  color: #5b8af5;
+}
+.badge-slot-postworkout {
+  background: rgba(96, 212, 247, 0.10);
+  color: #60d4f7;
+}
+.badge-slot-dinner {
+  background: rgba(167, 139, 250, 0.10);
+  color: #a78bfa;
+}
+.badge-slot-snack {
+  background: rgba(245, 166, 35, 0.10);
+  color: #f5a623;
+}
+.nb-slot-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  border-radius: 6px;
+  padding: 3px 8px;
+  text-transform: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Progress Bars */
+.nb-progress-track {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 99px;
+  overflow: hidden;
+  width: 100%;
+}
+.nb-progress-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.5s ease-out;
+  max-width: 100%;
+}
+.nb-progress-fill-protein { background: var(--color-protein); }
+.nb-progress-fill-carbs { background: var(--color-carbs); }
+.nb-progress-fill-fat { background: var(--color-fat); }
+.nb-progress-fill-water { background: var(--color-water); }
+.nb-progress-fill-general { background: var(--color-green); }
+.nb-progress-fill-over { background: var(--color-warning); }
+
+/* =========================================================================
+   ANIMATIONS (GUARDED WITH prefers-reduced-motion)
+   ========================================================================= */
+@media (prefers-reduced-motion: no-preference) {
+  .anim-hero-load {
+    animation: heroFadeIn 300ms ease-out forwards;
+  }
+  @keyframes heroFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .anim-ring-dash {
+    animation: ringDashOffset 600ms ease-out forwards;
+  }
+  @keyframes ringDashOffset {
+    from { stroke-dashoffset: 283; }
+  }
+
+  .anim-pulse-ring {
+    animation: pulseRing 1.8s ease-in-out infinite;
+  }
+  @keyframes pulseRing {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.65; }
+  }
+
+  .anim-pulse-dot {
+    animation: pulseDot 2s infinite ease-in-out;
+  }
+  @keyframes pulseDot {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.3); opacity: 0.8; }
+  }
+
+  .anim-log-tap {
+    animation: btnTapPop 250ms ease-in-out;
+  }
+  @keyframes btnTapPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+    100% { transform: scale(1); }
+  }
+
+  .anim-row-flash {
+    animation: rowFlash 400ms ease-out;
+  }
+  @keyframes rowFlash {
+    0% { background-color: transparent; }
+    50% { background-color: rgba(34, 209, 122, 0.12); }
+    100% { background-color: transparent; }
+  }
+
+  .anim-checkmark-pop {
+    animation: checkmarkPop 200ms ease-out;
+  }
+  @keyframes checkmarkPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+
+  .anim-badge-unlock {
+    animation: badgeUnlock 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  @keyframes badgeUnlock {
+    0% { transform: scale(0.8); opacity: 0; }
+    70% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .anim-tab-enter {
+    animation: pageSlideIn 200ms ease-out forwards;
+  }
+  @keyframes pageSlideIn {
+    from { opacity: 0; transform: translateX(8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+}
+
 
 /* =========================================================================
    TAILWIND-COMPATIBLE RESPONSIVE UTILITIES

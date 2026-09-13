@@ -64,18 +64,18 @@ export default function MacroDonutChart({
             cy={center}
             r={radius}
             fill="none"
-            stroke="var(--bg-surface-raised, rgba(255, 255, 255, 0.05))"
+            stroke="rgba(255, 255, 255, 0.05)"
             strokeWidth={strokeWidth}
           />
 
-          {/* Protein Arc (Indigo) */}
+          {/* Protein Arc (Blue) */}
           {pLength > 0 && (
             <circle
               cx={center}
               cy={center}
               r={radius}
               fill="none"
-              stroke="#818CF8"
+              stroke="var(--color-protein, #5B8AF5)"
               strokeWidth={strokeWidth}
               strokeDasharray={`${adjPLength} ${circumference - adjPLength}`}
               strokeDashoffset={pOffset}
@@ -84,14 +84,14 @@ export default function MacroDonutChart({
             />
           )}
 
-          {/* Carbs Arc (Emerald) */}
+          {/* Carbs Arc (Green) */}
           {cLength > 0 && (
             <circle
               cx={center}
               cy={center}
               r={radius}
               fill="none"
-              stroke="#10B981"
+              stroke="var(--color-carb, #22D17A)"
               strokeWidth={strokeWidth}
               strokeDasharray={`${adjCLength} ${circumference - adjCLength}`}
               strokeDashoffset={cOffset}
@@ -100,14 +100,14 @@ export default function MacroDonutChart({
             />
           )}
 
-          {/* Fat Arc (Rose) */}
+          {/* Fat Arc (Amber - Never Red) */}
           {fLength > 0 && (
             <circle
               cx={center}
               cy={center}
               r={radius}
               fill="none"
-              stroke="#FB7185"
+              stroke="var(--color-fat, #F5A623)"
               strokeWidth={strokeWidth}
               strokeDasharray={`${adjFLength} ${circumference - adjFLength}`}
               strokeDashoffset={fOffset}
@@ -129,28 +129,28 @@ export default function MacroDonutChart({
           textAlign: 'center'
         }}>
           <span style={{
-            fontSize: 9.5,
-            fontWeight: 800,
-            letterSpacing: '0.04em',
-            color: 'var(--text-muted, #94A3B8)'
+            fontSize: 10,
+            fontWeight: 600,
+            letterSpacing: '0.02em',
+            color: 'var(--text-secondary, rgba(255, 255, 255, 0.55))'
           }}>
             {centerLabel}
           </span>
           <span className="tabular-nums" style={{
-            fontSize: 22,
-            fontWeight: 900,
-            color: 'var(--text-primary, #FFFFFF)',
-            fontFamily: 'var(--font-heading)',
+            fontSize: 24,
+            fontWeight: 800,
+            color: 'var(--text-primary, rgba(255, 255, 255, 0.92))',
+            letterSpacing: '-0.03em',
             lineHeight: 1.1,
             marginTop: 2
           }}>
             {Math.round(calories).toLocaleString()}
           </span>
           <span style={{
-            fontSize: 10,
-            fontWeight: 700,
-            color: 'var(--brand-primary-light, #10B981)',
-            letterSpacing: '0.04em'
+            fontSize: 11,
+            fontWeight: 600,
+            color: 'var(--color-green, #22D17A)',
+            letterSpacing: '0.02em'
           }}>
             kcal
           </span>
@@ -168,28 +168,28 @@ export default function MacroDonutChart({
           maxWidth: 320
         }}>
           {/* Protein */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5 }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#818CF8' }} />
-            <span style={{ fontWeight: 600, color: 'var(--text-muted)' }}>Protein:</span>
-            <span className="tabular-nums" style={{ fontWeight: 800, color: '#818CF8' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-protein, #5B8AF5)' }} />
+            <span style={{ fontWeight: 500, color: 'var(--text-secondary, rgba(255, 255, 255, 0.55))' }}>Protein:</span>
+            <span className="tabular-nums" style={{ fontWeight: 700, color: 'var(--color-protein, #5B8AF5)' }}>
               {Math.round(protein)}g ({pPct}%)
             </span>
           </div>
 
           {/* Carbs */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5 }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981' }} />
-            <span style={{ fontWeight: 600, color: 'var(--text-muted)' }}>Carbs:</span>
-            <span className="tabular-nums" style={{ fontWeight: 800, color: '#10B981' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-carb, #22D17A)' }} />
+            <span style={{ fontWeight: 500, color: 'var(--text-secondary, rgba(255, 255, 255, 0.55))' }}>Carbs:</span>
+            <span className="tabular-nums" style={{ fontWeight: 700, color: 'var(--color-carb, #22D17A)' }}>
               {Math.round(carbs)}g ({cPct}%)
             </span>
           </div>
 
           {/* Fat */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5 }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#FB7185' }} />
-            <span style={{ fontWeight: 600, color: 'var(--text-muted)' }}>Fat:</span>
-            <span className="tabular-nums" style={{ fontWeight: 800, color: '#FB7185' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-fat, #F5A623)' }} />
+            <span style={{ fontWeight: 500, color: 'var(--text-secondary, rgba(255, 255, 255, 0.55))' }}>Fat:</span>
+            <span className="tabular-nums" style={{ fontWeight: 700, color: 'var(--color-fat, #F5A623)' }}>
               {Math.round(fat)}g ({fPct}%)
             </span>
           </div>

@@ -378,19 +378,19 @@ Ready to create your personalized weekly meal plan?`;
             width: '56px',
             height: '56px',
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, #10B981, #059669)',
+            background: 'var(--color-green, #22d17a)',
             border: 'none',
-            color: '#ffffff',
+            color: '#0a1a10',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 8px 32px rgba(16, 185, 129, 0.35)',
+            boxShadow: '0 8px 32px rgba(34, 209, 122, 0.35)',
             transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = 'scale(1.08) translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 12px 36px rgba(16, 185, 129, 0.45)';
+            e.currentTarget.style.boxShadow = '0 12px 36px rgba(34, 209, 122, 0.45)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = 'scale(1) translateY(0)';

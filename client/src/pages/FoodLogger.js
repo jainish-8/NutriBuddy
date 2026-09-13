@@ -356,20 +356,20 @@ export default function FoodLogger({ user, setCurrentPage }) {
           </div>
         </div>
         <div style={{ background: 'var(--bg-surface-raised)', padding: '12px 8px', borderRadius: 'var(--radius-panel)', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
-          <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--accent-protein-text, #818CF8)' }}>Protein</span>
-          <div className="tabular-nums" style={{ fontSize: 15, fontWeight: 800, color: 'var(--accent-protein-text, #818CF8)', marginTop: 2 }}>
+          <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--color-protein, #5B8AF5)' }}>Protein</span>
+          <div className="tabular-nums" style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-protein, #5B8AF5)', marginTop: 2 }}>
             {(selectedFood.protein * currentQty).toFixed(1)}g
           </div>
         </div>
         <div style={{ background: 'var(--bg-surface-raised)', padding: '12px 8px', borderRadius: 'var(--radius-panel)', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
-          <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--brand-primary-light, #10B981)' }}>Carbs</span>
-          <div className="tabular-nums" style={{ fontSize: 15, fontWeight: 800, color: 'var(--brand-primary-light, #10B981)', marginTop: 2 }}>
+          <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--color-carb, #22D17A)' }}>Carbs</span>
+          <div className="tabular-nums" style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-carb, #22D17A)', marginTop: 2 }}>
             {(selectedFood.carbs * currentQty).toFixed(1)}g
           </div>
         </div>
         <div style={{ background: 'var(--bg-surface-raised)', padding: '12px 8px', borderRadius: 'var(--radius-panel)', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
-          <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--accent-fat-text, #FB7185)' }}>Fats</span>
-          <div className="tabular-nums" style={{ fontSize: 15, fontWeight: 800, color: 'var(--accent-fat-text, #FB7185)', marginTop: 2 }}>
+          <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--color-fat, #F5A623)' }}>Fats</span>
+          <div className="tabular-nums" style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-fat, #F5A623)', marginTop: 2 }}>
             {(selectedFood.fat * currentQty).toFixed(1)}g
           </div>
         </div>
@@ -536,11 +536,11 @@ export default function FoodLogger({ user, setCurrentPage }) {
                       <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                         <span>₹{f.cost || 15}</span>
                         <span>·</span>
-                        <span style={{ color: 'var(--accent-protein-text, #818CF8)', fontWeight: 700 }}>P: {f.protein}g</span>
+                        <span style={{ color: 'var(--color-protein, #5B8AF5)', fontWeight: 700 }}>P: {f.protein}g</span>
                         <span>·</span>
-                        <span style={{ color: 'var(--brand-primary-light, #10B981)', fontWeight: 700 }}>C: {f.carbs}g</span>
+                        <span style={{ color: 'var(--color-carb, #22D17A)', fontWeight: 700 }}>C: {f.carbs}g</span>
                         <span>·</span>
-                        <span style={{ color: 'var(--accent-fat-text, #FB7185)', fontWeight: 700 }}>F: {f.fat}g</span>
+                        <span style={{ color: 'var(--color-fat, #F5A623)', fontWeight: 700 }}>F: {f.fat}g</span>
                       </div>
                     </div>
 
@@ -739,18 +739,20 @@ export default function FoodLogger({ user, setCurrentPage }) {
                 className={loading ? "btn btn-primary btn-disabled" : "btn btn-primary"}
                 style={{
                   width: '100%',
-                  padding: '14px 20px',
-                  fontSize: 14,
-                  fontWeight: 800,
+                  padding: '16px 20px',
+                  fontSize: 15,
+                  fontWeight: 700,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: 8,
                   borderRadius: 14,
-                  minHeight: 48
+                  minHeight: 56,
+                  background: 'var(--color-green, #22d17a)',
+                  color: '#0a1a10'
                 }}
               >
-                <Plus size={18} strokeWidth={2.5} /> {loading ? 'Logging meal...' : `Log ${Math.round(selectedFood.calories * currentQty)} kcal to ${mealType.toUpperCase()}`}
+                <Plus size={18} strokeWidth={2.5} /> {loading ? 'Logging meal...' : `Log ${Math.round(selectedFood.calories * currentQty)} kcal to ${mealType.charAt(0).toUpperCase() + mealType.slice(1)}`}
               </button>
             </div>
           </div>

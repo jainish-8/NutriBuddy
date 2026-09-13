@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Dumbbell, Sparkles, Plus, Droplets, 
+  Dumbbell, Sparkles, Plus, 
   Flame, Play, Calculator, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { API_BASE } from '../config';
@@ -228,17 +228,17 @@ function CalorieEngineBreakdown({ user }) {
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8, width: '100%' }}>
                   <div style={{ background: 'var(--bg-surface)', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
-                    <span style={{ fontSize: 10, fontWeight: 800, color: '#818CF8' }}>PROTEIN</span>
+                    <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--color-protein, #5b8af5)' }}>Protein</span>
                     <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--text-primary)' }}>{breakdown.macros.protein}g</div>
                     <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{breakdown.macros.protein * 4} kcal ({Math.round(((breakdown.macros.protein * 4) / breakdown.targetCalories) * 100)}%)</span>
                   </div>
                   <div style={{ background: 'var(--bg-surface)', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
-                    <span style={{ fontSize: 10, fontWeight: 800, color: '#10B981' }}>CARBOHYDRATES</span>
+                    <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--color-carbs, #22d17a)' }}>Carbohydrates</span>
                     <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--text-primary)' }}>{breakdown.macros.carbs}g</div>
                     <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{breakdown.macros.carbs * 4} kcal ({Math.round(((breakdown.macros.carbs * 4) / breakdown.targetCalories) * 100)}%)</span>
                   </div>
                   <div style={{ background: 'var(--bg-surface)', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
-                    <span style={{ fontSize: 10, fontWeight: 800, color: '#FB923C' }}>HEALTHY FATS</span>
+                    <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--color-fat, #f5a623)' }}>Healthy fats</span>
                     <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--text-primary)' }}>{breakdown.macros.fat}g</div>
                     <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{breakdown.macros.fat * 9} kcal ({Math.round(((breakdown.macros.fat * 9) / breakdown.targetCalories) * 100)}%)</span>
                   </div>
@@ -253,106 +253,7 @@ function CalorieEngineBreakdown({ user }) {
   );
 }
 
-// ─── WATER TRACKER ────────────────────────────────────────────────────────────
-function WaterTracker({ user }) {
-  const [waterIntake, setWaterIntake] = useState(0);
-  const dailyGoal = 8;
 
-  useEffect(() => {
-    if (user?.id) {
-      const today = new Date().toISOString().split('T')[0];
-      const saved = localStorage.getItem(`water_${user.id}_${today}`);
-      if (saved) setWaterIntake(parseInt(saved, 10));
-    }
-  }, [user?.id]);
-
-  const updateWater = (delta) => {
-    const next = Math.max(0, waterIntake + delta);
-    setWaterIntake(next);
-    if (user?.id) {
-      const today = new Date().toISOString().split('T')[0];
-      localStorage.setItem(`water_${user.id}_${today}`, next.toString());
-    }
-  };
-
-  const pct = Math.min((waterIntake / dailyGoal) * 100, 100);
-
-  return (
-    <div style={{
-      background: 'var(--bg-surface)',
-      border: '1px solid var(--border-subtle)',
-      borderRadius: 'var(--radius-card)',
-      padding: '20px 24px',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between'
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
-        <div>
-          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-            <Droplets size={13} color="#38BDF8" /> Hydration
-          </div>
-          <div style={{ fontSize: 20, fontWeight: 900, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
-            {waterIntake} <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)' }}>/ {dailyGoal} glasses</span>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <button
-            onClick={() => updateWater(-1)}
-            disabled={waterIntake === 0}
-            style={{
-              width: 32, height: 32, borderRadius: '50%',
-              border: '1px solid var(--border-subtle)',
-              background: 'var(--bg-surface-raised)',
-              color: waterIntake === 0 ? 'var(--text-muted)' : 'var(--text-primary)',
-              fontSize: 16, cursor: waterIntake === 0 ? 'not-allowed' : 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              opacity: waterIntake === 0 ? 0.4 : 1
-            }}
-          >
-            -
-          </button>
-          <button
-            onClick={() => updateWater(1)}
-            style={{
-              width: 32, height: 32, borderRadius: '50%',
-              border: 'none',
-              background: '#38BDF8',
-              color: '#000',
-              fontSize: 16, fontWeight: 800, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 2px 8px rgba(56, 189, 248, 0.3)'
-            }}
-          >
-            +
-          </button>
-        </div>
-      </div>
-
-      <div>
-        <div style={{ height: 6, background: 'var(--bg-surface-raised)', borderRadius: 3, overflow: 'hidden', marginBottom: 10 }}>
-          <div style={{
-            height: '100%',
-            width: `${pct}%`,
-            background: pct >= 100 ? '#10B981' : '#38BDF8',
-            borderRadius: 3,
-            transition: 'width 0.4s ease'
-          }} />
-        </div>
-        <div style={{ display: 'flex', gap: 4 }}>
-          {[...Array(dailyGoal)].map((_, i) => (
-            <div key={i} style={{
-              flex: 1, height: 3, borderRadius: 2,
-              background: i < waterIntake ? '#38BDF8' : 'var(--bg-surface-raised)',
-              transition: 'background 0.25s ease'
-            }} />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ─── 7-DAY CALORIE & NUTRITION CHART ──────────────────────────────────────────
 function WeeklyProgress({ user }) {
@@ -456,11 +357,11 @@ function WeeklyProgress({ user }) {
                   background: noData
                     ? 'var(--bg-surface-raised)'
                     : overGoal
-                    ? '#EF4444'
+                    ? 'var(--color-danger, #f55b5b)'
                     : isToday
-                    ? 'var(--brand-primary, #F59E0B)'
-                    : '#10B981',
-                  opacity: noData ? 0.4 : 1,
+                    ? 'var(--color-green, #22d17a)'
+                    : 'var(--color-green, #22d17a)',
+                  opacity: noData ? 0.35 : 1,
                   transition: `height 0.8s cubic-bezier(0.16,1,0.3,1) ${index * 50}ms`,
                   boxShadow: !noData ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
                 }} />
@@ -468,7 +369,7 @@ function WeeklyProgress({ user }) {
               <div style={{ textAlign: 'center' }}>
                 <div style={{
                   fontSize: 10, fontWeight: isToday ? 900 : 700,
-                  color: isToday ? 'var(--brand-primary, #F59E0B)' : 'var(--text-muted)'
+                  color: isToday ? 'var(--color-green, #22d17a)' : 'var(--text-muted)'
                 }}>
                   {day.day}
                 </div>
@@ -480,11 +381,11 @@ function WeeklyProgress({ user }) {
 
       <div style={{ display: 'flex', gap: 16, borderTop: '1px solid var(--border-subtle)', paddingTop: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 8, height: 8, borderRadius: 2, background: '#10B981' }} />
-          <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700 }}>On target</span>
+          <div style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--color-green, #22d17a)' }} />
+          <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700 }}>Days on track</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 8, height: 8, borderRadius: 2, background: '#EF4444' }} />
+          <div style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--color-danger, #f55b5b)' }} />
           <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700 }}>Over budget</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -505,6 +406,25 @@ export default function Dashboard({ user, setCurrentPage }) {
   const [generatedProgram, setGeneratedProgram] = useState(null);
   const [workoutStreak, setWorkoutStreak] = useState(0);
   const [workoutHistory, setWorkoutHistory] = useState([]);
+  const [waterIntake, setWaterIntake] = useState(0);
+  const dailyWaterGoal = 8;
+
+  useEffect(() => {
+    if (user?.id) {
+      const today = new Date().toISOString().split('T')[0];
+      const saved = localStorage.getItem(`water_${user.id}_${today}`);
+      if (saved) setWaterIntake(parseInt(saved, 10));
+    }
+  }, [user?.id]);
+
+  const updateWater = (delta) => {
+    const next = Math.max(0, waterIntake + delta);
+    setWaterIntake(next);
+    if (user?.id) {
+      const today = new Date().toISOString().split('T')[0];
+      localStorage.setItem(`water_${user.id}_${today}`, next.toString());
+    }
+  };
 
   const fetchDailyData = async () => {
     try {
@@ -576,173 +496,263 @@ export default function Dashboard({ user, setCurrentPage }) {
   if (!user) return null;
 
   const targetCalories = user.dailyCalories || 2000;
-  const consumedCalories = dailyData?.totals.calories || 0;
+  const consumedCalories = dailyData?.totals?.calories || 0;
   const caloriesRemaining = targetCalories - consumedCalories;
   const overGoal = caloriesRemaining < 0;
   const progressPct = Math.min((consumedCalories / targetCalories) * 100, 100);
+
+  // Dynamic Macro Goals & Water Tracking
+  const breakdown = getDetailedCalorieBreakdown(user);
+  const proteinGoal = user.targetProtein || breakdown?.macros?.protein || 120;
+  const carbsGoal = user.targetCarbs || breakdown?.macros?.carbs || 200;
+  const fatGoal = user.targetFat || breakdown?.macros?.fat || 55;
+  const proteinPct = Math.round(((dailyData?.totals?.protein || 0) / proteinGoal) * 100);
+  const carbsPct = Math.round(((dailyData?.totals?.carbs || 0) / carbsGoal) * 100);
+  const fatPct = Math.round(((dailyData?.totals?.fat || 0) / fatGoal) * 100);
+
+  // Ring color transition logic:
+  // >90% -> transitions to amber (#f5a623)
+  // at 100% -> amber with pulse effect
+  // >100% -> steady red (#f55b5b)
+  let ringColor = 'var(--color-green)';
+  if (consumedCalories > targetCalories) {
+    ringColor = 'var(--color-danger)';
+  } else if (progressPct >= 90) {
+    ringColor = 'var(--color-warning)';
+  }
 
   const todayFormatted = new Date().toLocaleDateString('en-US', {
     weekday: 'long', month: 'short', day: 'numeric', year: 'numeric'
   });
 
+  const radius = 38;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (Math.min(progressPct, 100) / 100) * circumference;
+
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
       
-      {/* ── HERO HEADER BAR ── */}
+      {/* ── 1. HERO CARD (Full Width) ── */}
       <Reveal preset="down" delay={0}>
-        <div style={{
-          background: 'var(--bg-surface)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-card)',
-          padding: '24px 28px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 16
-        }}>
-          <div>
-            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.08em' }}>
-              Today's check-in
-            </span>
-            <h1 style={{
-              margin: '2px 0 0',
-              fontFamily: 'var(--font-heading)',
-              fontSize: 24,
-              fontWeight: 800,
-              color: 'var(--text-primary)',
+        <div className="nb-card" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
+            <div>
+              <h1 className="text-display" style={{ margin: 0, color: 'var(--text-primary)' }}>
+                Welcome back, {toTitleCase(user.fullName?.split(' ')[0] || 'Athlete')}
+              </h1>
+              <div className="text-label" style={{ color: 'var(--text-muted)', marginTop: 4 }}>
+                {todayFormatted} · Goal: {
+                  user.goal === 'fat_loss' || user.goal === 'lose' ? 'Fat loss' :
+                  user.goal === 'lean_bulk' ? 'Lean bulk' :
+                  user.goal === 'aggressive_bulk' ? 'Bulk mode' : 'Weight maintenance'
+                }
+              </div>
+            </div>
+
+            {/* Right: Goal icon badge (40×40px rounded square with green tint bg) */}
+            <div style={{
+              width: 40, height: 40, borderRadius: 12,
+              background: 'var(--color-green-bg)',
+              border: '1px solid var(--color-green-border)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--color-green)', flexShrink: 0
             }}>
-              Welcome back, {toTitleCase(user.fullName?.split(' ')[0] || 'Athlete')}
-            </h1>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4, fontWeight: 600 }}>
-              {todayFormatted} · Goal: {
-                user.goal === 'fat_loss' || user.goal === 'lose' ? 'Fat Loss (Caloric Deficit)' :
-                user.goal === 'lean_bulk' ? 'Lean Bulk (Muscle Growth)' :
-                user.goal === 'aggressive_bulk' ? 'Bulk (Muscle Growth)' : 'Weight Maintenance'
-              }
+              <Sparkles size={20} />
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          {/* Below: Two buttons side by side — "+ Log meal" (primary green) and "Workout" (secondary) */}
+          <div style={{ display: 'flex', gap: 12 }}>
             <button
               onClick={() => setCurrentPage('food-log')}
-              className="btn btn-primary"
-              style={{ padding: '10px 18px', fontSize: 13, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6 }}
+              className="nb-btn-primary"
+              style={{ flex: 1, height: 44, padding: '0 18px', fontSize: 14 }}
             >
-              <Plus size={15} strokeWidth={2.5} /> Log Meal
+              <Plus size={16} strokeWidth={2.5} /> Log meal
             </button>
             <button
               onClick={() => setCurrentPage('exercise')}
-              className="btn btn-secondary"
-              style={{ padding: '10px 18px', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}
+              className="nb-btn-secondary"
+              style={{ flex: 1, height: 44, padding: '0 18px', fontSize: 14 }}
             >
-              <Dumbbell size={15} /> Workout Console
+              <Dumbbell size={16} /> Workout
             </button>
           </div>
         </div>
       </Reveal>
 
-      {/* ── 2-COLUMN COMPACT MOBILE STATS GRID (CALORIES & MACROS) ── */}
-      <div className="mobile-2col-grid">
-        {/* 1. Daily Target */}
-        <Reveal preset="up" delay={0}>
-          <div style={{ background: 'var(--bg-surface)', padding: '16px 18px', borderRadius: 'var(--radius-card)', border: '1px solid var(--border-subtle)', height: '100%' }}>
-            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>Calorie target</span>
-            <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 900, color: 'var(--text-primary)', margin: '4px 0 2px' }}>{targetCalories}</div>
-            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>target calories</span>
-          </div>
-        </Reveal>
-
-        {/* 2. Consumed Today */}
-        <Reveal preset="up" delay={30}>
-          <div style={{ background: 'var(--bg-surface)', padding: '16px 18px', borderRadius: 'var(--radius-card)', border: '1px solid var(--border-subtle)', height: '100%' }}>
-            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>Consumed today</span>
-            <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 900, color: 'var(--brand-primary-light)', margin: '4px 0 2px' }}>{consumedCalories}</div>
-            {consumedCalories === 0 ? (
-              <button
-                onClick={() => setCurrentPage('food-log')}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  padding: 0,
-                  fontSize: 11,
-                  color: 'var(--brand-primary-light)',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center'
-                }}
-              >
-                Start logging →
-              </button>
-            ) : (
-              <span style={{ fontSize: 11, color: 'var(--brand-primary-light)', fontWeight: 700 }}>{Math.round(progressPct)}% reached</span>
-            )}
-          </div>
-        </Reveal>
-
-        {/* 3. Calories Remaining */}
-        <Reveal preset="up" delay={60}>
-          <div style={{ background: 'var(--bg-surface)', padding: '16px 18px', borderRadius: 'var(--radius-card)', border: '1px solid var(--border-subtle)', height: '100%' }}>
-            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>{overGoal ? 'Over budget' : 'Remaining'}</span>
-            <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 900, color: overGoal ? 'var(--accent-danger)' : 'var(--accent-calories)', margin: '4px 0 2px' }}>
-              {Math.abs(caloriesRemaining)}
+      {/* ── 2. CALORIE RING CARD (Full Width with 4 Macro Pills) ── */}
+      <Reveal preset="up" delay={200}>
+        <div className="nb-card" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* Ring and stats row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
+            {/* Left side: SVG donut ring (90px diameter) */}
+            <div style={{ position: 'relative', width: 90, height: 90, flexShrink: 0 }}>
+              <svg width={90} height={90} viewBox="0 0 90 90" style={{ transform: 'rotate(-90deg)' }}>
+                {/* Ring track */}
+                <circle
+                  cx={45} cy={45} r={radius}
+                  fill="none"
+                  stroke="rgba(255, 255, 255, 0.06)"
+                  strokeWidth={8}
+                />
+                {/* Ring fill animated from 0 to consumed% on load */}
+                <circle
+                  cx={45} cy={45} r={radius}
+                  fill="none"
+                  stroke={ringColor}
+                  strokeWidth={8}
+                  strokeDasharray={circumference}
+                  strokeDashoffset={strokeDashoffset}
+                  strokeLinecap="round"
+                  className={progressPct === 100 ? 'anim-pulse-ring' : 'anim-ring-dash'}
+                  style={{ transition: 'stroke 300ms ease, stroke-dashoffset 600ms ease-out' }}
+                />
+              </svg>
+              {/* Center of ring: consumed kcal value (18px bold) + "kcal" label (10px muted) */}
+              <div style={{
+                position: 'absolute', inset: 0,
+                display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center',
+                textAlign: 'center', pointerEvents: 'none'
+              }}>
+                <span className="tabular-nums" style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>
+                  {consumedCalories}
+                </span>
+                <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600, marginTop: 2 }}>
+                  kcal
+                </span>
+              </div>
             </div>
-            <span style={{ fontSize: 11, color: overGoal ? 'var(--accent-danger)' : 'var(--text-muted)' }}>
-              {overGoal ? 'kcal over' : 'kcal'}
-            </span>
-          </div>
-        </Reveal>
 
-        {/* 4. Protein */}
-        <Reveal preset="up" delay={90}>
-          <div style={{ background: 'var(--bg-surface)', padding: '16px 18px', borderRadius: 'var(--radius-card)', border: '1px solid var(--border-subtle)', height: '100%' }}>
-            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--accent-protein-text, #818CF8)', letterSpacing: '0.04em' }}>Protein</span>
-            <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 900, color: 'var(--accent-protein-text, #818CF8)', margin: '4px 0 2px' }}>
-              {dailyData?.totals.protein || 0}<span style={{ fontSize: 13, fontWeight: 700, opacity: 0.85 }}>g</span>
+            {/* Right side: Calorie target & remaining */}
+            <div style={{ flex: 1, minWidth: 160 }}>
+              <div className="section-label" style={{ fontSize: 11, marginBottom: 2 }}>
+                Calorie target
+              </div>
+              <div className="tabular-nums text-hero" style={{ fontSize: 34, color: 'var(--text-primary)', margin: '2px 0 4px' }}>
+                {targetCalories}
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                {overGoal ? (
+                  <span style={{ color: 'var(--color-danger)', fontWeight: 600 }}>{Math.abs(caloriesRemaining)} kcal over target</span>
+                ) : (
+                  <span>{caloriesRemaining} kcal remaining</span>
+                )}
+              </div>
+              {consumedCalories === 0 && (
+                <button
+                  onClick={() => setCurrentPage('food-log')}
+                  style={{
+                    background: 'none', border: 'none', padding: 0,
+                    fontSize: 12, color: 'var(--color-green)', fontWeight: 700,
+                    cursor: 'pointer', marginTop: 4, display: 'inline-flex', alignItems: 'center'
+                  }}
+                >
+                  Start logging →
+                </button>
+              )}
             </div>
-            {user.targetProtein && (
-              <span className="tabular-nums" style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>
-                / {user.targetProtein}g goal
-              </span>
-            )}
           </div>
-        </Reveal>
 
-        {/* 5. Carbs */}
-        <Reveal preset="up" delay={120}>
-          <div style={{ background: 'var(--bg-surface)', padding: '16px 18px', borderRadius: 'var(--radius-card)', border: '1px solid var(--border-subtle)', height: '100%' }}>
-            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light, #10B981)', letterSpacing: '0.04em' }}>Carbs</span>
-            <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 900, color: 'var(--brand-primary-light, #10B981)', margin: '4px 0 2px' }}>
-              {dailyData?.totals.carbs || 0}<span style={{ fontSize: 13, fontWeight: 700, opacity: 0.85 }}>g</span>
+          {/* Below ring: 4 macro pills in a row: Protein | Carbs | Fats | Water */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(68px, 1fr))', gap: 8 }}>
+            {/* Protein */}
+            <div className="nb-macro-pill">
+              <div className="tabular-nums" style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-protein)' }}>
+                {dailyData?.totals?.protein || 0}g
+              </div>
+              <div className="section-label" style={{ fontSize: 9, margin: '2px 0 6px' }}>Protein</div>
+              <div className="nb-progress-track">
+                <div
+                  className="nb-progress-fill nb-progress-fill-protein"
+                  style={{ width: `${Math.min(proteinPct, 100)}%` }}
+                />
+              </div>
+              <div className="tabular-nums" style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
+                /{proteinGoal}g
+              </div>
             </div>
-            {user.targetCarbs && (
-              <span className="tabular-nums" style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>
-                / {user.targetCarbs}g goal
-              </span>
-            )}
-          </div>
-        </Reveal>
 
-        {/* 6. Fats */}
-        <Reveal preset="up" delay={150}>
-          <div style={{ background: 'var(--bg-surface)', padding: '16px 18px', borderRadius: 'var(--radius-card)', border: '1px solid var(--border-subtle)', height: '100%' }}>
-            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--accent-fat-text, #FB7185)', letterSpacing: '0.04em' }}>Fats</span>
-            <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 900, color: 'var(--accent-fat-text, #FB7185)', margin: '4px 0 2px' }}>
-              {dailyData?.totals.fat || 0}<span style={{ fontSize: 13, fontWeight: 700, opacity: 0.85 }}>g</span>
+            {/* Carbs */}
+            <div className="nb-macro-pill">
+              <div className="tabular-nums" style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-carbs)' }}>
+                {dailyData?.totals?.carbs || 0}g
+              </div>
+              <div className="section-label" style={{ fontSize: 9, margin: '2px 0 6px' }}>Carbs</div>
+              <div className="nb-progress-track">
+                <div
+                  className="nb-progress-fill nb-progress-fill-carbs"
+                  style={{ width: `${Math.min(carbsPct, 100)}%` }}
+                />
+              </div>
+              <div className="tabular-nums" style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
+                /{carbsGoal}g
+              </div>
             </div>
-            {user.targetFat && (
-              <span className="tabular-nums" style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>
-                / {user.targetFat}g goal
-              </span>
-            )}
-          </div>
-        </Reveal>
-      </div>
 
-      {/* ── HYDRATION TRACKER (FULL WIDTH CARD) ── */}
-      <Reveal preset="up" delay={100}>
-        <WaterTracker user={user} />
+            {/* Fats (STRICTLY AMBER) */}
+            <div className="nb-macro-pill">
+              <div className="tabular-nums" style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-fat)' }}>
+                {dailyData?.totals?.fat || 0}g
+              </div>
+              <div className="section-label" style={{ fontSize: 9, margin: '2px 0 6px' }}>Fats</div>
+              <div className="nb-progress-track">
+                <div
+                  className="nb-progress-fill nb-progress-fill-fat"
+                  style={{ width: `${Math.min(fatPct, 100)}%` }}
+                />
+              </div>
+              <div className="tabular-nums" style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
+                /{fatGoal}g
+              </div>
+            </div>
+
+            {/* Water */}
+            <div className="nb-macro-pill">
+              <div className="tabular-nums" style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-water)' }}>
+                {waterIntake}
+              </div>
+              <div className="section-label" style={{ fontSize: 9, margin: '2px 0 6px' }}>Water</div>
+              <div className="nb-progress-track">
+                <div
+                  className="nb-progress-fill nb-progress-fill-water"
+                  style={{ width: `${Math.min((waterIntake / dailyWaterGoal) * 100, 100)}%` }}
+                />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, marginTop: 4 }}>
+                <button
+                  onClick={() => updateWater(-1)}
+                  disabled={waterIntake === 0}
+                  style={{
+                    width: 20, height: 20, borderRadius: 4, border: 'none',
+                    background: 'var(--color-raised)', color: 'var(--text-secondary)',
+                    fontSize: 12, cursor: waterIntake === 0 ? 'not-allowed' : 'pointer',
+                    padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}
+                  title="Remove glass"
+                >
+                  -
+                </button>
+                <span className="tabular-nums" style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                  /{dailyWaterGoal}
+                </span>
+                <button
+                  onClick={() => updateWater(1)}
+                  style={{
+                    width: 20, height: 20, borderRadius: 4, border: 'none',
+                    background: 'var(--color-water)', color: '#0a1a10',
+                    fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                    padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}
+                  title="Add glass"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </Reveal>
 
       {/* ── INTERACTIVE FITNESS CALORIE CALCULATION ENGINE BREAKDOWN ── */}

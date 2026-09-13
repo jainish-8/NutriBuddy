@@ -85,10 +85,24 @@ export default function WeightTrendChart({
     return { ...d, x, y };
   });
 
-  const pathD = points.reduce((acc, pt, i) => {
-    return `${acc} ${i === 0 ? 'M' : 'L'} ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`;
-  }, '');
+  // Helper for smooth bezier curve
+  const getSmoothBezierPath = (pts) => {
+    if (pts.length === 0) return '';
+    if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`;
+    let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i];
+      const p1 = pts[i + 1];
+      const cpX1 = p0.x + (p1.x - p0.x) / 2;
+      const cpY1 = p0.y;
+      const cpX2 = p0.x + (p1.x - p0.x) / 2;
+      const cpY2 = p1.y;
+      d += ` C ${cpX1.toFixed(1)} ${cpY1.toFixed(1)}, ${cpX2.toFixed(1)} ${cpY2.toFixed(1)}, ${p1.x.toFixed(1)} ${p1.y.toFixed(1)}`;
+    }
+    return d;
+  };
 
+  const pathD = getSmoothBezierPath(points);
   const areaD = `${pathD} L ${points[points.length - 1].x.toFixed(1)} ${(padTop + innerH).toFixed(1)} L ${points[0].x.toFixed(1)} ${(padTop + innerH).toFixed(1)} Z`;
 
   // Target line Y
@@ -108,23 +122,21 @@ export default function WeightTrendChart({
 
   return (
     <div style={{
-      background: 'var(--bg-surface-raised, #161A22)',
-      borderRadius: 'var(--radius-panel, 14px)',
-      border: '1px solid var(--border-subtle, #30363D)',
-      padding: '14px 16px',
+      background: 'transparent',
+      padding: '14px 4px',
       position: 'relative'
     }}>
       {/* Header Stat row */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <div>
-          <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            WEIGHT TREND VELOCITY
+          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em' }}>
+            Weight trend velocity
           </span>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 2 }}>
-            <span className="tabular-nums" style={{ fontSize: 20, fontWeight: 900, color: 'var(--text-primary)' }}>
+            <span className="tabular-nums" style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>
               {active ? active.weight : currentWeight}
             </span>
-            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)' }}>kg</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)' }}>kg</span>
             {active && (
               <span style={{ fontSize: 11, color: 'var(--text-secondary)', marginLeft: 4 }}>
                 • {new Date(active.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
@@ -140,11 +152,11 @@ export default function WeightTrendChart({
           gap: 4,
           padding: '4px 10px',
           borderRadius: 20,
-          background: isGoalAligned ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
-          border: `1px solid ${isGoalAligned ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+          background: isGoalAligned ? 'rgba(34, 209, 122, 0.12)' : 'rgba(245, 166, 35, 0.12)',
+          border: `0.5px solid ${isGoalAligned ? 'rgba(34, 209, 122, 0.3)' : 'rgba(245, 166, 35, 0.3)'}`,
           fontSize: 11,
-          fontWeight: 800,
-          color: isGoalAligned ? 'var(--brand-primary-light, #10B981)' : '#EF4444'
+          fontWeight: 700,
+          color: isGoalAligned ? 'var(--color-green)' : 'var(--color-warning)'
         }}>
           {delta < 0 ? <TrendingDown size={13} /> : delta > 0 ? <TrendingUp size={13} /> : <Minus size={13} />}
           <span className="tabular-nums">{delta > 0 ? `+${delta}` : delta} kg</span>
@@ -159,20 +171,15 @@ export default function WeightTrendChart({
         >
           <defs>
             <linearGradient id="weightGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--brand-primary-light, #10B981)" stopOpacity="0.28" />
-              <stop offset="85%" stopColor="var(--brand-primary-light, #10B981)" stopOpacity="0.02" />
-              <stop offset="100%" stopColor="var(--brand-primary-light, #10B981)" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient id="weightLineGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="var(--accent-protein-text, #818CF8)" />
-              <stop offset="100%" stopColor="var(--brand-primary-light, #10B981)" />
+              <stop offset="0%" stopColor="var(--color-green)" stopOpacity="0.15" />
+              <stop offset="100%" stopColor="var(--color-green)" stopOpacity="0" />
             </linearGradient>
           </defs>
 
-          {/* Grid lines */}
-          <line x1={padX} y1={padTop} x2={width - padX} y2={padTop} stroke="var(--border-subtle, #30363D)" strokeDasharray="3 3" opacity="0.5" />
-          <line x1={padX} y1={padTop + innerH / 2} x2={width - padX} y2={padTop + innerH / 2} stroke="var(--border-subtle, #30363D)" strokeDasharray="3 3" opacity="0.4" />
-          <line x1={padX} y1={padTop + innerH} x2={width - padX} y2={padTop + innerH} stroke="var(--border-subtle, #30363D)" strokeDasharray="3 3" opacity="0.5" />
+          {/* Grid lines: horizontal only, 0.5px rgba(255,255,255,0.05) */}
+          <line x1={padX} y1={padTop} x2={width - padX} y2={padTop} stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
+          <line x1={padX} y1={padTop + innerH / 2} x2={width - padX} y2={padTop + innerH / 2} stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
+          <line x1={padX} y1={padTop + innerH} x2={width - padX} y2={padTop + innerH} stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
 
           {/* Target Reference Line */}
           {targetY !== null && (
@@ -182,18 +189,18 @@ export default function WeightTrendChart({
                 y1={targetY}
                 x2={width - padX}
                 y2={targetY}
-                stroke="#F59E0B"
-                strokeWidth="1.5"
+                stroke="var(--color-warning)"
+                strokeWidth="1"
                 strokeDasharray="4 4"
-                opacity="0.8"
+                opacity="0.7"
               />
               <text
                 x={width - padX}
                 y={targetY - 4}
                 textAnchor="end"
-                fontSize="9"
-                fontWeight="700"
-                fill="#F59E0B"
+                fontSize="10"
+                fontWeight="600"
+                fill="var(--color-warning)"
               >
                 Target {targetWeight} kg
               </text>
@@ -203,19 +210,20 @@ export default function WeightTrendChart({
           {/* Fill Area */}
           <path d={areaD} fill="url(#weightGrad)" />
 
-          {/* Main Trend Line */}
+          {/* Main Trend Line: 2px --color-green stroke, smooth bezier */}
           <path
             d={pathD}
             fill="none"
-            stroke="url(#weightLineGrad)"
-            strokeWidth="2.5"
+            stroke="var(--color-green)"
+            strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
+            className="weight-line-anim"
           />
 
-          {/* Interactive Data Points */}
+          {/* Interactive Data Points: 6px circle, --color-green fill, 2px white stroke. Latest point: 8px circle, pulsing */}
           {points.map((pt, idx) => {
-            const isSelected = activePoint === idx || (activePoint === null && idx === points.length - 1);
+            const isLatest = idx === points.length - 1;
             return (
               <g
                 key={idx}
@@ -226,31 +234,35 @@ export default function WeightTrendChart({
                 <circle
                   cx={pt.x}
                   cy={pt.y}
-                  r={isSelected ? 6 : 3.5}
-                  fill={isSelected ? '#FFFFFF' : 'var(--brand-primary-light, #10B981)'}
-                  stroke={isSelected ? 'var(--brand-primary-light, #10B981)' : 'var(--bg-surface-raised, #161A22)'}
-                  strokeWidth={isSelected ? 3 : 2}
-                  style={{ transition: 'all 0.15s ease' }}
+                  r={isLatest ? 4 : 3}
+                  fill="var(--color-green)"
+                  stroke="#ffffff"
+                  strokeWidth="2"
+                  className={isLatest ? 'pulsing-dot' : ''}
+                  style={{
+                    transformOrigin: `${pt.x}px ${pt.y}px`,
+                    transition: 'all 0.15s ease'
+                  }}
                 />
-                {/* Hit target for touch */}
-                <circle cx={pt.x} cy={pt.y} r={14} fill="transparent" />
+                {/* Hit target for touch (min 44x44) */}
+                <circle cx={pt.x} cy={pt.y} r={22} fill="transparent" />
               </g>
             );
           })}
 
           {/* Y Axis min/max labels */}
-          <text x={padX - 4} y={padTop + 4} textAnchor="end" fontSize="9" fontWeight="600" fill="var(--text-muted)">
+          <text x={padX - 6} y={padTop + 3} textAnchor="end" fontSize="10" fontWeight="500" fill="var(--text-muted)">
             {maxY}
           </text>
-          <text x={padX - 4} y={padTop + innerH} textAnchor="end" fontSize="9" fontWeight="600" fill="var(--text-muted)">
+          <text x={padX - 6} y={padTop + innerH} textAnchor="end" fontSize="10" fontWeight="500" fill="var(--text-muted)">
             {minY}
           </text>
 
           {/* X Axis dates (first and last) */}
-          <text x={padX} y={height - 6} textAnchor="start" fontSize="9" fontWeight="600" fill="var(--text-muted)">
+          <text x={padX} y={height - 6} textAnchor="start" fontSize="10" fontWeight="500" fill="var(--text-muted)">
             {new Date(displayData[0].date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
           </text>
-          <text x={width - padX} y={height - 6} textAnchor="end" fontSize="9" fontWeight="600" fill="var(--text-muted)">
+          <text x={width - padX} y={height - 6} textAnchor="end" fontSize="10" fontWeight="500" fill="var(--text-muted)">
             {new Date(displayData[displayData.length - 1].date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
           </text>
         </svg>

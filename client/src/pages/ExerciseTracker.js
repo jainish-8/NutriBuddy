@@ -3520,25 +3520,19 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
 
               {/* Center: Live Timer & Pacer */}
               <div
-                className="text-xs font-mono font-semibold text-zinc-300 flex items-center gap-1.5 min-w-0"
                 style={{
-                  fontSize: 12,
-                  fontFamily: 'var(--font-mono)',
-                  fontWeight: 600,
-                  color: '#d4d4d8',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 6,
+                  gap: 8,
                   minWidth: 0,
                   justifyContent: 'center'
                 }}
               >
-                <span className="pulse-dot" style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', display: 'inline-block', flexShrink: 0 }} />
-                <span className="tabular-nums" style={{ color: '#10B981', fontWeight: 800 }}>
+                <span className="tabular-nums" style={{ color: 'var(--color-green)', fontSize: 18, fontWeight: 700, fontFamily: 'var(--font-mono, monospace)', letterSpacing: '-0.02em' }}>
                   {formatMMSS(elapsedSeconds)}
                 </span>
-                <span style={{ fontSize: 10, color: '#71717a' }}>|</span>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 110 }}>
+                <span style={{ fontSize: 14, color: 'var(--text-muted)' }}>|</span>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120, fontSize: 14, fontWeight: 600, color: 'var(--text-secondary)' }}>
                   {workoutName}
                 </span>
               </div>
@@ -3548,25 +3542,20 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                 <button
                   type="button"
                   onClick={handleFinishWorkout}
-                  className="h-8 px-3.5 bg-[#10B981] text-black font-bold text-xs rounded-lg active:scale-95 flex items-center gap-1 cursor-pointer"
+                  className="nb-btn-secondary active:scale-95 flex items-center gap-1 cursor-pointer"
                   style={{
                     height: 32,
-                    padding: '0 14px',
-                    backgroundColor: '#10B981',
-                    border: 'none',
-                    borderRadius: 8,
-                    color: '#000000',
+                    padding: '0 12px',
                     fontSize: 12,
-                    fontWeight: 700,
+                    fontWeight: 600,
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: 4,
                     cursor: 'pointer',
-                    boxShadow: '0 2px 10px rgba(16, 185, 129, 0.35)',
                     whiteSpace: 'nowrap'
                   }}
                 >
-                  <Check size={13} strokeWidth={3} color="#000000" />
+                  <Check size={13} strokeWidth={2.5} />
                   <span>Finish</span>
                 </button>
 
@@ -3575,15 +3564,13 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                   <button
                     type="button"
                     onClick={() => setShowConsoleOverflow(prev => !prev)}
-                    className="h-8 w-8 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 flex items-center justify-center active:scale-95 cursor-pointer"
                     style={{
                       width: 32,
                       height: 32,
                       padding: 0,
-                      backgroundColor: '#18181b',
-                      border: '1px solid #27272a',
-                      borderRadius: 8,
-                      color: '#a1a1aa',
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      color: 'var(--text-muted)',
                       display: 'inline-flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -3591,7 +3578,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                     }}
                     aria-label="Workout session options"
                   >
-                    <MoreVertical size={14} />
+                    <MoreVertical size={16} />
                   </button>
 
                   {showConsoleOverflow && (
@@ -3679,61 +3666,32 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                       setCurrentExIndex(idx);
                       setActiveDrawer(null);
                     }}
-                    className={`h-8 text-xs px-3 rounded-xl shrink-0 flex items-center gap-1.5 cursor-pointer transition-all active:scale-95 border ${
-                      isCurrent
-                        ? 'bg-zinc-800 border-[#10B981] text-white font-bold'
-                        : isAllDone
-                        ? 'bg-zinc-900 border-emerald-500/40 text-emerald-400 font-medium'
-                        : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 font-medium'
-                    }`}
+                    className="shrink-0 flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
                     style={{
-                      height: 32,
-                      fontSize: 12,
+                      height: 34,
                       padding: '0 12px',
-                      borderRadius: 12,
+                      borderRadius: 10,
                       flexShrink: 0,
                       whiteSpace: 'nowrap',
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: 6,
                       cursor: 'pointer',
-                      ...(isCurrent ? {
-                        backgroundColor: '#27272a',
-                        borderColor: '#10B981',
-                        color: '#ffffff',
-                        fontWeight: 700,
-                        boxShadow: '0 0 10px rgba(16, 185, 129, 0.25)'
-                      } : isAllDone ? {
-                        backgroundColor: '#18181b',
-                        borderColor: 'rgba(16, 185, 129, 0.4)',
-                        color: '#34d399',
-                        fontWeight: 500
-                      } : {
-                        backgroundColor: 'rgba(24, 24, 27, 0.6)',
-                        borderColor: '#27272a',
-                        color: '#a1a1aa',
-                        fontWeight: 500
-                      })
+                      background: isCurrent ? 'rgba(34, 209, 122, 0.08)' : 'transparent',
+                      border: 'none',
+                      borderBottom: isCurrent ? '2px solid var(--color-green)' : '2px solid transparent',
+                      color: isCurrent ? 'var(--text-primary)' : 'var(--text-muted)',
+                      fontSize: 13,
+                      fontWeight: isCurrent ? 600 : 500
                     }}
                   >
                     <span>{ex.name}</span>
                     <span style={{
-                      fontSize: 10.5,
-                      fontWeight: isCurrent ? 800 : 700,
-                      padding: '1px 5px',
-                      borderRadius: 5,
-                      background: isAllDone
-                        ? 'rgba(16, 185, 129, 0.2)'
-                        : isCurrent
-                        ? 'rgba(16, 185, 129, 0.2)'
-                        : 'rgba(255, 255, 255, 0.06)',
-                      color: isAllDone
-                        ? '#34d399'
-                        : isCurrent
-                        ? '#34d399'
-                        : '#a1a1aa'
+                      fontSize: 11,
+                      fontWeight: 600,
+                      color: isCurrent ? 'var(--color-green)' : isAllDone ? 'var(--color-green)' : 'var(--text-muted)'
                     }}>
-                      {isAllDone ? `${doneCount}/${totCount} ✓` : `${doneCount}/${totCount}`}
+                      {doneCount}/{totCount}
                     </span>
                   </button>
                 );
@@ -4426,13 +4384,13 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                             onClick={handleFinishWorkout}
                             className="btn btn-primary"
                             style={{
-                              padding: '10px 24px', fontSize: 13, borderRadius: 12,
-                              background: '#10B981', color: '#000000', fontWeight: 700,
+                              padding: '12px 24px', fontSize: 14, borderRadius: 14,
+                              background: 'var(--color-green, #22d17a)', color: '#0a1a10', fontWeight: 700,
                               display: 'flex', alignItems: 'center', gap: 6,
-                              boxShadow: '0 4px 16px rgba(16,185,129,0.35)'
+                              boxShadow: '0 4px 16px rgba(34, 209, 122, 0.35)'
                             }}
                           >
-                            <Check size={15} strokeWidth={3} color="#000000" /> Complete Workout
+                            <Check size={16} strokeWidth={3} color="#0a1a10" /> Complete Workout
                           </button>
                         )}
                       </div>
@@ -4565,15 +4523,14 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                     setActiveDrawer(null);
                     scrollToTop();
                   }}
-                  className="console-sticky-nav-btn next h-11 flex-1 bg-[#10B981] hover:bg-[#059669] text-black font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                  className="console-sticky-nav-btn next flex-1 active:scale-95 transition"
                   style={{
-                    height: 44,
-                    borderRadius: 12,
-                    background: '#10B981',
-                    color: '#000000',
-                    fontSize: 12,
+                    height: 56,
+                    borderRadius: 14,
+                    background: 'var(--color-green)',
+                    color: '#0a1a10',
+                    fontSize: 14,
                     fontWeight: 700,
-                    boxShadow: '0 4px 16px rgba(16, 185, 129, 0.3)',
                     border: 'none',
                     display: 'flex',
                     alignItems: 'center',
@@ -4587,21 +4544,20 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     Next: {activeExercises[currentExIndex + 1]?.name}
                   </span>
-                  <ArrowRight size={16} color="#000000" />
+                  <ArrowRight size={18} color="#0a1a10" />
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={handleFinishWorkout}
-                  className="console-sticky-nav-btn finish h-11 flex-1 bg-[#10B981] hover:bg-[#059669] text-black font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                  className="console-sticky-nav-btn finish flex-1 active:scale-95 transition"
                   style={{
-                    height: 44,
-                    borderRadius: 12,
-                    background: '#10B981',
-                    color: '#000000',
-                    fontSize: 12,
+                    height: 56,
+                    borderRadius: 14,
+                    background: 'var(--color-green)',
+                    color: '#0a1a10',
+                    fontSize: 14,
                     fontWeight: 700,
-                    boxShadow: '0 4px 16px rgba(16, 185, 129, 0.4)',
                     border: 'none',
                     display: 'flex',
                     alignItems: 'center',
@@ -4612,8 +4568,8 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                     cursor: 'pointer'
                   }}
                 >
-                  <Check size={17} strokeWidth={3} color="#000000" />
-                  <span>Finish Workout</span>
+                  <Check size={18} strokeWidth={3} color="#0a1a10" />
+                  <span>Finish workout</span>
                 </button>
               )}
             </div>
@@ -5299,125 +5255,79 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                       return (
                         <div 
                           key={exIdx} 
+                          className="nb-card"
                           style={{
-                            background: 'linear-gradient(180deg, rgba(22, 25, 34, 0.9) 0%, rgba(15, 17, 23, 0.95) 100%)',
-                            border: '1px solid rgba(255, 255, 255, 0.07)',
-                            borderRadius: 16,
-                            padding: '16px 18px',
-                            boxShadow: '0 4px 18px rgba(0, 0, 0, 0.35)',
-                            transition: 'border-color 0.2s ease'
-                          }}
-                        >
-                          {/* Top Row: Index + Title + Swap Action */}
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-                              <span style={{
-                                fontFamily: 'JetBrains Mono, monospace',
-                                fontSize: 12,
-                                fontWeight: 700,
-                                color: '#71717A',
-                                width: 22,
-                                flexShrink: 0
-                              }}>
-                                {String(exIdx + 1).padStart(2, '0')}
-                              </span>
-                              <h3 style={{
-                                margin: 0,
-                                fontSize: 15,
-                                fontWeight: 700,
-                                color: '#FFFFFF',
-                                letterSpacing: '-0.015em',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap'
-                              }}>
-                                {ex.name}
-                              </h3>
-                            </div>
-                            
-                            <button
-                              type="button"
-                              onClick={() => setSmartAltTarget({ ex, weekIdx: selectedWeek, dayIdx: selectedDay, exIdx, isConsole: false })}
-                              style={{
-                                width: 32,
-                                height: 32,
-                                borderRadius: 10,
-                                backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                                border: '1px solid rgba(255, 255, 255, 0.08)',
-                                color: '#A1A1AA',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                flexShrink: 0
-                              }}
-                              className="active:scale-95 transition"
-                              title="Swap Exercise"
-                              aria-label="Swap Exercise"
-                            >
-                              <Repeat size={13} style={{ color: '#10B981' }} />
-                            </button>
-                          </div>
-
-                          {/* Subtitle Row: Muscle targets indented past 22px + 12px = 34px */}
-                          {anatomy && (
-                            <div style={{
-                              marginLeft: 34,
-                              marginBottom: 12,
-                              fontSize: 11.5,
-                              fontWeight: 500,
-                              color: '#A1A1AA',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
-                            }}>
-                              {anatomy}
-                            </div>
-                          )}
-
-                          {/* Bottom Metrics Row indented at 34px */}
-                          <div style={{
-                            marginLeft: 34,
+                            padding: '16px 20px',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: 8,
-                            flexWrap: 'wrap'
-                          }}>
+                            justifyContent: 'space-between',
+                            gap: 16,
+                            transition: 'all 0.2s ease'
+                          }}
+                        >
+                          {/* Left */}
+                          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, minWidth: 0, flex: 1 }}>
                             <span style={{
-                              backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                              border: '1px solid rgba(255, 255, 255, 0.08)',
-                              borderRadius: 8,
-                              padding: '5px 10px',
-                              fontSize: 12,
-                              color: '#D4D4D8',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: 4
+                              fontFamily: 'var(--font-mono, monospace)',
+                              fontSize: 11,
+                              fontWeight: 700,
+                              color: 'var(--text-muted)',
+                              marginTop: 2,
+                              flexShrink: 0
                             }}>
-                              {isIsometric ? (
-                                <>
-                                  <span style={{ color: '#FFFFFF', fontWeight: 700 }}>{sets}</span> Sets × <span style={{ color: '#FFFFFF', fontWeight: 700 }}>45–60s</span> Hold
-                                </>
-                              ) : (
-                                <>
-                                  <span style={{ color: '#FFFFFF', fontWeight: 700 }}>{sets}</span> Sets × <span style={{ color: '#FFFFFF', fontWeight: 700 }}>{ex.repRange || '8–12'}</span> Reps
-                                </>
-                              )}
+                              {String(exIdx + 1).padStart(2, '0')}
                             </span>
-                            <span style={{
-                              backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                              border: '1px solid rgba(255, 255, 255, 0.08)',
-                              borderRadius: 8,
-                              padding: '5px 10px',
-                              fontSize: 12,
-                              color: '#A1A1AA',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: 6
-                            }}>
-                              <Timer size={12} style={{ color: '#10B981', flexShrink: 0 }} />
-                              <span>{formatRestIntervalBadge(ex.restSec)}</span>
-                            </span>
+                            <div style={{ minWidth: 0, flex: 1 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <h3 style={{
+                                  margin: 0,
+                                  fontSize: 15,
+                                  fontWeight: 600,
+                                  color: 'var(--text-primary)',
+                                  lineHeight: 1.3,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap'
+                                }}>
+                                  {ex.name}
+                                </h3>
+                                <button
+                                  type="button"
+                                  onClick={() => setSmartAltTarget({ ex, weekIdx: selectedWeek, dayIdx: selectedDay, exIdx, isConsole: false })}
+                                  style={{
+                                    width: 26,
+                                    height: 26,
+                                    borderRadius: 6,
+                                    backgroundColor: 'transparent',
+                                    border: 'none',
+                                    color: 'var(--text-muted)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    flexShrink: 0
+                                  }}
+                                  className="active:scale-95 transition hover:text-white"
+                                  title="Swap exercise"
+                                  aria-label="Swap exercise"
+                                >
+                                  <Repeat size={13} style={{ color: 'var(--color-green)' }} />
+                                </button>
+                              </div>
+                              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {anatomy || 'Full Body'} • {formatRestIntervalBadge(ex.restSec)}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Right */}
+                          <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-protein, #5b8af5)', letterSpacing: '-0.02em' }}>
+                              {isIsometric ? `${sets} × 45–60s` : `${sets} × ${ex.repRange || '8–12'}`}
+                            </div>
+                            <div style={{ fontSize: 10, fontWeight: 500, color: 'var(--text-muted)', marginTop: 1 }}>
+                              {isIsometric ? 'hold' : 'reps'}
+                            </div>
                           </div>
                         </div>
                       );
