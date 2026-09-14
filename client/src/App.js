@@ -742,51 +742,51 @@ function App() {
               </div>
             </main>
           </div>
-
-          {/* MOBILE BOTTOM NAVIGATION */}
-          {!(workoutSession && workoutSession.isSessionActive && workoutSession.isInsideConsole && currentPage === 'exercise') && (
-            <nav className="mobile-bottom-nav">
-              {[
-                { key: 'dashboard', label: 'Home', icon: (color) => (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="7" height="9" /><rect x="14" y="3" width="7" height="5" />
-                    <rect x="14" y="12" width="7" height="9" /><rect x="3" y="16" width="7" height="5" />
-                  </svg>
-                )},
-                { key: 'food-log', label: 'Food', icon: (color) => (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                  </svg>
-                )},
-                { key: 'meal-planner', label: 'Meals', icon: (color) => (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                    <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-                  </svg>
-                )},
-                { key: 'exercise', label: 'Workouts', icon: (color) => (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="6" y1="12" x2="18" y2="12" /><line x1="6" y1="7" x2="6" y2="17" /><line x1="18" y1="7" x2="18" y2="17" />
-                    <rect x="2" y="9" width="4" height="6" /><rect x="18" y="9" width="4" height="6" />
-                  </svg>
-                )}
-              ].map(nav => {
-                const isActive = currentPage === nav.key;
-                const activeColor = isActive ? 'var(--color-green)' : 'var(--text-muted)';
-                return (
-                  <button
-                    key={nav.key}
-                    onClick={() => handleNavigate(nav.key)}
-                    className={`mobile-nav-btn ${isActive ? 'active' : ''}`}
-                  >
-                    {nav.icon(activeColor)}
-                    <span>{nav.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
-          )}
         </div>
+      )}
+
+      {/* MOBILE BOTTOM NAVIGATION (Anchored to viewport; always accessible on mobile) */}
+      {!isOnboarding && user && !(workoutSession && workoutSession.isSessionActive && workoutSession.isInsideConsole && currentPage === 'exercise') && (
+        <nav className="mobile-bottom-nav">
+          {[
+            { key: 'dashboard', label: 'Home', icon: (color) => (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="9" /><rect x="14" y="3" width="7" height="5" />
+                <rect x="14" y="12" width="7" height="9" /><rect x="3" y="16" width="7" height="5" />
+              </svg>
+            )},
+            { key: 'food-log', label: 'Food', icon: (color) => (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+            )},
+            { key: 'meal-planner', label: 'Meals', icon: (color) => (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+            )},
+            { key: 'exercise', label: 'Workouts', icon: (color) => (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="6" y1="12" x2="18" y2="12" /><line x1="6" y1="7" x2="6" y2="17" /><line x1="18" y1="7" x2="18" y2="17" />
+                <rect x="2" y="9" width="4" height="6" /><rect x="18" y="9" width="4" height="6" />
+              </svg>
+            )}
+          ].map(nav => {
+            const isActive = currentPage === nav.key;
+            const activeColor = isActive ? 'var(--color-green)' : 'var(--text-muted)';
+            return (
+              <button
+                key={nav.key}
+                onClick={() => handleNavigate(nav.key)}
+                className={`mobile-nav-btn ${isActive ? 'active' : ''}`}
+              >
+                {nav.icon(activeColor)}
+                <span>{nav.label}</span>
+              </button>
+            );
+          })}
+        </nav>
       )}
 
       {/* Floating Active Workout Capsule (Elevated Obsidian Emerald Pill) */}

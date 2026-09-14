@@ -57,10 +57,10 @@ export default function FloatingWorkoutBar({ workoutSession, onNavigateToExercis
           <div className="floating-workout-subtitle">
             {isRest ? (
               <span className="floating-workout-rest-text">
-                Rest interval · {formatTime(workoutSession.restRemaining || 0)} left
+                Rest · {formatTime(workoutSession.restRemaining || 0)} left
               </span>
             ) : (
-              <span>
+              <span className="floating-workout-set-info">
                 {workoutSession.currentExerciseName ? `${workoutSession.currentExerciseName} · ` : ''}
                 <span className="tabular-nums">
                   Set {workoutSession.completedSets || 0} of {workoutSession.totalSets || 0}

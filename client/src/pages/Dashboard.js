@@ -752,7 +752,7 @@ export default function Dashboard({ user, setCurrentPage }) {
               className="nb-btn-primary anim-tap-spring"
               style={{ height: 46, fontSize: 13, fontWeight: 800, gap: 7 }}
             >
-              <Plus size={16} strokeWidth={2.6} /> + Log Meal
+              <Plus size={16} strokeWidth={2.6} /> Log Meal
             </button>
             <button
               onClick={() => updateWater(1)}
@@ -953,7 +953,7 @@ export default function Dashboard({ user, setCurrentPage }) {
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5
                 }}
               >
-                <Plus size={14} strokeWidth={2.8} /> +250 ml (1 Glass)
+                <Plus size={14} strokeWidth={2.8} /> 250 ml (1 Glass)
               </button>
 
               <button
@@ -967,7 +967,7 @@ export default function Dashboard({ user, setCurrentPage }) {
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5
                 }}
               >
-                <Plus size={14} strokeWidth={2.8} /> +500 ml (Bottle)
+                <Plus size={14} strokeWidth={2.8} /> 500 ml (Bottle)
               </button>
 
               <button

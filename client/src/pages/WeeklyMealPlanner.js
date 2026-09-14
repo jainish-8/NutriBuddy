@@ -918,10 +918,10 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
                       >
                         {logStatus === 'done' ? (
                           <span className="anim-logged-burst" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                            <CheckCircle size={15} /> ✓ Logged
+                            <CheckCircle size={15} /> Logged
                           </span>
                         ) : (
-                          <><Plus size={15} strokeWidth={2.6} /> + Log meal</>
+                          <><Plus size={15} strokeWidth={2.6} /> Log meal</>
                         )}
                       </button>
                     </div>

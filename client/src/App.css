@@ -1649,7 +1649,7 @@ body.light-mode::before, body.light-mode::after {
   }
 
   .main-content-area {
-    padding: 16px 16px 96px 16px !important; /* Touch-safe padding bottom for mobile nav */
+    padding: 16px 16px calc(86px + env(safe-area-inset-bottom, 0px)) 16px !important; /* Touch-safe padding bottom for mobile nav */
     max-width: 100% !important;
   }
 
@@ -1672,16 +1672,21 @@ body.light-mode::before, body.light-mode::after {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    background: var(--color-card, #141820);
-    border-top: 0.5px solid var(--border-default);
-    border-radius: 24px 24px 0 0;
+    background: rgba(20, 24, 32, 0.96);
+    border-top: 1px solid var(--border-default);
+    border-radius: 20px 20px 0 0;
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 1000;
-    padding: 12px 8px calc(24px + env(safe-area-inset-bottom, 0px)) 8px;
-    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
+    z-index: 9990;
+    padding: 6px 8px calc(8px + env(safe-area-inset-bottom, 0px)) 8px;
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
   }
 
   .mobile-nav-btn {
@@ -1694,15 +1699,30 @@ body.light-mode::before, body.light-mode::after {
     color: var(--text-muted);
     font-size: 10px;
     font-weight: 600;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.01em;
     cursor: pointer;
-    gap: 4px;
-    flex: 1;
+    gap: 3px;
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 100%;
     min-height: 44px;
-    padding: 6px 4px;
+    padding: 6px 2px;
     transition: all 0.15s ease;
     outline: none;
-    border-radius: 12px;
+    border-radius: 10px;
+    box-sizing: border-box;
+  }
+
+  .mobile-nav-btn span {
+    font-size: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    display: block;
+    text-align: center;
+    line-height: 1.2;
   }
 
   .mobile-nav-btn.active {
@@ -1717,6 +1737,25 @@ body.light-mode::before, body.light-mode::after {
 
   .mobile-nav-btn:active {
     transform: scale(0.95);
+  }
+
+  @media (max-width: 360px) {
+    .mobile-bottom-nav {
+      padding: 4px 4px calc(6px + env(safe-area-inset-bottom, 0px)) 4px;
+    }
+    .mobile-nav-btn {
+      padding: 4px 1px;
+      min-height: 40px;
+      gap: 2px;
+    }
+    .mobile-nav-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+    .mobile-nav-btn span {
+      font-size: 9.5px;
+      letter-spacing: 0;
+    }
   }
 
   /* Form and grid adjustments for general mobile view */
@@ -1894,19 +1933,22 @@ body.light-mode::before, body.light-mode::after {
   bottom: 24px;
   left: 0;
   right: 0;
+  width: 100%;
+  max-width: 100vw;
   display: flex;
   justify-content: center;
   align-items: center;
   pointer-events: none;
-  z-index: 99999;
+  z-index: 10000;
   padding: 0 16px;
   box-sizing: border-box;
 }
 
 @media (max-width: 768px) {
   .floating-workout-wrapper {
-    bottom: calc(74px + env(safe-area-inset-bottom, 0px)) !important;
-    padding: 0 12px !important;
+    /* Anchored cleanly 12px above the mobile bottom navigation bar */
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: 0 10px !important;
   }
 }
 
@@ -1914,20 +1956,21 @@ body.light-mode::before, body.light-mode::after {
   pointer-events: auto;
   width: 100%;
   max-width: 480px;
+  min-width: 0;
+  box-sizing: border-box;
   background: rgba(10, 15, 26, 0.95);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1.5px solid rgba(16, 185, 129, 0.45);
   border-radius: 9999px;
-  padding: 8px 10px 8px 14px;
+  padding: 7px 10px 7px 12px;
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.75), 0 0 24px rgba(16, 185, 129, 0.18);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   cursor: pointer;
   user-select: none;
-  box-sizing: border-box;
   animation: floatingWorkoutSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
   outline: none;
@@ -2026,12 +2069,12 @@ body.light-mode::before, body.light-mode::after {
 /* Center Info Typography */
 .floating-workout-info {
   min-width: 0;
-  flex: 1 1 auto;
+  flex: 1 1 0;
   overflow: hidden;
 }
 
 .floating-workout-title {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 800;
   color: #FFFFFF;
   font-family: var(--font-heading);
@@ -2040,6 +2083,7 @@ body.light-mode::before, body.light-mode::after {
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1.25;
+  display: block;
 }
 
 .light-mode .floating-workout-title {
@@ -2047,7 +2091,7 @@ body.light-mode::before, body.light-mode::after {
 }
 
 .floating-workout-subtitle {
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 600;
   color: #94A3B8;
   white-space: nowrap;
@@ -2055,6 +2099,18 @@ body.light-mode::before, body.light-mode::after {
   text-overflow: ellipsis;
   margin-top: 2px;
   line-height: 1.2;
+  display: block;
+}
+
+.floating-workout-subtitle span,
+.floating-workout-subtitle .floating-workout-set-info,
+.floating-workout-subtitle .floating-workout-rest-text {
+  display: inline-block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
 }
 
 .light-mode .floating-workout-subtitle {
@@ -2070,7 +2126,7 @@ body.light-mode::before, body.light-mode::after {
 .floating-workout-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
@@ -2078,14 +2134,15 @@ body.light-mode::before, body.light-mode::after {
 .floating-workout-timer {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 9px;
+  gap: 4px;
+  padding: 4px 8px;
   border-radius: 9999px;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 800;
   font-family: var(--font-mono);
   letter-spacing: 0.04em;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .floating-workout-timer.timer-active {
@@ -2114,15 +2171,15 @@ body.light-mode::before, body.light-mode::after {
 
 /* Radiant Resume CTA Button */
 .floating-workout-resume-btn {
-  padding: 6px 14px;
-  font-size: 11.5px;
+  padding: 5px 12px;
+  font-size: 11px;
   font-weight: 800;
   border-radius: 9999px;
   background: linear-gradient(135deg, #10B981 0%, #059669 100%);
   color: #FFFFFF;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   box-shadow: 0 3px 12px rgba(16, 185, 129, 0.45);
   white-space: nowrap;
   flex-shrink: 0;
@@ -2154,8 +2211,8 @@ body.light-mode::before, body.light-mode::after {
   }
 }
 
-/* Ultra-compact screen adaptation (<= 360px) */
-@media (max-width: 360px) {
+/* Mobile & compact screen adaptation */
+@media (max-width: 390px) {
   .floating-workout-capsule {
     padding: 6px 8px 6px 10px;
     gap: 6px;
@@ -2167,12 +2224,37 @@ body.light-mode::before, body.light-mode::after {
     font-size: 9.5px;
   }
   .floating-workout-timer {
-    padding: 3px 7px;
+    padding: 3px 6px;
     font-size: 10.5px;
   }
   .floating-workout-resume-btn {
-    padding: 5px 10px;
+    padding: 4px 10px;
+    font-size: 10.5px;
+  }
+}
+
+@media (max-width: 340px) {
+  .floating-workout-wrapper {
+    padding: 0 6px !important;
+  }
+  .floating-workout-capsule {
+    padding: 5px 6px 5px 8px;
+    gap: 4px;
+  }
+  .floating-workout-title {
     font-size: 11px;
+  }
+  .floating-workout-subtitle {
+    font-size: 9px;
+  }
+  .floating-workout-timer {
+    padding: 3px 5px;
+    font-size: 10px;
+  }
+  .floating-workout-resume-btn {
+    padding: 4px 7px;
+    font-size: 10px;
+    gap: 2px;
   }
 }
 
@@ -3188,7 +3270,7 @@ body.light-mode::before, body.light-mode::after {
     padding: 12px 12px !important;
   }
   .main-content-area.has-floating-workout {
-    padding-bottom: calc(144px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: calc(156px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 
