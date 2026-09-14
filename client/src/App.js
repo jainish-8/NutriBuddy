@@ -9,6 +9,7 @@ import ExerciseTracker from './pages/ExerciseTracker';
 import UserProfileDetails from './pages/UserProfileDetails';
 import GlobalSearchModal from './components/GlobalSearchModal';
 import FloatingWorkoutBar from './components/FloatingWorkoutBar';
+import { Dock } from './components/unlumen-ui/dock';
 import { Search, LogOut } from 'lucide-react';
 import { toTitleCase } from './utils/nutritionEngine';
 // import AIChatbot from './components/AIChatbot';
@@ -745,48 +746,91 @@ function App() {
         </div>
       )}
 
-      {/* MOBILE BOTTOM NAVIGATION (Anchored to viewport; always accessible on mobile) */}
+      {/* MACOS-STYLE DOCK TOOLBAR (Gaussian Neighbor Magnification + Spring Physics) */}
       {!isOnboarding && user && !(workoutSession && workoutSession.isSessionActive && workoutSession.isInsideConsole && currentPage === 'exercise') && (
-        <nav className="mobile-bottom-nav">
-          {[
-            { key: 'dashboard', label: 'Home', icon: (color) => (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="7" height="9" /><rect x="14" y="3" width="7" height="5" />
-                <rect x="14" y="12" width="7" height="9" /><rect x="3" y="16" width="7" height="5" />
-              </svg>
-            )},
-            { key: 'food-log', label: 'Food', icon: (color) => (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-              </svg>
-            )},
-            { key: 'meal-planner', label: 'Meals', icon: (color) => (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-              </svg>
-            )},
-            { key: 'exercise', label: 'Workouts', icon: (color) => (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="6" y1="12" x2="18" y2="12" /><line x1="6" y1="7" x2="6" y2="17" /><line x1="18" y1="7" x2="18" y2="17" />
-                <rect x="2" y="9" width="4" height="6" /><rect x="18" y="9" width="4" height="6" />
-              </svg>
-            )}
-          ].map(nav => {
-            const isActive = currentPage === nav.key;
-            const activeColor = isActive ? 'var(--color-green)' : 'var(--text-muted)';
-            return (
-              <button
-                key={nav.key}
-                onClick={() => handleNavigate(nav.key)}
-                className={`mobile-nav-btn ${isActive ? 'active' : ''}`}
-              >
-                {nav.icon(activeColor)}
-                <span>{nav.label}</span>
-              </button>
-            );
-          })}
-        </nav>
+        <div className="app-dock-toolbar-fixed" role="navigation" aria-label="Main Navigation Dock">
+          <Dock
+            items={[
+              {
+                label: 'Dashboard',
+                isActive: currentPage === 'dashboard',
+                onClick: () => handleNavigate('dashboard'),
+                icon: (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="7" height="9" /><rect x="14" y="3" width="7" height="5" />
+                    <rect x="14" y="12" width="7" height="9" /><rect x="3" y="16" width="7" height="5" />
+                  </svg>
+                )
+              },
+              {
+                label: 'Food Log',
+                isActive: currentPage === 'food-log',
+                onClick: () => handleNavigate('food-log'),
+                icon: (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                  </svg>
+                )
+              },
+              {
+                label: 'Meal Planner',
+                isActive: currentPage === 'meal-planner',
+                onClick: () => handleNavigate('meal-planner'),
+                icon: (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                )
+              },
+              {
+                label: 'Workouts',
+                isActive: currentPage === 'exercise',
+                onClick: () => handleNavigate('exercise'),
+                icon: (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="6" y1="12" x2="18" y2="12" /><line x1="6" y1="7" x2="6" y2="17" /><line x1="18" y1="7" x2="18" y2="17" />
+                    <rect x="2" y="9" width="4" height="6" /><rect x="18" y="9" width="4" height="6" />
+                  </svg>
+                )
+              },
+              {
+                label: 'Search (Ctrl+K)',
+                isActive: isSearchOpen,
+                onClick: () => setIsSearchOpen(true),
+                icon: (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                )
+              },
+              {
+                label: 'Profile',
+                isActive: currentPage === 'profile',
+                onClick: () => {
+                  setCurrentPage('profile');
+                  setIsEditingProfile(false);
+                },
+                icon: (
+                  <div style={{
+                    width: 24, height: 24, borderRadius: '50%',
+                    background: currentPage === 'profile' ? 'var(--color-green, #22d17a)' : 'rgba(255, 255, 255, 0.1)',
+                    color: currentPage === 'profile' ? '#0a1a10' : 'var(--text-primary)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 11, fontWeight: 800
+                  }}>
+                    {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                )
+              }
+            ]}
+            magnification={1.75}
+            distance={95}
+            iconSize={42}
+            gap={10}
+            className="nutribuddy-dock-nav"
+          />
+        </div>
       )}
 
       {/* Floating Active Workout Capsule (Elevated Obsidian Emerald Pill) */}

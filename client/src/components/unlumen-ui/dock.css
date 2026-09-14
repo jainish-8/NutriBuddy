@@ -61,6 +61,31 @@
   box-shadow: 0 0 0 2px var(--brand-primary, #22d17a);
 }
 
+/* Active running application state (macOS indicator dot) */
+.unlumen-dock-item.is-active {
+  background: var(--color-green-bg, rgba(34, 209, 122, 0.14));
+  border-color: var(--color-green-border, rgba(34, 209, 122, 0.35));
+  color: var(--color-green, #22d17a);
+  box-shadow: 0 0 16px rgba(34, 209, 122, 0.22);
+}
+
+.unlumen-dock-item.is-active svg {
+  stroke: var(--color-green, #22d17a) !important;
+}
+
+.unlumen-dock-active-dot {
+  position: absolute;
+  bottom: 2.5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-green, #22d17a);
+  box-shadow: 0 0 6px var(--color-green, #22d17a);
+  pointer-events: none;
+}
+
 /* Tooltip on hover (150ms ease-in/out) */
 .unlumen-dock-tooltip {
   position: absolute;

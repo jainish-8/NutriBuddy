@@ -33,7 +33,8 @@ export function Dock({
   gap = 12,
   alwaysShowLabels = false,
   springOptions = { stiffness: 300, damping: 22, mass: 0.5 },
-  className = ''
+  className = '',
+  style = {}
 }) {
   const containerRef = useRef(null);
   const iconRefs = useRef([]);
@@ -145,6 +146,16 @@ export function Dock({
     };
   }, []);
 
+  // Touch interaction support for mobile devices
+  const handleTouchMove = useCallback((e) => {
+    if (!e.touches || !e.touches[0]) return;
+    handleMouseMove({ clientX: e.touches[0].clientX });
+  }, [handleMouseMove]);
+
+  const handleTouchEnd = useCallback(() => {
+    handleMouseLeave();
+  }, [handleMouseLeave]);
+
   return (
     <div className="unlumen-dock-wrapper">
       <nav
@@ -152,20 +163,26 @@ export function Dock({
         className={`unlumen-dock-container ${className}`.trim()}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
+        onTouchStart={handleTouchMove}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
         style={{
           gap: `${gap}px`,
-          padding: `${Math.max(8, Math.round(iconSize * 0.2))}px ${Math.max(12, Math.round(iconSize * 0.28))}px`,
-          height: `${iconSize + Math.max(16, Math.round(iconSize * 0.4))}px`
+          padding: `${Math.max(6, Math.round(iconSize * 0.18))}px ${Math.max(10, Math.round(iconSize * 0.24))}px`,
+          height: `${iconSize + Math.max(14, Math.round(iconSize * 0.36))}px`,
+          ...style
         }}
         aria-label="Application Dock"
         role="toolbar"
       >
         {items.map((item, index) => {
           const isHovered = hoveredIndex === index;
+          const isActive = Boolean(item.isActive);
           const Component = item.href ? 'a' : 'button';
           const commonProps = {
             ref: (el) => { iconRefs.current[index] = el; },
-            className: 'unlumen-dock-item',
+            className: `unlumen-dock-item ${isActive ? 'is-active' : ''} ${item.className || ''}`.trim(),
             style: {
               width: `${iconSize}px`,
               height: `${iconSize}px`
@@ -208,6 +225,11 @@ export function Dock({
                   item.icon
                 )}
               </div>
+
+              {/* macOS Running Application Active Indicator Dot */}
+              {isActive && (
+                <span className="unlumen-dock-active-dot" aria-hidden="true" />
+              )}
 
               {/* Label beneath icon (when alwaysShowLabels is true) */}
               {alwaysShowLabels && (

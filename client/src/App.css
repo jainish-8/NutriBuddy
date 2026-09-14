@@ -1635,6 +1635,63 @@ body.light-mode::before, body.light-mode::after {
   display: none;
 }
 
+/* ===== DOCK NAVIGATION TOOLBAR (macOS STYLE) ===== */
+.app-dock-toolbar-fixed {
+  position: fixed;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  z-index: 9990;
+  pointer-events: none;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.app-dock-toolbar-fixed .unlumen-dock-wrapper {
+  pointer-events: auto;
+  padding: 0;
+}
+
+.nutribuddy-dock-nav {
+  background: rgba(14, 18, 27, 0.90);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 26px;
+  box-shadow: 
+    0 20px 48px rgba(0, 0, 0, 0.7), 
+    0 0 20px rgba(34, 209, 122, 0.08), 
+    inset 0 1px 1px rgba(255, 255, 255, 0.16);
+}
+
+.light-mode .nutribuddy-dock-nav {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 
+    0 16px 40px rgba(15, 23, 42, 0.12),
+    0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 480px) {
+  .app-dock-toolbar-fixed {
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    padding: 0 8px;
+  }
+  .nutribuddy-dock-nav {
+    border-radius: 22px;
+  }
+}
+
+@media (max-width: 360px) {
+  .app-dock-toolbar-fixed {
+    bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+    padding: 0 4px;
+  }
+}
+
 .mobile-bottom-nav {
   display: none;
 }
@@ -1649,7 +1706,7 @@ body.light-mode::before, body.light-mode::after {
   }
 
   .main-content-area {
-    padding: 16px 16px calc(86px + env(safe-area-inset-bottom, 0px)) 16px !important; /* Touch-safe padding bottom for mobile nav */
+    padding: 16px 16px calc(92px + env(safe-area-inset-bottom, 0px)) 16px !important; /* Touch-safe padding bottom for dock toolbar */
     max-width: 100% !important;
   }
 
@@ -1930,7 +1987,7 @@ body.light-mode::before, body.light-mode::after {
 /* ===== FLOATING ACTIVE WORKOUT DYNAMIC CAPSULE ===== */
 .floating-workout-wrapper {
   position: fixed;
-  bottom: 24px;
+  bottom: calc(86px + env(safe-area-inset-bottom, 0px));
   left: 0;
   right: 0;
   width: 100%;
@@ -1946,8 +2003,8 @@ body.light-mode::before, body.light-mode::after {
 
 @media (max-width: 768px) {
   .floating-workout-wrapper {
-    /* Anchored cleanly 12px above the mobile bottom navigation bar */
-    bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+    /* Anchored cleanly above the dock toolbar */
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important;
     padding: 0 10px !important;
   }
 }
