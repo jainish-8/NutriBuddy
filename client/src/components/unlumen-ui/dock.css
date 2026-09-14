@@ -1,0 +1,126 @@
+/* =========================================================================
+   UNLUMEN-UI DOCK - macOS-STYLE MAGNIFICATION & SPRING DOCK
+   ========================================================================= */
+
+.unlumen-dock-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding-top: 36px;
+  padding-bottom: 8px;
+  position: relative;
+}
+
+.unlumen-dock-container {
+  display: inline-flex;
+  align-items: flex-end;
+  border-radius: 24px;
+  background: rgba(20, 24, 32, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.45),
+    0 0 1px rgba(255, 255, 255, 0.15),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  box-sizing: border-box;
+  user-select: none;
+  position: relative;
+}
+
+.unlumen-dock-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: bottom center;
+  will-change: transform;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-primary, #ffffff);
+  cursor: pointer;
+  text-decoration: none;
+  outline: none;
+  padding: 0;
+  box-sizing: border-box;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.unlumen-dock-item:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+.unlumen-dock-item:active {
+  filter: brightness(0.92);
+}
+
+.unlumen-dock-item:focus-visible {
+  box-shadow: 0 0 0 2px var(--brand-primary, #22d17a);
+}
+
+/* Tooltip on hover (150ms ease-in/out) */
+.unlumen-dock-tooltip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  padding: 4px 9px;
+  border-radius: 7px;
+  background: rgba(10, 15, 26, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-heading, -apple-system, BlinkMacSystemFont, sans-serif);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transform: translateX(-50%) translateY(4px);
+  transition: opacity 150ms ease-in-out, transform 150ms ease-in-out;
+  z-index: 50;
+}
+
+.unlumen-dock-tooltip.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Tooltip triangle arrow */
+.unlumen-dock-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: rgba(10, 15, 26, 0.92);
+}
+
+/* Beneath label (alwaysShowLabels mode) */
+.unlumen-dock-bottom-label {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  white-space: nowrap;
+  pointer-events: none;
+  letter-spacing: 0.01em;
+}
+
+/* Icon inner container */
+.unlumen-dock-icon-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
