@@ -555,31 +555,40 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
                   <button
                     key={day}
                     onClick={() => setSelectedDay(day)}
-                    className="meal-planner-day-btn"
+                    className="meal-planner-day-btn anim-tap-spring"
                     style={{
                       padding: '12px 6px',
                       borderRadius: 12,
                       cursor: 'pointer',
-                      border: isSelected ? '1.5px solid var(--border-focus)' : '1px solid var(--border-subtle)',
-                      background: isSelected ? 'rgba(16, 185, 129, 0.12)' : 'var(--bg-surface)',
+                      border: isSelected ? '1.5px solid var(--color-green)' : '1px solid var(--border-subtle)',
+                      background: isSelected ? 'rgba(34, 209, 122, 0.12)' : 'var(--bg-surface)',
                       textAlign: 'center',
-                      transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                      boxShadow: isSelected ? '0 4px 16px rgba(16, 185, 129, 0.15)' : 'none',
-                      transform: isSelected ? 'translateY(-1px)' : 'none'
+                      transition: 'all 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
+                      boxShadow: isSelected ? '0 4px 16px rgba(34, 209, 122, 0.2)' : 'none',
+                      transform: isSelected ? 'translateY(-2px)' : 'none',
+                      position: 'relative',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 2
                     }}
                   >
                     <div style={{
                       fontSize: 12.5,
                       fontWeight: 900,
                       fontFamily: 'var(--font-heading)',
-                      color: isSelected ? 'var(--brand-primary-light)' : 'var(--text-primary)',
+                      color: isSelected ? 'var(--color-green)' : 'var(--text-primary)',
                       letterSpacing: '0.04em'
                     }}>
                       {day.slice(0, 3)}
                     </div>
-                    <div className="tabular-nums" style={{ fontSize: 11, fontWeight: 700, color: isSelected ? 'var(--brand-primary-light)' : 'var(--text-muted)', marginTop: 3 }}>
+                    <div className="tabular-nums" style={{ fontSize: 11, fontWeight: 700, color: isSelected ? 'var(--color-green)' : 'var(--text-muted)', marginTop: 2 }}>
                       {dayCal > 0 ? `${dayCal} kcal` : `${targetCal} kcal`}
                     </div>
+                    {/* Active day indicator beacon */}
+                    {isSelected && (
+                      <div style={{ width: 14, height: 2.5, borderRadius: 2, background: 'var(--color-green)', marginTop: 3 }} />
+                    )}
                   </button>
                 );
               })}
@@ -669,6 +678,32 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
                   <div style={{ height: '100%', width: `${Math.min(100, Math.max(0, fatPercent))}%`, background: getBarColor(fatPercent, 'var(--color-fat, #f5a623)'), borderRadius: 2 }} />
                 </div>
               </div>
+
+              {/* Visual Macro Energy Distribution Strip */}
+              <div style={{
+                gridColumn: '1 / -1',
+                padding: '12px 16px',
+                borderRadius: 'var(--radius-panel)',
+                background: 'var(--bg-surface-raised)',
+                border: '1px solid var(--border-subtle)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, fontWeight: 700, flexWrap: 'wrap', gap: 6 }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Calibrated Macro Energy Ratio</span>
+                  <span style={{ color: 'var(--text-primary)' }}>
+                    <span style={{ color: 'var(--color-protein)' }}>{totals.calories > 0 ? Math.round(((totals.protein * 4) / totals.calories) * 100) : 30}% Protein</span> ·{' '}
+                    <span style={{ color: 'var(--color-carbs)' }}>{totals.calories > 0 ? Math.round(((totals.carbs * 4) / totals.calories) * 100) : 45}% Carbs</span> ·{' '}
+                    <span style={{ color: 'var(--color-fat)' }}>{totals.calories > 0 ? Math.round(((totals.fat * 9) / totals.calories) * 100) : 25}% Fats</span>
+                  </span>
+                </div>
+                <div style={{ height: 6, borderRadius: 3, background: 'var(--border-subtle)', display: 'flex', overflow: 'hidden' }}>
+                  <div style={{ width: `${totals.calories > 0 ? Math.round(((totals.protein * 4) / totals.calories) * 100) : 30}%`, background: 'var(--color-protein)', transition: 'width 0.4s ease' }} />
+                  <div style={{ width: `${totals.calories > 0 ? Math.round(((totals.carbs * 4) / totals.calories) * 100) : 45}%`, background: 'var(--color-carbs)', transition: 'width 0.4s ease' }} />
+                  <div style={{ width: `${totals.calories > 0 ? Math.round(((totals.fat * 9) / totals.calories) * 100) : 25}%`, background: 'var(--color-fat)', transition: 'width 0.4s ease' }} />
+                </div>
+              </div>
             </div>
 
             {/* ── VISUAL ANALYTICS: MACRO DONUT & GROCERY BUDGET RING ── */}
@@ -731,9 +766,9 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
               );
             })()}
 
-            {/* ── ELEVATED 2-TIER MEAL PLATTER CARDS ── */}
+            {/* ── ELEVATED CULINARY PLATTER CARDS ── */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {meals.map((meal) => {
+              {meals.map((meal, index) => {
                 const mealData = weeklyPlan[selectedDay]?.[meal];
                 if (!mealData) return null;
 
@@ -743,38 +778,49 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
                 return (
                   <div
                     key={meal}
-                    className="nb-card"
+                    className="nb-card nb-interactive-card anim-cascade-item"
                     style={{
-                      padding: '20px 22px',
+                      padding: '22px 24px',
                       display: 'flex',
                       flexDirection: 'column',
                       gap: 0,
-                      transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+                      animationDelay: `${index * 60}ms`,
+                      position: 'relative'
                     }}
                   >
-                    {/* Row 1: [Meal slot badge] ............... [X kcal] */}
+                    {/* Row 1: [Meal slot badge + cuisine tag] ............... [X kcal] */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span className={`nb-tag ${getMealBadgeClass(meal)}`}>
-                        {mealLabels[meal] || meal}
-                      </span>
-                      <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
-                        {Math.round(mealData.calories)} <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-muted)' }}>kcal</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span className={`nb-tag ${getMealBadgeClass(meal)}`}>
+                          {mealLabels[meal] || meal}
+                        </span>
+                        {mealData.cuisine && (
+                          <span style={{
+                            fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 6,
+                            background: 'var(--bg-surface-raised)', color: 'var(--text-muted)', border: '1px solid var(--border-subtle)'
+                          }}>
+                            {mealData.cuisine}
+                          </span>
+                        )}
+                      </div>
+                      <span className="tabular-nums" style={{ fontSize: 15, fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+                        {Math.round(mealData.calories)} <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)' }}>kcal</span>
                       </span>
                     </div>
 
-                    {/* Row 2: Meal name (16px weight 600, --text-primary, line-height 1.3) */}
-                    <h3 style={{ margin: '12px 0 2px', fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3 }}>
+                    {/* Row 2: Meal name */}
+                    <h3 style={{ margin: '14px 0 2px', fontSize: 17, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.3, fontFamily: 'var(--font-heading)' }}>
                       {mealData.name}
                     </h3>
 
-                    {/* Row 3: Serving description (12px, --text-secondary) */}
-                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 12 }}>
+                    {/* Row 3: Serving description */}
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 14 }}>
                       {getDynamicServingUnit(mealData, mealData.multiplier || 1)}
                     </div>
 
                     {/* Row 4: [P Xg] [C Xg] [F Xg] in colored text, then [portion multiplier Xx] right-aligned */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 13, fontWeight: 700, letterSpacing: '-0.02em' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 13, fontWeight: 800, letterSpacing: '-0.02em' }}>
                         <span style={{ color: 'var(--color-protein)' }}>P {Math.round(mealData.protein)}g</span>
                         <span style={{ color: 'var(--color-carbs)' }}>C {Math.round(mealData.carbs)}g</span>
                         <span style={{ color: 'var(--color-fat)' }}>F {Math.round(mealData.fat)}g</span>
@@ -782,16 +828,17 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
                       <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 4,
+                        gap: 5,
                         background: 'var(--color-raised)',
-                        borderRadius: 8,
-                        border: '0.5px solid var(--border-default)',
-                        padding: '3px 6px'
+                        borderRadius: 10,
+                        border: '1px solid var(--border-subtle)',
+                        padding: '4px 8px'
                       }}>
                         <button
                           type="button"
                           onClick={() => handleAdjustPortion(selectedDay, meal, -0.25)}
                           disabled={(mealData.multiplier || 1) <= 0.5}
+                          className="anim-tap-spring"
                           style={{
                             background: 'none',
                             border: 'none',
@@ -803,15 +850,16 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
                           }}
                           title="Decrease portion"
                         >
-                          <Minus size={11} />
+                          <Minus size={12} />
                         </button>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', minWidth: 32, textAlign: 'center' }}>
+                        <span className="tabular-nums" style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-primary)', minWidth: 34, textAlign: 'center' }}>
                           {mealData.multiplier || 1}×
                         </span>
                         <button
                           type="button"
                           onClick={() => handleAdjustPortion(selectedDay, meal, 0.25)}
                           disabled={(mealData.multiplier || 1) >= 3.0}
+                          className="anim-tap-spring"
                           style={{
                             background: 'none',
                             border: 'none',
@@ -823,40 +871,41 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
                           }}
                           title="Increase portion"
                         >
-                          <Plus size={11} />
+                          <Plus size={12} />
                         </button>
                       </div>
                     </div>
 
-                    {/* Divider: 0.5px rgba(255,255,255,0.06) */}
-                    <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.06)', margin: '0 0 14px' }} />
+                    {/* Divider */}
+                    <div style={{ height: '1px', background: 'var(--border-subtle)', margin: '0 0 16px' }} />
 
                     {/* Row 5: [Recipe] [Swap] [+ Log meal] buttons */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <button
                         onClick={() => { setCheckedIngredients({}); setRecipeModalItem(mealData); }}
-                        className="nb-btn-secondary"
-                        style={{ flex: 1, height: 44, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+                        className="nb-btn-secondary anim-tap-spring"
+                        style={{ flex: 1, height: 44, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                       >
-                        <BookOpen size={13} /> Recipe
+                        <BookOpen size={14} /> Recipe
                       </button>
 
                       <button
                         onClick={() => setSwapTarget({ day: selectedDay, mealType: meal, currentMeal: mealData })}
-                        className="nb-btn-secondary"
-                        style={{ flex: 1, height: 44, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+                        className="nb-btn-secondary anim-tap-spring"
+                        style={{ flex: 1, height: 44, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                       >
-                        <RefreshCw size={13} /> Swap
+                        <RefreshCw size={14} /> Swap
                       </button>
 
                       <button
                         onClick={() => logMeal(meal, mealData)}
                         disabled={logStatus === 'loading' || logStatus === 'done'}
-                        className={logStatus === 'done' ? 'nb-btn-secondary' : 'nb-btn-primary'}
+                        className={`anim-tap-spring ${logStatus === 'done' ? 'nb-btn-secondary' : 'nb-btn-primary'}`}
                         style={{
                           flex: 2,
                           height: 44,
                           fontSize: 13,
+                          fontWeight: 800,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -864,13 +913,15 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
                           background: logStatus === 'done' ? 'var(--color-green)' : undefined,
                           color: logStatus === 'done' ? '#0a1a10' : undefined,
                           borderColor: logStatus === 'done' ? 'var(--color-green)' : undefined,
-                          transition: 'all 0.25s ease'
+                          transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
                         }}
                       >
                         {logStatus === 'done' ? (
-                          <><CheckCircle size={14} /> ✓ Logged</>
+                          <span className="anim-logged-burst" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                            <CheckCircle size={15} /> ✓ Logged
+                          </span>
                         ) : (
-                          <><Plus size={14} /> + Log meal</>
+                          <><Plus size={15} strokeWidth={2.6} /> + Log meal</>
                         )}
                       </button>
                     </div>

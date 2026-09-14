@@ -3211,3 +3211,137 @@ body.light-mode::before, body.light-mode::after {
   }
 }
 
+/* =========================================================================
+   WORLD-CLASS ANIMATIONS & MICRO-INTERACTIONS (DASHBOARD & MEAL PLANNER)
+   ========================================================================= */
+
+/* Shimmer sheen sweep across cards & progress bars */
+@keyframes shimmerSheen {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+.anim-shimmer-sweep {
+  position: relative;
+  overflow: hidden;
+}
+.anim-shimmer-sweep::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.07), transparent);
+  animation: shimmerSheen 3.5s infinite ease-in-out;
+  pointer-events: none;
+}
+
+/* Ambient rotating glow aura for Hero Fuel Score */
+@keyframes auraRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.anim-aura-glow {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, rgba(34, 209, 122, 0.35), rgba(91, 138, 245, 0.3), rgba(245, 166, 35, 0.25), rgba(34, 209, 122, 0.35));
+  filter: blur(14px);
+  opacity: 0.65;
+  animation: auraRotate 12s linear infinite;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Gentle breathing pulse for active markers and beacons */
+@keyframes beaconPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(34, 209, 122, 0.6);
+  }
+  50% {
+    transform: scale(1.12);
+    box-shadow: 0 0 0 8px rgba(34, 209, 122, 0);
+  }
+}
+
+.timeline-pulse-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-green, #22d17a);
+  animation: beaconPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Water wave ripple effect */
+@keyframes waveMotion {
+  0% { transform: translateY(0) scaleY(1); }
+  50% { transform: translateY(-3px) scaleY(1.02); }
+  100% { transform: translateY(0) scaleY(1); }
+}
+
+.anim-wave-liquid {
+  animation: waveMotion 3s ease-in-out infinite;
+}
+
+/* Water bubble float */
+@keyframes bubbleFloat {
+  0% { transform: translateY(0) scale(0.8); opacity: 0; }
+  50% { opacity: 0.7; }
+  100% { transform: translateY(-22px) scale(1.2); opacity: 0; }
+}
+
+.anim-water-bubble {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  pointer-events: none;
+  animation: bubbleFloat 2.4s ease-in infinite;
+}
+
+/* Tactile button press feedback */
+.anim-tap-spring {
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease;
+}
+.anim-tap-spring:active {
+  transform: scale(0.96);
+}
+
+/* Interactive culinary platter card */
+.nb-interactive-card {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease, box-shadow 0.22s ease;
+}
+.nb-interactive-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.4), 0 0 16px -2px rgba(34, 209, 122, 0.08);
+}
+
+/* Cascading stagger animation for lists */
+@keyframes cascadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.anim-cascade-item {
+  animation: cascadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+/* Logged checkmark celebration pop */
+@keyframes checkmarkPopBurst {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.anim-logged-burst {
+  animation: checkmarkPopBurst 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
