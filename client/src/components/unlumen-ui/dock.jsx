@@ -181,7 +181,6 @@ export function Dock({
           const isActive = Boolean(item.isActive);
           const Component = item.href ? 'a' : 'button';
           const commonProps = {
-            ref: (el) => { iconRefs.current[index] = el; },
             className: `unlumen-dock-item ${isActive ? 'is-active' : ''} ${item.className || ''}`.trim(),
             style: {
               width: `${iconSize}px`,
@@ -216,7 +215,10 @@ export function Dock({
               )}
 
               {/* Icon Content (Emoji, Lucide SVG, or custom React node) */}
-              <div className="unlumen-dock-icon-inner">
+              <div
+                ref={(el) => { iconRefs.current[index] = el; }}
+                className="unlumen-dock-icon-inner"
+              >
                 {typeof item.icon === 'string' ? (
                   <span style={{ fontSize: `${Math.round(iconSize * 0.52)}px`, lineHeight: 1 }}>
                     {item.icon}

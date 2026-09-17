@@ -5,24 +5,25 @@
 .unlumen-dock-wrapper {
   display: flex;
   justify-content: center;
-  align-items: flex-end;
-  padding-top: 36px;
+  align-items: center;
+  padding-top: 24px;
   padding-bottom: 8px;
   position: relative;
 }
 
 .unlumen-dock-container {
   display: inline-flex;
-  align-items: flex-end;
-  border-radius: 24px;
-  background: rgba(20, 24, 32, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: rgba(14, 18, 27, 0.85);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 
-    0 20px 40px rgba(0, 0, 0, 0.45),
-    0 0 1px rgba(255, 255, 255, 0.15),
-    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    0 20px 44px rgba(0, 0, 0, 0.65),
+    0 0 1px rgba(255, 255, 255, 0.2),
+    inset 0 1px 1px rgba(255, 255, 255, 0.14);
   box-sizing: border-box;
   user-select: none;
   position: relative;
@@ -33,56 +34,81 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transform-origin: bottom center;
-  will-change: transform;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: var(--text-primary, #ffffff);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: rgba(255, 255, 255, 0.62);
   cursor: pointer;
   text-decoration: none;
   outline: none;
   padding: 0;
   box-sizing: border-box;
-  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  border-radius: 50%;
+  transition: color 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .unlumen-dock-item:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: #ffffff;
 }
 
 .unlumen-dock-item:active {
-  filter: brightness(0.92);
+  filter: brightness(0.9);
 }
 
 .unlumen-dock-item:focus-visible {
-  box-shadow: 0 0 0 2px var(--brand-primary, #22d17a);
+  outline: 2px solid var(--brand-primary, #22d17a);
+  outline-offset: 2px;
+}
+
+/* Icon inner container that smoothly scales via spring physics */
+.unlumen-dock-icon-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  transform-origin: center center;
+  will-change: transform;
+  pointer-events: none;
+}
+
+.unlumen-dock-icon-inner svg {
+  stroke: currentColor;
+  transition: stroke 0.18s ease, filter 0.18s ease;
+}
+
+.unlumen-dock-item:hover .unlumen-dock-icon-inner svg {
+  stroke: #ffffff;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.4));
 }
 
 /* Active running application state (macOS indicator dot) */
 .unlumen-dock-item.is-active {
-  background: var(--color-green-bg, rgba(34, 209, 122, 0.14));
-  border-color: var(--color-green-border, rgba(34, 209, 122, 0.35));
+  background: transparent;
+  border: none;
+  box-shadow: none;
   color: var(--color-green, #22d17a);
-  box-shadow: 0 0 16px rgba(34, 209, 122, 0.22);
 }
 
-.unlumen-dock-item.is-active svg {
+.unlumen-dock-item.is-active .unlumen-dock-icon-inner svg {
   stroke: var(--color-green, #22d17a) !important;
+  filter: drop-shadow(0 0 8px rgba(34, 209, 122, 0.45));
 }
 
 .unlumen-dock-active-dot {
   position: absolute;
-  bottom: 2.5px;
+  bottom: 3px;
   left: 50%;
   transform: translateX(-50%);
   width: 4px;
   height: 4px;
   border-radius: 50%;
   background: var(--color-green, #22d17a);
-  box-shadow: 0 0 6px var(--color-green, #22d17a);
+  box-shadow: 0 0 8px var(--color-green, #22d17a);
   pointer-events: none;
 }
 
@@ -91,12 +117,12 @@
   position: absolute;
   bottom: calc(100% + 10px);
   left: 50%;
-  padding: 4px 9px;
-  border-radius: 7px;
-  background: rgba(10, 15, 26, 0.92);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(10, 15, 26, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   color: #ffffff;
   font-size: 11px;
   font-weight: 600;
@@ -104,7 +130,7 @@
   letter-spacing: -0.01em;
   white-space: nowrap;
   pointer-events: none;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
   opacity: 0;
   transform: translateX(-50%) translateY(4px);
   transition: opacity 150ms ease-in-out, transform 150ms ease-in-out;
@@ -124,7 +150,7 @@
   left: 50%;
   transform: translateX(-50%);
   border: 4px solid transparent;
-  border-top-color: rgba(10, 15, 26, 0.92);
+  border-top-color: rgba(10, 15, 26, 0.94);
 }
 
 /* Beneath label (alwaysShowLabels mode) */
@@ -141,11 +167,43 @@
   letter-spacing: 0.01em;
 }
 
-/* Icon inner container */
-.unlumen-dock-icon-inner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
+/* Light mode styling */
+body.light-mode .unlumen-dock-container,
+.light-mode .unlumen-dock-container {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(0, 0, 0, 0.09);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12), 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .unlumen-dock-item,
+.light-mode .unlumen-dock-item {
+  color: #64748b;
+}
+
+body.light-mode .unlumen-dock-item:hover,
+.light-mode .unlumen-dock-item:hover {
+  color: #0f172a;
+}
+
+body.light-mode .unlumen-dock-item:hover .unlumen-dock-icon-inner svg,
+.light-mode .unlumen-dock-item:hover .unlumen-dock-icon-inner svg {
+  stroke: #0f172a;
+  filter: drop-shadow(0 0 4px rgba(15, 23, 42, 0.2));
+}
+
+body.light-mode .unlumen-dock-item.is-active,
+.light-mode .unlumen-dock-item.is-active {
+  color: var(--color-green, #10b981);
+}
+
+body.light-mode .unlumen-dock-item.is-active .unlumen-dock-icon-inner svg,
+.light-mode .unlumen-dock-item.is-active .unlumen-dock-icon-inner svg {
+  stroke: var(--color-green, #10b981) !important;
+  filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.3));
+}
+
+body.light-mode .unlumen-dock-tooltip,
+.light-mode .unlumen-dock-tooltip {
+  background: rgba(15, 23, 42, 0.94);
+  color: #ffffff;
 }
