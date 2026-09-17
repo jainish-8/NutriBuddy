@@ -795,10 +795,10 @@ function App() {
                 )
               }
             ]}
-            magnification={1.5}
-            distance={85}
+            magnification={1.48}
+            distance={65}
             iconSize={42}
-            gap={14}
+            gap={22}
             className="nutribuddy-dock-nav"
           />
         </div>
