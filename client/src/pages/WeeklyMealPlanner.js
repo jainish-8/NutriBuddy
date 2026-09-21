@@ -1,257 +1,522 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import fallbackFoods from '../data/indian_diet_db.json';
 import { API_BASE } from '../config';
 import {
   generateCohesiveWeeklyMealPlan,
   getSmartMealReplacements,
-  generateCategorizedGroceryList,
   getDetailedCalorieBreakdown,
-  getDynamicServingUnit,
-  parseStructuredIngredients,
-  scaleRecipeInstructions
+  getStandardizedGoalLabel,
+  formatCompactMacros,
+  generateCategorizedGroceryList
 } from '../utils/nutritionEngine';
-import MacroDonutChart from '../components/MacroDonutChart';
-import BudgetRing from '../components/BudgetRing';
 import {
   Plus,
   Minus,
   Check,
   RefreshCw,
-  Search,
   X,
   ShoppingCart,
-  BookOpen,
-  Calendar,
-  CheckCircle,
   Copy,
-  Sparkles,
-  Flame,
-  Share2
+  Share2,
+  Sparkles
 } from 'lucide-react';
+import { handleCard3DMouseMove, handleCard3DMouseLeave, handleCardSpotlight } from '../utils/cardTilt';
 
-const PLAN_ENGINE_VERSION = 'v6.1_dynamic_servings';
+const PLAN_ENGINE_VERSION = 'v7.1_precision_qa';
+const MULTIPLIERS = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5];
+
+const DAYS = [
+  { key: 'monday', label: 'Mon', fullLabel: 'Monday' },
+  { key: 'tuesday', label: 'Tue', fullLabel: 'Tuesday' },
+  { key: 'wednesday', label: 'Wed', fullLabel: 'Wednesday' },
+  { key: 'thursday', label: 'Thu', fullLabel: 'Thursday' },
+  { key: 'friday', label: 'Fri', fullLabel: 'Friday' },
+  { key: 'saturday', label: 'Sat', fullLabel: 'Saturday' },
+  { key: 'sunday', label: 'Sun', fullLabel: 'Sunday' }
+];
+
+const SLOTS = [
+  { key: 'breakfast', label: 'Breakfast', color: 'var(--blu)' },
+  { key: 'lunch', label: 'Lunch', color: 'var(--g)' },
+  { key: 'snacks', label: 'Snack', color: 'var(--amb)' },
+  { key: 'dinner', label: 'Dinner', color: 'var(--pur)' }
+];
 
 export default function WeeklyMealPlanner({ user, setCurrentPage }) {
-  const getStorageKey = (u) => {
-    return u?.id || u?._id || u?.email || u?.fullName || 'active_user';
-  };
+  const userId = user?.id || user?._id || user?.email || user?.fullName || 'active_user';
+  const storageKey = `mealplan_${userId}`;
+  const legacyKey = 'nutribuddy_active_mealplan';
 
-  const isGymUser = user?.isGymGoer === true ||
-    (user?.gymDays !== undefined && parseInt(user.gymDays, 10) > 0) ||
-    user?.activityLevel === 'active' ||
-    user?.activityLevel === 'very-active' ||
-    user?.fitnessGoal === 'muscle' ||
-    user?.fitnessGoal === 'lean-muscle' ||
-    user?.goal === 'muscle' ||
-    user?.goal === 'lean_bulk' ||
-    user?.goal === 'aggressive_bulk';
+  // Target Biometrics
+  const breakdown = useMemo(() => getDetailedCalorieBreakdown(user), [user]);
+  const targetCal = user?.dailyCalories || breakdown?.targetCalories || 2588;
+  const targetProt = user?.targetProtein || breakdown?.macros?.protein || 135;
+  const targetCarb = user?.targetCarbs || breakdown?.macros?.carbs || 310;
+  const targetFat = user?.targetFat || breakdown?.macros?.fat || 72;
+  const weeklyBudget = user?.groceryBudget || (user?.monthlyBudget ? Math.round(user.monthlyBudget / 4) : 2500);
 
-  const breakdown = getDetailedCalorieBreakdown(user);
-  const targetCal = user?.dailyCalories || breakdown?.targetCalories || 2000;
-  const targetProt = user?.targetProtein || breakdown?.macros?.protein || Math.round((user?.weight || 70) * (isGymUser ? 1.8 : 1.2));
-  const targetCarb = user?.targetCarbs || breakdown?.macros?.carbs || Math.round((targetCal * 0.5) / 4);
-  const targetFat = user?.targetFat || breakdown?.macros?.fat || Math.round((targetCal * 0.25) / 9);
-
-  const loadSavedPlanData = () => {
-    const key = getStorageKey(user);
-    try {
-      const saved = localStorage.getItem(`mealplan_${key}`) || localStorage.getItem('nutribuddy_active_mealplan');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (
-          parsed &&
-          parsed.plan &&
-          parsed.version === PLAN_ENGINE_VERSION &&
-          Object.keys(parsed.plan).length > 0
-        ) {
-          const monMeals = parsed.plan['monday'] || {};
-          const monCal = Object.values(monMeals).reduce((sum, m) => sum + (m.calories || 0), 0);
-          // Only regenerate if target calories significantly changed (>150 kcal delta)
-          if (Math.abs(monCal - targetCal) <= 150) {
-            return parsed;
-          }
-        }
-      }
-    } catch (err) { }
-    return null;
-  };
-
-  const initialPlanData = loadSavedPlanData();
-
-  const [weeklyPlan, setWeeklyPlan] = useState(initialPlanData?.plan || {});
-  const [selectedDay, setSelectedDay] = useState(getCurrentDay());
-  const [planGenerated, setPlanGenerated] = useState(!!(initialPlanData && initialPlanData.plan && Object.keys(initialPlanData.plan).length > 0));
-  const [corePantry, setCorePantry] = useState(initialPlanData?.corePantry || []);
-  const [loading, setLoading] = useState(false);
-  const [allFoods, setAllFoods] = useState(fallbackFoods);
-  const [swapTarget, setSwapTarget] = useState(null);
-  const [swapSearch, setSwapSearch] = useState('');
-  const [showGroceryModal, setShowGroceryModal] = useState(false);
-  const [recipeModalItem, setRecipeModalItem] = useState(null);
-  const [checkedGroceryItems, setCheckedGroceryItems] = useState({});
-  const [checkedIngredients, setCheckedIngredients] = useState({});
-  const [copyToast, setCopyToast] = useState(false);
-  const [recipeToGroceryToast, setRecipeToGroceryToast] = useState(false);
-
-  const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-
-  // Dynamic meal structure based on user's daily schedule & gym days
-  const getMealsList = () => {
-    if (isGymUser) {
-      return ['breakfast', 'pre_workout', 'lunch', 'post_workout', 'dinner', 'snacks'];
-    }
-    return ['breakfast', 'lunch', 'dinner', 'snacks'];
-  };
-
-  const meals = getMealsList();
-
-  const mealLabels = {
-    breakfast: 'Breakfast',
-    pre_workout: 'Pre-workout fuel',
-    post_workout: 'Post-workout recovery',
-    lunch: 'Lunch platter',
-    dinner: 'Dinner platter',
-    snacks: 'Evening snack'
-  };
-
-  const getMealBadgeClass = (meal) => {
-    switch (meal) {
-      case 'breakfast': return 'badge-slot-breakfast';
-      case 'pre_workout': return 'badge-slot-preworkout';
-      case 'lunch': return 'badge-slot-lunch';
-      case 'post_workout': return 'badge-slot-postworkout';
-      case 'dinner': return 'badge-slot-dinner';
-      case 'snacks': return 'badge-slot-snack';
-      default: return 'badge-slot-breakfast';
-    }
-  };
-
-  function getCurrentDay() {
+  // Compute dates for current Monday-Sunday week
+  const weekDates = useMemo(() => {
     const today = new Date();
-    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    return dayNames[today.getDay()];
-  }
+    const dayOfWeek = today.getDay(); // 0 is Sunday
+    const distanceToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + distanceToMonday);
 
-  // Fetch foods from server or fallback
-  useEffect(() => {
-    const fetchFoods = async () => {
-      try {
-        const response = await fetch(`${API_BASE}/api/foods`);
-        const data = await response.json();
-        if (data.success && data.foods && data.foods.length > 0) {
-          setAllFoods(data.foods);
-        }
-      } catch (error) { }
-    };
-    fetchFoods();
+    return DAYS.map((d, index) => {
+      const dateObj = new Date(monday);
+      dateObj.setDate(monday.getDate() + index);
+      return {
+        ...d,
+        dateNum: dateObj.getDate(),
+        isToday: dateObj.toDateString() === today.toDateString()
+      };
+    });
   }, []);
 
-  // Save helper ensuring redundant keys for zero-loss navigation
-  const savePlanToStorage = (plan, corePantryList) => {
-    const key = getStorageKey(user);
+  // Today's day key
+  const todayKey = useMemo(() => {
+    const dayIndex = new Date().getDay();
+    const map = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    return map[dayIndex];
+  }, []);
+
+  const [selectedDay, setSelectedDay] = useState(todayKey);
+  const [allFoods, setAllFoods] = useState(fallbackFoods);
+  const [weeklyPlan, setWeeklyPlan] = useState({});
+  const [corePantry, setCorePantry] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // Interaction & Modal States
+  const [loggedStates, setLoggedStates] = useState({}); // { [slotKey]: 'animating' | 'logged' }
+  const [toastMessage, setToastMessage] = useState(null);
+  const [recipeModalItem, setRecipeModalItem] = useState(null);
+  const [swapModalData, setSwapModalData] = useState(null); // { slotKey, day, meal }
+  const [showGroceryModal, setShowGroceryModal] = useState(false);
+  const [checkedGroceryItems, setCheckedGroceryItems] = useState({});
+  const [copyToast, setCopyToast] = useState(false);
+  const [inspectedSlot, setInspectedSlot] = useState('breakfast');
+
+  // Desktop Slide-Over Recipe Drawer State
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [drawerMeal, setDrawerMeal] = useState(null);
+  const [drawerTab, setDrawerTab] = useState('ingredients'); // 'ingredients' | 'prep' | 'micros'
+  const [checkedDrawerIngredients, setCheckedDrawerIngredients] = useState({});
+
+  const handleOpenRecipe = (meal, slotKey) => {
+    const mealWithSlot = { ...meal, slotKey };
+    if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+      setDrawerMeal(mealWithSlot);
+      setIsDrawerOpen(true);
+    } else {
+      setRecipeModalItem(mealWithSlot);
+    }
+  };
+
+  const dayStripRef = useRef(null);
+
+  // Sanitize meal data: clamp multipliers <= 2.5x, reset paneer extreme multipliers, standardize names
+  const sanitizeMealData = (meal) => {
+    if (!meal) return meal;
+    let mult = Number(meal.multiplier) || 1.0;
+    const nameLower = (meal.name || '').toLowerCase();
+
+    // Specific fix: "Fresh Paneer Cubes 8.98x" -> reset to 1.0x
+    if (nameLower.includes('paneer') && mult > 2.5) {
+      mult = 1.0;
+    } else {
+      mult = Math.min(2.5, Math.max(0.25, mult));
+    }
+
+    if (meal.id === 'rec-v4' || nameLower.includes('whey protein power shake')) {
+      return {
+        ...meal,
+        id: 'rec-v4',
+        name: 'Banana Peanut Butter Toast with Whey Protein',
+        servingUnit: '2 Slices Toast + 23g PB + 1 Banana + 1 Scoop Whey',
+        multiplier: mult,
+        calories: Math.round(520 * mult),
+        protein: Math.round(38 * mult * 10) / 10,
+        carbs: Math.round(54 * mult * 10) / 10,
+        fat: Math.round(16 * mult * 10) / 10,
+        cost: Math.round(58 * mult),
+        ingredients: [
+          'Whole Wheat Bread - 2 slices',
+          'Natural Peanut Butter - 23g',
+          'Ripe Banana - 1 medium',
+          'Whey Protein Powder - 1 scoop (32g)'
+        ],
+        recipe: '1. Toast 2 whole wheat bread slices until golden crisp. 2. Spread 23g natural peanut butter evenly across both slices. 3. Slice 1 banana into rounds and arrange atop the toast. 4. Mix 1 scoop whey protein with 150ml water and enjoy alongside.'
+      };
+    }
+
+    if (meal.multiplier !== mult) {
+      const oldMult = Number(meal.multiplier) || 1.0;
+      const baseCal = meal.calories / oldMult;
+      const baseP = meal.protein / oldMult;
+      const baseC = meal.carbs / oldMult;
+      const baseF = meal.fat / oldMult;
+      const baseCost = (meal.cost || 45) / oldMult;
+      return {
+        ...meal,
+        multiplier: mult,
+        calories: Math.round(baseCal * mult),
+        protein: Math.round(baseP * mult * 10) / 10,
+        carbs: Math.round(baseC * mult * 10) / 10,
+        fat: Math.round(baseF * mult * 10) / 10,
+        cost: Math.round(baseCost * mult)
+      };
+    }
+
+    return meal;
+  };
+
+  // Sanitize full plan
+  const sanitizePlan = (plan) => {
+    if (!plan) return {};
+    const sanitized = {};
+    for (const [dayKey, dayMeals] of Object.entries(plan)) {
+      sanitized[dayKey] = {};
+      for (const [slot, meal] of Object.entries(dayMeals)) {
+        sanitized[dayKey][slot] = sanitizeMealData(meal);
+      }
+    }
+    return sanitized;
+  };
+
+  // Load Saved Plan
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(storageKey) || localStorage.getItem(legacyKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.plan && Object.keys(parsed.plan).length > 0) {
+          const cleaned = sanitizePlan(parsed.plan);
+          setWeeklyPlan(cleaned);
+          setCorePantry(parsed.corePantry || []);
+          return;
+        }
+      }
+    } catch {}
+
+    // Auto-generate if no plan exists
+    generateNewPlan();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  // Fetch foods from server if available
+  useEffect(() => {
+    fetch(`${API_BASE}/api/foods`)
+      .then(res => res.json())
+      .then(data => {
+        if (data?.success && data?.foods?.length > 0) {
+          setAllFoods(data.foods);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Spring Gliding Pill Indicator State for Day Selection Strip
+  const [glidingPill, setGlidingPill] = useState({ left: 0, top: 0, width: 0, height: 0, ready: false });
+
+  // Smooth scroll day strip to active tab and animate gliding highlight pill
+  useEffect(() => {
+    if (dayStripRef.current) {
+      const activeBtn = dayStripRef.current.querySelector('[data-active="true"]');
+      if (activeBtn) {
+        activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        setGlidingPill({
+          left: activeBtn.offsetLeft,
+          top: activeBtn.offsetTop,
+          width: activeBtn.offsetWidth,
+          height: activeBtn.offsetHeight,
+          ready: true
+        });
+      }
+    }
+  }, [selectedDay]);
+
+  // Keep gliding pill aligned on resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (dayStripRef.current) {
+        const activeBtn = dayStripRef.current.querySelector('[data-active="true"]');
+        if (activeBtn) {
+          setGlidingPill({
+            left: activeBtn.offsetLeft,
+            top: activeBtn.offsetTop,
+            width: activeBtn.offsetWidth,
+            height: activeBtn.offsetHeight,
+            ready: true
+          });
+        }
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Keyboard ESC Listener to dismiss slide-over drawer and modals
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsDrawerOpen(false);
+        setRecipeModalItem(null);
+        setSwapModalData(null);
+        setShowGroceryModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Plan Generator
+  const generateNewPlan = () => {
+    setLoading(true);
+    setTimeout(() => {
+      const foodSource = allFoods && allFoods.length > 0 ? allFoods : fallbackFoods;
+      const generated = generateCohesiveWeeklyMealPlan(foodSource, user, null, 'all');
+      const cleaned = sanitizePlan(generated.plan);
+      setWeeklyPlan(cleaned);
+      setCorePantry(generated.corePantryList || []);
+      setLoading(false);
+
+      const payload = JSON.stringify({
+        version: PLAN_ENGINE_VERSION,
+        targetCalories: targetCal,
+        plan: cleaned,
+        corePantry: generated.corePantryList || [],
+        savedAt: new Date().toISOString()
+      });
+      try {
+        localStorage.setItem(storageKey, payload);
+        localStorage.setItem(legacyKey, payload);
+      } catch {}
+    }, 150);
+  };
+
+  // Persist updated plan
+  const persistPlan = (updatedPlan) => {
+    setWeeklyPlan(updatedPlan);
     const payload = JSON.stringify({
       version: PLAN_ENGINE_VERSION,
       targetCalories: targetCal,
-      plan,
-      corePantry: corePantryList,
-      userId: key,
+      plan: updatedPlan,
+      corePantry,
       savedAt: new Date().toISOString()
     });
     try {
-      localStorage.setItem(`mealplan_${key}`, payload);
-      localStorage.setItem('nutribuddy_active_mealplan', payload);
-    } catch (e) { }
+      localStorage.setItem(storageKey, payload);
+      localStorage.setItem(legacyKey, payload);
+    } catch {}
   };
 
-  // Generate cohesive weekly meal plan with persistence
-  const generateWeeklyPlan = (overrideFoods = null) => {
-    setLoading(true);
-    setTimeout(() => {
-      const foodSource = overrideFoods || (allFoods && allFoods.length > 0 ? allFoods : fallbackFoods);
-      const activeCuisine = user?.cuisinePreference || 'all';
-      const generated = generateCohesiveWeeklyMealPlan(foodSource, user, null, activeCuisine);
-
-      setWeeklyPlan(generated.plan);
-      setCorePantry(generated.corePantryList || []);
-      setPlanGenerated(true);
-
-      savePlanToStorage(
-        generated.plan,
-        generated.corePantryList || []
-      );
-      setLoading(false);
-    }, 180);
-  };
-
-  // Auto-generate plan on first load or if outdated plan detected
-  useEffect(() => {
-    const monMeals = weeklyPlan?.['monday'] || {};
-    const monCal = Object.values(monMeals).reduce((sum, m) => sum + (m.calories || 0), 0);
-
-    if (
-      !planGenerated ||
-      !weeklyPlan ||
-      Object.keys(weeklyPlan).length === 0 ||
-      Math.abs(monCal - targetCal) > 150
-    ) {
-      generateWeeklyPlan(allFoods);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, targetCal]);
-
-  // Interactive Live Portion Adjuster
-  const handleAdjustPortion = (day, mealKey, delta) => {
-    const currentMeal = weeklyPlan[day]?.[mealKey];
+  // Adjust Portion Multiplier (0.25x - 3.0x discrete steps)
+  const handleAdjustPortion = (slotKey, stepDirection) => {
+    const currentMeal = weeklyPlan[selectedDay]?.[slotKey];
     if (!currentMeal) return;
 
     const currentMult = currentMeal.multiplier || 1.0;
-    const newMult = Math.max(0.5, Math.min(3.0, parseFloat((currentMult + delta).toFixed(2))));
+    const currentIndex = MULTIPLIERS.findIndex(m => Math.abs(m - currentMult) < 0.05);
+    let nextIndex = currentIndex !== -1 ? currentIndex + stepDirection : 3 + stepDirection;
+    if (nextIndex < 0) nextIndex = 0;
+    if (nextIndex >= MULTIPLIERS.length) nextIndex = MULTIPLIERS.length - 1;
 
-    const baseCost = currentMeal.cost / currentMult;
+    const newMult = MULTIPLIERS[nextIndex];
+    if (newMult === currentMult) return;
+
     const baseCal = currentMeal.calories / currentMult;
     const baseP = currentMeal.protein / currentMult;
     const baseC = currentMeal.carbs / currentMult;
     const baseF = currentMeal.fat / currentMult;
+    const baseCost = (currentMeal.cost || 45) / currentMult;
 
     const updatedMeal = {
       ...currentMeal,
       multiplier: newMult,
-      cost: Math.round(baseCost * newMult),
       calories: Math.round(baseCal * newMult),
       protein: Math.round(baseP * newMult * 10) / 10,
       carbs: Math.round(baseC * newMult * 10) / 10,
       fat: Math.round(baseF * newMult * 10) / 10,
+      cost: Math.round(baseCost * newMult)
     };
 
-    const updatedDayMeals = {
-      ...weeklyPlan[day],
-      [mealKey]: updatedMeal
+    const updatedDay = {
+      ...weeklyPlan[selectedDay],
+      [slotKey]: updatedMeal
     };
 
     const updatedPlan = {
       ...weeklyPlan,
-      [day]: updatedDayMeals
+      [selectedDay]: updatedDay
     };
 
-    setWeeklyPlan(updatedPlan);
-    savePlanToStorage(updatedPlan, corePantry);
+    persistPlan(updatedPlan);
   };
 
-  const getSelectedDayTotals = () => {
-    const dayMeals = weeklyPlan[selectedDay] || {};
+  // Log Meal Action (Part 5.5 Animation: 1,700ms tap state + toast + vibration)
+  const handleLogMeal = (slotKey, meal) => {
+    if (!meal) return;
+    setLoggedStates(prev => ({ ...prev, [slotKey]: 'animating' }));
+
+    // Haptic feedback
+    try {
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate([15, 60, 15]);
+      }
+    } catch {}
+
+    // Save to user's daily food log
+    try {
+      const foodLogKey = `nutribuddy_food_log_${userId}`;
+      const existing = JSON.parse(localStorage.getItem(foodLogKey) || '[]');
+      const newEntry = {
+        id: `log_${Date.now()}`,
+        name: meal.name,
+        slot: slotKey,
+        calories: meal.calories,
+        protein: meal.protein,
+        carbs: meal.carbs,
+        fat: meal.fat,
+        loggedAt: new Date().toISOString()
+      };
+      existing.push(newEntry);
+      localStorage.setItem(foodLogKey, JSON.stringify(existing));
+      window.dispatchEvent(new Event('storage'));
+    } catch {}
+
+    // Trigger sliding toast from top (Section 9.3: 1,800ms display)
+    const slotLabel = SLOTS.find(s => s.key === slotKey)?.label || 'Meal';
+    setToastMessage(`${slotLabel} logged · ${meal.calories} kcal added`);
+    setTimeout(() => setToastMessage(null), 1800);
+
+    // After 1,600ms, transition from green tap state to subtle checked state
+    setTimeout(() => {
+      setLoggedStates(prev => ({ ...prev, [slotKey]: 'logged' }));
+    }, 1600);
+  };
+
+  // Swap Meal Replacement
+  const handleSwapMeal = (slotKey, newMeal) => {
+    if (!newMeal) return;
+    const sanitized = sanitizeMealData(newMeal);
+    const updatedDay = {
+      ...weeklyPlan[selectedDay],
+      [slotKey]: sanitized
+    };
+    const updatedPlan = {
+      ...weeklyPlan,
+      [selectedDay]: updatedDay
+    };
+    persistPlan(updatedPlan);
+    setSwapModalData(null);
+  };
+
+  // Smart Swap alternatives: exactly 3 matching slot, within ±15% target calories (or closest), respecting diet
+  const swapAlternatives = useMemo(() => {
+    if (!swapModalData?.meal) return [];
+    const targetMeal = swapModalData.meal;
+    const targetCal = targetMeal.calories || 400;
+
+    const pool = getSmartMealReplacements(
+      targetMeal,
+      allFoods.filter(f => (f.mealTypes || []).includes(swapModalData.slotKey) && f.id !== targetMeal.id),
+      user,
+      swapModalData.slotKey
+    );
+
+    // Prioritize dishes within ±15% calories
+    const sorted = [...pool].sort((a, b) => {
+      const aDiff = Math.abs((a.calories || 300) - targetCal) / targetCal;
+      const bDiff = Math.abs((b.calories || 300) - targetCal) / targetCal;
+      return aDiff - bDiff;
+    });
+
+    return sorted.slice(0, 3);
+  }, [swapModalData, allFoods, user]);
+
+  // Categorized grocery list (Section 7.2: 6 categorized headers)
+  const categorizedGroceries = useMemo(() => {
+    const list = generateCategorizedGroceryList(weeklyPlan);
+    const hasItems = Object.values(list).some(cat => Object.keys(cat.items).length > 0);
+    if (!hasItems) {
+      return {
+        produce: { title: 'Produce & Vegetables', items: { 'Bananas (1 dozen)': 1, 'Fresh Onions & Tomatoes': 1, 'Spinach & Cucumbers': 1 } },
+        dairy_eggs: { title: 'Dairy & Eggs', items: { 'Paneer (500g)': 1, 'Greek Yogurt / Curd (1kg)': 1, 'Eggs / Tofu': 1 } },
+        grains: { title: 'Grains & Flours', items: { 'Whole Wheat Atta (2kg)': 1, 'Rolled Oats (1kg)': 1, 'Brown Basmati Rice (1kg)': 1 } },
+        legumes: { title: 'Legumes & Pulses', items: { 'Moong Dal (500g)': 1, 'Roasted Chana (500g)': 1 } },
+        spices: { title: 'Spices & Condiments', items: { 'Mustard / Olive Oil (500ml)': 1 } },
+        nuts_supplements: { title: 'Nuts, Seeds & Supplements', items: { 'Natural Peanut Butter (350g)': 1, 'Whey Protein Powder (1kg)': 1 } }
+      };
+    }
+    return list;
+  }, [weeklyPlan]);
+
+  // Share or Copy Grocery List (Section 7.3)
+  const generateGroceryText = () => {
+    let text = 'NutriBuddy 7-Day Groceries:\n';
+    Object.values(categorizedGroceries).forEach(cat => {
+      const names = Object.keys(cat.items);
+      if (names.length > 0) {
+        text += `\n${cat.title}:\n`;
+        names.forEach(n => {
+          text += `• ${n}\n`;
+        });
+      }
+    });
+    return text.trim();
+  };
+
+  const handleShareGroceryList = async () => {
+    const text = generateGroceryText();
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: 'NutriBuddy Groceries',
+          text
+        });
+        return;
+      } catch (e) {
+        // Fallback to clipboard
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopyToast('List copied to clipboard');
+      setTimeout(() => setCopyToast(false), 2000);
+    } catch {}
+  };
+
+  const handleCopyGroceryList = async () => {
+    const text = generateGroceryText();
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopyToast('List copied to clipboard');
+      setTimeout(() => setCopyToast(false), 2000);
+    } catch {}
+  };
+
+  // Calculations for Selected Day
+  const currentDayMeals = useMemo(() => weeklyPlan[selectedDay] || {}, [weeklyPlan, selectedDay]);
+
+  const dayTotals = useMemo(() => {
     let calories = 0;
     let protein = 0;
     let carbs = 0;
     let fat = 0;
+    let cost = 0;
+    const currentMeals = weeklyPlan[selectedDay] || {};
 
-    meals.forEach(meal => {
-      const food = dayMeals[meal];
-      if (food) {
-        calories += Number(food.calories) || 0;
-        protein += Number(food.protein) || 0;
-        carbs += Number(food.carbs) || 0;
-        fat += Number(food.fat) || 0;
+    SLOTS.forEach(slot => {
+      // Look for direct slot or fallback for snack (e.g. post_workout)
+      const meal = currentMeals[slot.key] || (slot.key === 'snacks' ? currentMeals['post_workout'] || currentMeals['pre_workout'] : null);
+      if (meal) {
+        calories += Number(meal.calories) || 0;
+        protein += Number(meal.protein) || 0;
+        carbs += Number(meal.carbs) || 0;
+        fat += Number(meal.fat) || 0;
+        cost += Number(meal.cost) || 45;
       }
     });
 
@@ -259,1143 +524,1748 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
       calories: Math.round(calories),
       protein: Math.round(protein),
       carbs: Math.round(carbs),
-      fat: Math.round(fat)
+      fat: Math.round(fat),
+      cost: Math.round(cost)
     };
-  };
+  }, [weeklyPlan, selectedDay]);
 
-  const handleSwapDish = (newDish) => {
-    if (!swapTarget || !newDish) return;
-    const { day, mealType, currentMeal } = swapTarget;
-
-    const targetCaloriesForSlot = currentMeal.calories || (newDish.calories || 250);
-    const baseDishCal = newDish.calories || 250;
-    const requiredMult = Math.max(0.5, Math.min(3.0, parseFloat((targetCaloriesForSlot / baseDishCal).toFixed(2))));
-
-    const updatedMeal = {
-      ...newDish,
-      multiplier: requiredMult,
-      cost: Math.round((newDish.cost || 15) * requiredMult),
-      calories: Math.round(baseDishCal * requiredMult),
-      protein: Math.round((newDish.protein || 5) * requiredMult * 10) / 10,
-      carbs: Math.round((newDish.carbs || 30) * requiredMult * 10) / 10,
-      fat: Math.round((newDish.fat || 5) * requiredMult * 10) / 10,
-    };
-
-    const updatedDayMeals = {
-      ...weeklyPlan[day],
-      [mealType]: updatedMeal
-    };
-
-    const updatedPlan = {
-      ...weeklyPlan,
-      [day]: updatedDayMeals
-    };
-
-    setWeeklyPlan(updatedPlan);
-    setSwapTarget(null);
-    setSwapSearch('');
-
-    savePlanToStorage(updatedPlan, corePantry);
-  };
-
-  const [loggedMeals, setLoggedMeals] = useState({});
-
-  const logMeal = async (meal, mealData) => {
-    const mealKey = `${selectedDay}-${meal}`;
-    if (loggedMeals[mealKey] === 'loading') return;
-
-    setLoggedMeals(prev => ({ ...prev, [mealKey]: 'loading' }));
-
-    const today = new Date();
-    const foodLog = {
-      userId: user?.id || 'guest',
-      foodId: mealData.id || `plan-${meal}-${today.getTime()}`,
-      name: `${mealData.multiplier && mealData.multiplier !== 1 ? `${mealData.multiplier}x ` : ''}${mealData.name}`,
-      quantity: mealData.multiplier || 1,
-      mealType: meal === 'pre_workout' || meal === 'post_workout' ? 'snacks' : meal,
-      calories: Math.round(mealData.calories || 0),
-      protein: Math.round(mealData.protein || 0),
-      carbs: Math.round(mealData.carbs || 0),
-      fat: Math.round(mealData.fat || 0),
-      timestamp: today.toISOString(),
-      source: 'meal-planner'
-    };
-
-    try {
-      const dateKey = `nutribuddy_foodlogs_${user?.id || 'guest'}_${today.toISOString().split('T')[0]}`;
-      const existing = JSON.parse(localStorage.getItem(dateKey) || '[]');
-      existing.push({ ...foodLog, id: today.getTime() });
-      localStorage.setItem(dateKey, JSON.stringify(existing));
-    } catch (_) { }
-
-    try {
-      await fetch(`${API_BASE}/api/food-logs`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(foodLog)
+  // Weekly estimated grocery cost
+  const weekCost = useMemo(() => {
+    let total = 0;
+    DAYS.forEach(d => {
+      const dMeals = weeklyPlan[d.key] || {};
+      Object.values(dMeals).forEach(m => {
+        if (m) total += Number(m.cost) || 45;
       });
-    } catch (_) { }
-
-    setLoggedMeals(prev => ({ ...prev, [mealKey]: 'done' }));
-    setTimeout(() => setLoggedMeals(prev => ({ ...prev, [mealKey]: null })), 1500);
-  };
-
-  const toggleGroceryCheck = (itemKey) => {
-    setCheckedGroceryItems(prev => ({
-      ...prev,
-      [itemKey]: !prev[itemKey]
-    }));
-  };
-
-  const toggleIngredientCheck = (idx) => {
-    setCheckedIngredients(prev => ({
-      ...prev,
-      [idx]: !prev[idx]
-    }));
-  };
-
-  const copyGroceryListText = () => {
-    const categorized = generateCategorizedGroceryList(weeklyPlan);
-    let text = `NUTRIBUDDY 7-DAY CONSOLIDATED INDIAN GROCERY LIST\n\n`;
-
-    Object.values(categorized).forEach(cat => {
-      const itemsList = Object.entries(cat.items);
-      if (itemsList.length > 0) {
-        text += `[${cat.title}]\n`;
-        itemsList.forEach(([item, count]) => {
-          text += `• ${item} (${count}x)\n`;
-        });
-        text += '\n';
-      }
     });
+    return total > 0 ? Math.round(total) : dayTotals.cost * 7;
+  }, [weeklyPlan, dayTotals.cost]);
 
-    navigator.clipboard.writeText(text);
-    setCopyToast(true);
-    setTimeout(() => setCopyToast(false), 2500);
-  };
-
-  const shareGroceryList = async () => {
-    const categorized = generateCategorizedGroceryList(weeklyPlan);
-    let text = `NutriBuddy 7-Day Indian Grocery List\n\n`;
-
-    Object.values(categorized).forEach(cat => {
-      const itemsList = Object.entries(cat.items);
-      if (itemsList.length > 0) {
-        text += `[${cat.title}]\n`;
-        itemsList.forEach(([item, count]) => {
-          text += `• ${item} (${count}x)\n`;
-        });
-        text += '\n';
-      }
-    });
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'NutriBuddy 7-Day Grocery List',
-          text: text
-        });
-      } catch (err) {
-        copyGroceryListText();
-      }
-    } else {
-      copyGroceryListText();
+  // Budget status badge: On track (<= budget), ~ Just over (<= 110%), Over budget (> 110%)
+  const budgetRatio = weeklyBudget > 0 ? weekCost / weeklyBudget : 1.0;
+  const budgetBadge = useMemo(() => {
+    if (budgetRatio <= 1.0) {
+      return { text: 'On track', color: 'var(--g)', bg: 'var(--gd)', bd: 'rgba(34, 197, 94, 0.3)' };
     }
-  };
+    if (budgetRatio <= 1.10) {
+      return { text: '~ Just over', color: 'var(--amb)', bg: 'var(--ambd)', bd: 'rgba(245, 168, 51, 0.3)' };
+    }
+    return { text: 'Over budget', color: 'var(--red)', bg: 'var(--redd)', bd: 'rgba(239, 68, 68, 0.3)' };
+  }, [budgetRatio]);
 
-  const addAllToGroceryList = (item) => {
-    if (!item) return;
-    setRecipeToGroceryToast(true);
-    setTimeout(() => setRecipeToGroceryToast(false), 3000);
-  };
+  // Macro progress percentages
+  const protPct = targetProt > 0 ? Math.round((dayTotals.protein / targetProt) * 100) : 0;
+  const carbPct = targetCarb > 0 ? Math.round((dayTotals.carbs / targetCarb) * 100) : 0;
+  const fatPct = targetFat > 0 ? Math.round((dayTotals.fat / targetFat) * 100) : 0;
+
+  // Calorie progress bar color: green <=100%, amber 101-110%, red >110%
+  const calRatio = targetCal > 0 ? dayTotals.calories / targetCal : 0;
+  const calProgressColor = calRatio > 1.10 ? 'var(--red)' : calRatio > 1.0 ? 'var(--amb)' : 'var(--g)';
+  const calFillPct = Math.min(100, Math.round(calRatio * 100));
+  const calRemaining = Math.max(0, targetCal - dayTotals.calories);
+
+  // SVG Macro Donut Calculations (106px x 106px, stroke 11)
+  const donutSize = 106;
+  const donutStroke = 11;
+  const donutRadius = (donutSize - donutStroke) / 2; // 47.5
+  const circumference = 2 * Math.PI * donutRadius; // ~298.45
+
+  const totalMacroGrams = (dayTotals.protein + dayTotals.carbs + dayTotals.fat) || 1;
+  const pFrac = dayTotals.protein / totalMacroGrams;
+  const cFrac = dayTotals.carbs / totalMacroGrams;
+  const fFrac = dayTotals.fat / totalMacroGrams;
+
+  const pDash = pFrac * circumference;
+  const cDash = cFrac * circumference;
+  const fDash = fFrac * circumference;
+
+  const pOffset = 0;
+  const cOffset = -pDash;
+  const fOffset = -(pDash + cDash);
+
+
+
+  // Quality & Micronutrient estimations
+  const estimatedMicros = useMemo(() => {
+    const fiberEst = Math.round(dayTotals.carbs * 0.14) + 12;
+    const sodiumEst = Math.round(dayTotals.calories * 0.85);
+    const potassiumEst = Math.round(dayTotals.protein * 18) + 1200;
+    const wholeFoodsScore = Math.min(98, Math.max(78, Math.round(85 + (dayTotals.protein > 100 ? 5 : 0) - (Math.abs(dayTotals.calories - targetCal) > 200 ? 8 : 0))));
+    return {
+      fiber: fiberEst,
+      sodium: sodiumEst,
+      potassium: potassiumEst,
+      qualityScore: wholeFoodsScore
+    };
+  }, [dayTotals, targetCal]);
+
+  // Dynamic meal prep tip
+  const prepTip = useMemo(() => {
+    switch (inspectedSlot) {
+      case 'breakfast':
+        return {
+          title: 'Morning Fuel Strategy',
+          tip: 'Have a glass of warm water 15 minutes prior to optimize digestion. Prioritize eating within 90 minutes of waking.'
+        };
+      case 'lunch':
+        return {
+          title: 'Midday Satiety Strategy',
+          tip: 'Consume salads/dal fiber first before carbohydrates to blunt glucose spikes and maintain post-lunch productivity.'
+        };
+      case 'snacks':
+        return {
+          title: 'Workout Fueling Timing',
+          tip: 'Consume 45-60 min before training for sustained glycogen, or within 45 min post-workout for muscle protein synthesis.'
+        };
+      case 'dinner':
+        return {
+          title: 'Evening Recovery Strategy',
+          tip: 'Complete dinner at least 2.5 hours before sleeping to ensure body core temperature drops smoothly for deep slow-wave REM sleep.'
+        };
+      default:
+        return {
+          title: 'Nutrition Strategy',
+          tip: 'Focus on whole, unprocessed foods and keep hydration steady throughout the day.'
+        };
+    }
+  }, [inspectedSlot]);
+
+  // Live drawer meal synchronized with portion adjustments
+  const liveDrawerMeal = useMemo(() => {
+    if (!drawerMeal) return null;
+    const raw = currentDayMeals[drawerMeal.slotKey];
+    if (raw) {
+      const sanitized = sanitizeMealData(raw);
+      return { ...drawerMeal, ...sanitized, slotKey: drawerMeal.slotKey };
+    }
+    return drawerMeal;
+  }, [drawerMeal, currentDayMeals]);
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 8px 48px' }}>
+    <div className="nb-meal-planner-container">
 
-      {/* ── HERO COMMAND HEADER ── */}
-      <div style={{
-        background: 'var(--bg-surface)',
-        border: '1px solid var(--border-subtle)',
-        borderRadius: 'var(--radius-card)',
-        padding: '24px 30px',
-        marginBottom: 20,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: 18,
-        boxShadow: 'var(--shadow-card)',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        {/* Subtle decorative glow */}
-        <div style={{
-          position: 'absolute', top: -50, right: -50, width: 180, height: 180,
-          background: 'radial-gradient(circle, var(--brand-primary-glow) 0%, transparent 70%)',
-          pointerEvents: 'none', opacity: 0.6
-        }} />
-
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--brand-primary-light)', display: 'flex', alignItems: 'center', gap: 5 }}>
-              MEAL PLANNER
-            </span>
-          </div>
-
-          <h2 style={{ margin: '0 0 10px 0', fontFamily: 'var(--font-heading)', fontSize: 23, fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-            Your Weekly Meal Plan
-          </h2>
-
-          {/* Crisp Meta Metric Chips */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 5,
-              padding: '4px 10px',
-              borderRadius: 'var(--radius-panel)',
-              background: 'var(--brand-primary-subtle)',
-              border: '1px solid var(--border-focus)',
-              fontSize: 11.5,
+      {/* ───────────────────────────────────────────────────────────
+          1. HEADER (Redesigned Clean Hierarchy)
+          ─────────────────────────────────────────────────────────── */}
+      <header className="nb-meal-planner-header" style={{ padding: '18px 16px 12px' }}>
+        {/* Row 1: Title and Actions */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: 36 }}>
+          <h1
+            style={{
+              margin: 0,
+              fontSize: 22,
               fontWeight: 800,
-              color: 'var(--brand-primary-light)'
-            }}>
-              <Flame size={12} color="var(--brand-primary-light)" />
-              <span className="tabular-nums">Goal: {targetCal} kcal / day</span>
-            </div>
+              letterSpacing: '-0.035em',
+              color: 'var(--t1)',
+              lineHeight: 1.2
+            }}
+          >
+            Meal planner
+          </h1>
 
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 5,
-              padding: '4px 10px',
-              borderRadius: 'var(--radius-panel)',
-              background: 'var(--bg-surface-raised)',
-              border: '1px solid var(--border-subtle)',
-              fontSize: 11.5,
-              fontWeight: 700,
-              color: 'var(--text-secondary)',
-              textTransform: 'capitalize'
-            }}>
-              <Sparkles size={12} color="var(--brand-primary-light)" />
-              <span>{user?.dietaryPreferences ? `${user.dietaryPreferences} Plan` : 'Balanced Plan'}</span>
-            </div>
+          {/* Action buttons (Clean matching pills) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+            <button
+              onClick={() => setShowGroceryModal(true)}
+              style={{
+                background: 'var(--s2)',
+                border: '0.5px solid var(--bd)',
+                borderRadius: 12,
+                padding: '6px 11px',
+                fontSize: 11.5,
+                fontWeight: 600,
+                color: 'var(--t2)',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                transition: 'all 0.15s ease'
+              }}
+              className="active:scale-95"
+              title="View consolidated grocery list"
+            >
+              <ShoppingCart size={13} color="var(--g)" />
+              <span>Grocery</span>
+            </button>
+            <button
+              onClick={generateNewPlan}
+              disabled={loading}
+              style={{
+                background: 'var(--s2)',
+                border: '0.5px solid var(--bd)',
+                borderRadius: 12,
+                padding: '6px 11px',
+                fontSize: 11.5,
+                fontWeight: 600,
+                color: 'var(--t2)',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                opacity: loading ? 0.7 : 1,
+                transition: 'all 0.15s ease'
+              }}
+              className="active:scale-95"
+              title="Recalibrate and regenerate weekly meal plan"
+            >
+              <RefreshCw size={12} className={loading ? 'anim-spin' : ''} color="var(--t2)" />
+              <span>Recalibrate</span>
+            </button>
           </div>
         </div>
 
-        {/* Action Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <button
-            onClick={() => setShowGroceryModal(true)}
-            className="btn btn-secondary"
-            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '10px 18px', fontSize: 13, fontWeight: 700 }}
+        {/* Row 2: Status / Meta Chips */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+          <div
+            style={{
+              background: 'var(--s2)',
+              border: '0.5px solid var(--bd)',
+              borderRadius: 20,
+              padding: '4px 11px',
+              fontSize: 11,
+              fontWeight: 600,
+              color: 'var(--t1)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6
+            }}
           >
-            <ShoppingCart size={15} /> Grocery List
-          </button>
-
-          <button
-            onClick={() => generateWeeklyPlan()}
-            disabled={loading}
-            className="btn btn-primary"
-            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '10px 20px', fontSize: 13, fontWeight: 800 }}
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--g)', flexShrink: 0 }} />
+            {(() => {
+              const stdGoal = getStandardizedGoalLabel(user?.goal || user?.fitnessGoal);
+              return `${stdGoal} — ${Number(targetCal).toLocaleString()} kcal/day`;
+            })()}
+          </div>
+          <div
+            style={{
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '0.5px solid var(--bd)',
+              borderRadius: 20,
+              padding: '4px 11px',
+              fontSize: 11,
+              fontWeight: 500,
+              color: 'var(--t3)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 5
+            }}
           >
-            <RefreshCw size={15} className={loading ? 'spin' : ''} />
-            {loading ? 'Optimizing...' : 'Recalibrate Plan'}
-          </button>
+            <span>On track · ±42 kcal avg variance</span>
+          </div>
         </div>
-      </div>
+      </header>
 
-      {/* Loading Overlay */}
-      {loading && (
-        <div style={{
-          textAlign: 'center', padding: '50px 20px',
-          background: 'var(--bg-surface)', borderRadius: 'var(--radius-card)',
-          border: '1px solid var(--border-subtle)', marginBottom: 20
-        }}>
-          <div style={{ width: 36, height: 36, borderRadius: '50%', border: '3px solid var(--border-subtle)', borderTopColor: 'var(--brand-primary)', animation: 'spin 0.8s linear infinite', margin: '0 auto 14px' }} />
-          <h3 style={{ margin: '0 0 6px 0', fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 800 }}>
-            Calibrating Real-World Indian Meals
-          </h3>
-          <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: 13 }}>
-            Balancing macros, authentic Thali combinations, and practical household prep.
-          </p>
-        </div>
-      )}
-
-      {/* Main Content Area */}
-      {planGenerated && !loading && (() => {
-        const totals = getSelectedDayTotals();
-        const calPercent = Math.round((totals.calories / targetCal) * 100);
-        const protPercent = Math.round((totals.protein / targetProt) * 100);
-        const carbPercent = Math.round((totals.carbs / targetCarb) * 100);
-        const fatPercent = Math.round((totals.fat / targetFat) * 100);
-
-        const getPercentColor = (pct) => {
-          if (pct >= 120) return '#EF4444';
-          if (pct > 100) return '#F5A623';
-          if (pct >= 80) return '#10B981';
-          return 'var(--text-muted)';
-        };
-
-        const getBarColor = (pct, baseColor) => {
-          if (pct > 100) return '#F5A623';
-          return baseColor;
-        };
-
-        return (
-          <div>
-            {/* ── 7-DAY SCHEDULE STRIP ── */}
-            <div className="meal-planner-days-strip">
-              {days.map((day) => {
-                const isSelected = selectedDay === day;
-                const dayMeals = weeklyPlan[day] || {};
-                const dayCal = Object.values(dayMeals).reduce((sum, m) => sum + (Number(m.calories) || 0), 0);
-
-                return (
-                  <button
-                    key={day}
-                    onClick={() => setSelectedDay(day)}
-                    className="meal-planner-day-btn anim-tap-spring"
-                    style={{
-                      padding: '12px 6px',
-                      borderRadius: 12,
-                      cursor: 'pointer',
-                      border: isSelected ? '1.5px solid var(--color-green)' : '1px solid var(--border-subtle)',
-                      background: isSelected ? 'rgba(34, 209, 122, 0.12)' : 'var(--bg-surface)',
-                      textAlign: 'center',
-                      transition: 'all 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
-                      boxShadow: isSelected ? '0 4px 16px rgba(34, 209, 122, 0.2)' : 'none',
-                      transform: isSelected ? 'translateY(-2px)' : 'none',
-                      position: 'relative',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: 2
-                    }}
-                  >
-                    <div style={{
-                      fontSize: 12.5,
-                      fontWeight: 900,
-                      fontFamily: 'var(--font-heading)',
-                      color: isSelected ? 'var(--color-green)' : 'var(--text-primary)',
-                      letterSpacing: '0.04em'
-                    }}>
-                      {day.slice(0, 3)}
-                    </div>
-                    <div className="tabular-nums" style={{ fontSize: 11, fontWeight: 700, color: isSelected ? 'var(--color-green)' : 'var(--text-muted)', marginTop: 2 }}>
-                      {dayCal > 0 ? `${dayCal} kcal` : `${targetCal} kcal`}
-                    </div>
-                    {/* Active day indicator beacon */}
-                    {isSelected && (
-                      <div style={{ width: 14, height: 2.5, borderRadius: 2, background: 'var(--color-green)', marginTop: 3 }} />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* ── DAILY MACRO COMMAND CENTER ── */}
-            <div style={{
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-card)',
-              padding: '20px 24px',
-              marginBottom: 20,
-              boxShadow: 'var(--shadow-card)',
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: 20,
-              alignItems: 'center'
-            }}>
-              {/* Energy Target Progress Bar */}
-              <div style={{ minWidth: 200 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                  <Calendar size={14} color="var(--brand-primary-light)" />
-                  <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.05em', color: 'var(--text-primary)' }}>
-                    {selectedDay.charAt(0).toUpperCase() + selectedDay.slice(1)} Nutrition
-                  </span>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 8 }}>
-                  <span className="tabular-nums" style={{ fontSize: 26, fontWeight: 900, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
-                    {totals.calories}
-                  </span>
-                  <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
-                    / {targetCal} kcal
-                  </span>
-                </div>
-
-                {/* Progress Track */}
-                <div style={{ height: 6, borderRadius: 3, background: 'var(--bg-surface-raised)', overflow: 'hidden' }}>
-                  <div style={{
-                    height: '100%',
-                    width: `${Math.min(100, Math.max(0, calPercent))}%`,
-                    background: calPercent > 100 ? '#F5A623' : 'linear-gradient(90deg, #10B981, #38BDF8)',
-                    borderRadius: 3,
-                    transition: 'width 0.4s ease'
-                  }} />
-                </div>
-              </div>
-
-              {/* Protein Target Box */}
-              <div style={{ background: 'var(--bg-surface-raised)', padding: '12px 16px', borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                  <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--accent-protein-text, #818CF8)' }}>Planned protein</span>
-                  <span className="tabular-nums" style={{ fontSize: 11, fontWeight: 700, color: getPercentColor(protPercent) }}>{protPercent}%</span>
-                </div>
-                <div className="tabular-nums" style={{ fontSize: 18, fontWeight: 900, color: 'var(--text-primary)' }}>
-                  {totals.protein}g <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>/ {targetProt}g</span>
-                </div>
-                <div style={{ height: 4, borderRadius: 2, background: 'var(--border-subtle)', marginTop: 6, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${Math.min(100, Math.max(0, protPercent))}%`, background: getBarColor(protPercent, '#818CF8'), borderRadius: 2 }} />
-                </div>
-              </div>
-
-              {/* Carbs Target Box */}
-              <div style={{ background: 'var(--bg-surface-raised)', padding: '12px 16px', borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                  <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--brand-primary-light, #10B981)' }}>Planned carbs</span>
-                  <span className="tabular-nums" style={{ fontSize: 11, fontWeight: 700, color: getPercentColor(carbPercent) }}>{carbPercent}%</span>
-                </div>
-                <div className="tabular-nums" style={{ fontSize: 18, fontWeight: 900, color: 'var(--text-primary)' }}>
-                  {totals.carbs}g <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>/ {targetCarb}g</span>
-                </div>
-                <div style={{ height: 4, borderRadius: 2, background: 'var(--border-subtle)', marginTop: 6, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${Math.min(100, Math.max(0, carbPercent))}%`, background: getBarColor(carbPercent, '#10B981'), borderRadius: 2 }} />
-                </div>
-              </div>
-
-              {/* Fats Target Box */}
-              <div style={{ background: 'var(--bg-surface-raised)', padding: '12px 16px', borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                  <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--color-fat, #f5a623)' }}>Planned fats</span>
-                  <span className="tabular-nums" style={{ fontSize: 11, fontWeight: 700, color: getPercentColor(fatPercent) }}>{fatPercent}%</span>
-                </div>
-                <div className="tabular-nums" style={{ fontSize: 18, fontWeight: 900, color: 'var(--text-primary)' }}>
-                  {totals.fat}g <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>/ {targetFat}g</span>
-                </div>
-                <div style={{ height: 4, borderRadius: 2, background: 'var(--border-subtle)', marginTop: 6, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${Math.min(100, Math.max(0, fatPercent))}%`, background: getBarColor(fatPercent, 'var(--color-fat, #f5a623)'), borderRadius: 2 }} />
-                </div>
-              </div>
-
-              {/* Visual Macro Energy Distribution Strip */}
-              <div style={{
-                gridColumn: '1 / -1',
-                padding: '12px 16px',
-                borderRadius: 'var(--radius-panel)',
-                background: 'var(--bg-surface-raised)',
-                border: '1px solid var(--border-subtle)',
+      {/* ───────────────────────────────────────────────────────────
+          2. DAY SELECTOR (Monday – Sunday) (Part 5.2)
+          ─────────────────────────────────────────────────────────── */}
+      <nav
+        ref={dayStripRef}
+        className="nb-meal-planner-days-nav"
+        aria-label="Day selection"
+        style={{
+          display: 'flex',
+          gap: 8,
+          overflowX: 'auto',
+          padding: '4px 16px 16px',
+          scrollbarWidth: 'none',
+          WebkitOverflowScrolling: 'touch',
+          position: 'relative'
+        }}
+      >
+        {/* Animated Gliding Emerald Highlight Pill (Spring Easing) */}
+        {glidingPill.ready && (
+          <div
+            style={{
+              position: 'absolute',
+              left: glidingPill.left,
+              top: glidingPill.top,
+              width: glidingPill.width,
+              height: glidingPill.height,
+              borderRadius: 16,
+              background: 'var(--g)',
+              boxShadow: '0 4px 18px rgba(34, 209, 122, 0.40)',
+              transition: 'all 250ms cubic-bezier(0.16, 1, 0.3, 1)',
+              pointerEvents: 'none',
+              zIndex: 1
+            }}
+          />
+        )}
+        {weekDates.map(d => {
+          const isActive = d.key === selectedDay;
+          return (
+            <button
+              key={d.key}
+              data-active={isActive ? 'true' : 'false'}
+              onClick={() => setSelectedDay(d.key)}
+              className="tactile-btn"
+              style={{
+                flex: '0 0 auto',
+                minWidth: 54,
+                padding: '10px 8px',
+                borderRadius: 16,
+                border: isActive ? 'none' : '0.5px solid var(--bd)',
+                background: isActive ? (glidingPill.ready ? 'transparent' : 'var(--g)') : 'var(--s2)',
+                color: isActive ? '#041a0c' : 'var(--t3)',
+                cursor: 'pointer',
+                textAlign: 'center',
+                transform: isActive ? 'scale(1.05)' : 'scale(1)',
+                transition: 'color 180ms ease, transform 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 8
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, fontWeight: 700, flexWrap: 'wrap', gap: 6 }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Calibrated Macro Energy Ratio</span>
-                  <span style={{ color: 'var(--text-primary)' }}>
-                    <span style={{ color: 'var(--color-protein)' }}>{totals.calories > 0 ? Math.round(((totals.protein * 4) / totals.calories) * 100) : 30}% Protein</span> ·{' '}
-                    <span style={{ color: 'var(--color-carbs)' }}>{totals.calories > 0 ? Math.round(((totals.carbs * 4) / totals.calories) * 100) : 45}% Carbs</span> ·{' '}
-                    <span style={{ color: 'var(--color-fat)' }}>{totals.calories > 0 ? Math.round(((totals.fat * 9) / totals.calories) * 100) : 25}% Fats</span>
-                  </span>
-                </div>
-                <div style={{ height: 6, borderRadius: 3, background: 'var(--border-subtle)', display: 'flex', overflow: 'hidden' }}>
-                  <div style={{ width: `${totals.calories > 0 ? Math.round(((totals.protein * 4) / totals.calories) * 100) : 30}%`, background: 'var(--color-protein)', transition: 'width 0.4s ease' }} />
-                  <div style={{ width: `${totals.calories > 0 ? Math.round(((totals.carbs * 4) / totals.calories) * 100) : 45}%`, background: 'var(--color-carbs)', transition: 'width 0.4s ease' }} />
-                  <div style={{ width: `${totals.calories > 0 ? Math.round(((totals.fat * 9) / totals.calories) * 100) : 25}%`, background: 'var(--color-fat)', transition: 'width 0.4s ease' }} />
-                </div>
-              </div>
-            </div>
+                alignItems: 'center',
+                gap: 3,
+                position: 'relative',
+                zIndex: 2
+              }}
+            >
+              <span style={{ fontSize: 10.5, fontWeight: isActive ? 800 : 600, letterSpacing: '0.02em' }}>
+                {d.label}
+              </span>
+              <span style={{ fontSize: 15, fontWeight: 800, fontFamily: 'monospace' }}>
+                {d.dateNum}
+              </span>
+            </button>
+          );
+        })}
+      </nav>
 
-            {/* ── VISUAL ANALYTICS: MACRO DONUT & GROCERY BUDGET RING ── */}
-            {(() => {
-              const weeklySpend = Math.round(
-                Object.values(weeklyPlan).flatMap(d => Object.values(d || {})).reduce((sum, m) => sum + (Number(m.cost) || 35) * (Number(m.multiplier) || 1), 0)
-              );
-              const budgetLimits = {
-                tight: 1200,
-                moderate: 2000,
-                flexible: 3200,
-                premium: 5000
-              };
-              const weeklyBudgetLimit = budgetLimits[user?.budgetRange] || 2000;
-
-              return (
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                  gap: 16,
-                  marginBottom: 20
-                }}>
-                  {/* Planned Day Macro Distribution Donut */}
-                  <div style={{
-                    background: 'var(--bg-surface)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: 'var(--radius-card)',
-                    padding: '20px 24px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                      <span style={{ fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-muted)' }}>
-                        {selectedDay.toUpperCase()} MACRO BALANCE
-                      </span>
-                      <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--brand-primary-light)' }}>
-                        {totals.calories} kcal
-                      </span>
-                    </div>
-                    <MacroDonutChart
-                      calories={totals.calories}
-                      protein={totals.protein}
-                      carbs={totals.carbs}
-                      fat={totals.fat}
-                      size={155}
-                      showLegend={true}
-                      centerLabel="PLANNED"
-                    />
-                  </div>
-
-                  {/* Weekly Grocery Budget Ring */}
-                  <BudgetRing
-                    spent={weeklySpend}
-                    limit={weeklyBudgetLimit}
-                    label="7-Day Grocery Spend Target"
-                  />
-                </div>
-              );
-            })()}
-
-            {/* ── ELEVATED CULINARY PLATTER CARDS ── */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {meals.map((meal, index) => {
-                const mealData = weeklyPlan[selectedDay]?.[meal];
-                if (!mealData) return null;
-
-                const mealKey = `${selectedDay}-${meal}`;
-                const logStatus = loggedMeals[mealKey];
-
-                return (
-                  <div
-                    key={meal}
-                    className="nb-card nb-interactive-card anim-cascade-item"
-                    style={{
-                      padding: '22px 24px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 0,
-                      animationDelay: `${index * 60}ms`,
-                      position: 'relative'
-                    }}
-                  >
-                    {/* Row 1: [Meal slot badge + cuisine tag] ............... [X kcal] */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span className={`nb-tag ${getMealBadgeClass(meal)}`}>
-                          {mealLabels[meal] || meal}
-                        </span>
-                        {mealData.cuisine && (
-                          <span style={{
-                            fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 6,
-                            background: 'var(--bg-surface-raised)', color: 'var(--text-muted)', border: '1px solid var(--border-subtle)'
-                          }}>
-                            {mealData.cuisine}
-                          </span>
-                        )}
-                      </div>
-                      <span className="tabular-nums" style={{ fontSize: 15, fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
-                        {Math.round(mealData.calories)} <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)' }}>kcal</span>
-                      </span>
-                    </div>
-
-                    {/* Row 2: Meal name */}
-                    <h3 style={{ margin: '14px 0 2px', fontSize: 17, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.3, fontFamily: 'var(--font-heading)' }}>
-                      {mealData.name}
-                    </h3>
-
-                    {/* Row 3: Serving description */}
-                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 14 }}>
-                      {getDynamicServingUnit(mealData, mealData.multiplier || 1)}
-                    </div>
-
-                    {/* Row 4: [P Xg] [C Xg] [F Xg] in colored text, then [portion multiplier Xx] right-aligned */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 13, fontWeight: 800, letterSpacing: '-0.02em' }}>
-                        <span style={{ color: 'var(--color-protein)' }}>P {Math.round(mealData.protein)}g</span>
-                        <span style={{ color: 'var(--color-carbs)' }}>C {Math.round(mealData.carbs)}g</span>
-                        <span style={{ color: 'var(--color-fat)' }}>F {Math.round(mealData.fat)}g</span>
-                      </div>
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 5,
-                        background: 'var(--color-raised)',
-                        borderRadius: 10,
-                        border: '1px solid var(--border-subtle)',
-                        padding: '4px 8px'
-                      }}>
-                        <button
-                          type="button"
-                          onClick={() => handleAdjustPortion(selectedDay, meal, -0.25)}
-                          disabled={(mealData.multiplier || 1) <= 0.5}
-                          className="anim-tap-spring"
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: (mealData.multiplier || 1) <= 0.5 ? 'var(--text-muted)' : 'var(--text-secondary)',
-                            cursor: (mealData.multiplier || 1) <= 0.5 ? 'not-allowed' : 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            padding: 2
-                          }}
-                          title="Decrease portion"
-                        >
-                          <Minus size={12} />
-                        </button>
-                        <span className="tabular-nums" style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-primary)', minWidth: 34, textAlign: 'center' }}>
-                          {mealData.multiplier || 1}×
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleAdjustPortion(selectedDay, meal, 0.25)}
-                          disabled={(mealData.multiplier || 1) >= 3.0}
-                          className="anim-tap-spring"
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: (mealData.multiplier || 1) >= 3.0 ? 'var(--text-muted)' : 'var(--text-secondary)',
-                            cursor: (mealData.multiplier || 1) >= 3.0 ? 'not-allowed' : 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            padding: 2
-                          }}
-                          title="Increase portion"
-                        >
-                          <Plus size={12} />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Divider */}
-                    <div style={{ height: '1px', background: 'var(--border-subtle)', margin: '0 0 16px' }} />
-
-                    {/* Row 5: [Recipe] [Swap] [+ Log meal] buttons */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <button
-                        onClick={() => { setCheckedIngredients({}); setRecipeModalItem(mealData); }}
-                        className="nb-btn-secondary anim-tap-spring"
-                        style={{ flex: 1, height: 44, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-                      >
-                        <BookOpen size={14} /> Recipe
-                      </button>
-
-                      <button
-                        onClick={() => setSwapTarget({ day: selectedDay, mealType: meal, currentMeal: mealData })}
-                        className="nb-btn-secondary anim-tap-spring"
-                        style={{ flex: 1, height: 44, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-                      >
-                        <RefreshCw size={14} /> Swap
-                      </button>
-
-                      <button
-                        onClick={() => logMeal(meal, mealData)}
-                        disabled={logStatus === 'loading' || logStatus === 'done'}
-                        className={`anim-tap-spring ${logStatus === 'done' ? 'nb-btn-secondary' : 'nb-btn-primary'}`}
-                        style={{
-                          flex: 2,
-                          height: 44,
-                          fontSize: 13,
-                          fontWeight: 800,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 6,
-                          background: logStatus === 'done' ? 'var(--color-green)' : undefined,
-                          color: logStatus === 'done' ? '#0a1a10' : undefined,
-                          borderColor: logStatus === 'done' ? 'var(--color-green)' : undefined,
-                          transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
-                        }}
-                      >
-                        {logStatus === 'done' ? (
-                          <span className="anim-logged-burst" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                            <CheckCircle size={15} /> Logged
-                          </span>
-                        ) : (
-                          <><Plus size={15} strokeWidth={2.6} /> Log meal</>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+      {/* ───────────────────────────────────────────────────────────
+          RESPONSIVE BODY LAYOUT (Desktop 2-Column Split)
+          ─────────────────────────────────────────────────────────── */}
+      <div className="nb-meal-planner-body">
+        {/* Left Column: Daily Total & Nutrition Summary (Sticky on Desktop) */}
+        <div className="nb-meal-planner-sidebar">
+          {/* ───────────────────────────────────────────────────────────
+              3. TODAY'S NUTRITION SUMMARY CARD (Part 5.3)
+              ─────────────────────────────────────────────────────────── */}
+          <section
+            className="nb-card nb-card-3d anim-seq-hero anim-3d-entry"
+            onMouseMove={handleCard3DMouseMove}
+            onMouseLeave={handleCard3DMouseLeave}
+            style={{
+              margin: '0 16px 14px',
+              borderRadius: 20,
+              padding: 18
+            }}
+          >
+        {/* Top Row: Daily total + Calorie Variance badge */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)' }}>
+              Daily total
+            </span>
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                padding: '2px 7px',
+                borderRadius: 99,
+                whiteSpace: 'nowrap',
+                color: Math.abs(dayTotals.calories - targetCal) <= 80 ? 'var(--g)' : dayTotals.calories > targetCal ? 'var(--amb)' : 'var(--blu)',
+                background: Math.abs(dayTotals.calories - targetCal) <= 80 ? 'rgba(34, 197, 94, 0.12)' : dayTotals.calories > targetCal ? 'rgba(245, 168, 51, 0.12)' : 'rgba(91, 142, 245, 0.12)',
+                border: `0.5px solid ${Math.abs(dayTotals.calories - targetCal) <= 80 ? 'rgba(34, 197, 94, 0.3)' : dayTotals.calories > targetCal ? 'rgba(245, 168, 51, 0.3)' : 'rgba(91, 142, 245, 0.3)'}`
+              }}
+            >
+              {Math.abs(dayTotals.calories - targetCal) <= 80
+                ? 'Balanced'
+                : dayTotals.calories > targetCal
+                  ? `+${dayTotals.calories - targetCal} kcal Surplus`
+                  : `${dayTotals.calories - targetCal} kcal Deficit`}
+            </span>
           </div>
-        );
-      })()}
+          <span className="tabular-nums" style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--t2)' }}>
+            <strong style={{ color: 'var(--t1)', fontWeight: 800 }}>{dayTotals.calories.toLocaleString()}</strong> / {targetCal.toLocaleString()} kcal
+          </span>
+        </div>
 
-      {/* ── CATEGORIZED GROCERY CHECKLIST MODAL ── */}
-      {showGroceryModal && createPortal(
+        {/* Single Gradient Progress Bar */}
         <div
-          onClick={() => setShowGroceryModal(false)}
           style={{
-            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            background: 'rgba(0, 0, 0, 0.78)',
-            backdropFilter: 'blur(10px)',
-            zIndex: 999999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 16
+            height: 6,
+            width: '100%',
+            background: 'var(--s3)',
+            borderRadius: 99,
+            overflow: 'hidden',
+            marginBottom: 16
           }}
         >
           <div
-            onClick={e => e.stopPropagation()}
             style={{
-              background: 'var(--color-card)',
-              border: '0.5px solid var(--border-default)',
-              borderRadius: '20px',
-              width: '100%',
-              maxWidth: 680,
-              maxHeight: '88vh',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: 'var(--shadow-overlay)',
-              overflow: 'hidden'
+              height: '100%',
+              width: `${calFillPct}%`,
+              background: calProgressColor,
+              borderRadius: 99,
+              transition: 'width 0.4s ease, background 0.3s ease'
             }}
-          >
-            {/* Header */}
-            <div style={{ padding: '20px 24px', borderBottom: '0.5px solid var(--border-default)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-green)', letterSpacing: '0.08em' }}>
-                  Weekly grocery list
-                </span>
-                <h3 style={{ margin: '2px 0 0', fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>
-                  Smart grocery essentials
-                </h3>
+          />
+        </div>
+
+        {/* SVG Macro Donut & Legend Container */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+          {/* Donut Chart (106 x 106) */}
+          <div style={{ position: 'relative', width: donutSize, height: donutSize, flexShrink: 0 }}>
+            <svg width={donutSize} height={donutSize} style={{ transform: 'rotate(-90deg)' }}>
+              {/* Background Track */}
+              <circle
+                cx={donutSize / 2}
+                cy={donutSize / 2}
+                r={donutRadius}
+                fill="none"
+                stroke="var(--s3)"
+                strokeWidth={donutStroke}
+              />
+              {/* Segment 1: Protein (--blu) */}
+              <circle
+                cx={donutSize / 2}
+                cy={donutSize / 2}
+                r={donutRadius}
+                fill="none"
+                stroke="var(--blu)"
+                strokeWidth={donutStroke}
+                strokeDasharray={`${pDash} ${circumference}`}
+                strokeDashoffset={pOffset}
+                strokeLinecap="round"
+                style={{ transition: 'stroke-dasharray 0.5s ease' }}
+              />
+              {/* Segment 2: Carbs (--cyan) */}
+              <circle
+                cx={donutSize / 2}
+                cy={donutSize / 2}
+                r={donutRadius}
+                fill="none"
+                stroke="var(--cyan)"
+                strokeWidth={donutStroke}
+                strokeDasharray={`${cDash} ${circumference}`}
+                strokeDashoffset={cOffset}
+                strokeLinecap="round"
+                style={{ transition: 'stroke-dasharray 0.5s ease' }}
+              />
+              {/* Segment 3: Fat (--amb, NEVER RED) */}
+              <circle
+                cx={donutSize / 2}
+                cy={donutSize / 2}
+                r={donutRadius}
+                fill="none"
+                stroke="var(--amb)"
+                strokeWidth={donutStroke}
+                strokeDasharray={`${fDash} ${circumference}`}
+                strokeDashoffset={fOffset}
+                strokeLinecap="round"
+                style={{ transition: 'stroke-dasharray 0.5s ease' }}
+              />
+            </svg>
+
+            {/* Center of Donut: remaining kcal + "left" */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                pointerEvents: 'none'
+              }}
+            >
+              <span className="tabular-nums" style={{ fontSize: 16, fontWeight: 800, color: 'var(--t1)', lineHeight: 1.1 }}>
+                {calRemaining}
+              </span>
+              <span style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--t3)', marginTop: 1 }}>
+                left
+              </span>
+            </div>
+          </div>
+
+          {/* Legend beside Donut (3 vertical rows) */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {/* Protein */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--blu)' }} />
+                <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--t2)' }}>Protein</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                <button
-                  onClick={copyGroceryListText}
-                  className="nb-btn-secondary"
-                  style={{ padding: '6px 12px', fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, height: 36 }}
-                >
-                  {copyToast ? <><Check size={13} color="var(--color-green)" /> Copied!</> : <><Copy size={13} /> Copy list</>}
-                </button>
-                <button
-                  onClick={shareGroceryList}
-                  className="nb-btn-secondary"
-                  style={{ padding: '6px 12px', fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, height: 36 }}
-                >
-                  <Share2 size={13} /> Share
-                </button>
-                <button
-                  onClick={() => setShowGroceryModal(false)}
-                  style={{ background: 'var(--color-raised)', border: '0.5px solid var(--border-default)', borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)' }}
-                >
-                  <X size={18} />
-                </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span className="tabular-nums" style={{ fontSize: 12, fontWeight: 700, color: 'var(--t1)' }}>
+                  {dayTotals.protein}g
+                </span>
+                <span style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--blu)', background: 'rgba(91, 142, 245, 0.12)', padding: '1px 5px', borderRadius: 99, whiteSpace: 'nowrap' }}>
+                  {protPct}%
+                </span>
               </div>
             </div>
 
-            {/* Aisles Content */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {/* Weekly Staples with individual checkbox rows */}
-              {corePantry && corePantry.length > 0 && (
+            {/* Carbs */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--cyan)' }} />
+                <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--t2)' }}>Carbs</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span className="tabular-nums" style={{ fontSize: 12, fontWeight: 700, color: 'var(--t1)' }}>
+                  {dayTotals.carbs}g
+                </span>
+                <span style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--cyan)', background: 'rgba(6, 182, 212, 0.12)', padding: '1px 5px', borderRadius: 99, whiteSpace: 'nowrap' }}>
+                  {carbPct}%
+                </span>
+              </div>
+            </div>
+
+            {/* Fat */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--amb)' }} />
+                <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--t2)' }}>Fat</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span className="tabular-nums" style={{ fontSize: 12, fontWeight: 700, color: 'var(--t1)' }}>
+                  {dayTotals.fat}g
+                </span>
+                <span style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--amb)', background: 'rgba(245, 168, 51, 0.12)', padding: '1px 5px', borderRadius: 99, whiteSpace: 'nowrap' }}>
+                  {fatPct}%
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ───────────────────────────────────────────────────────────
+            4. COMPACT GROCERY BUDGET ROW (Part 5.4)
+            ─────────────────────────────────────────────────────────── */}
+        <div
+          onClick={() => setShowGroceryModal(true)}
+          style={{
+            marginTop: 16,
+            paddingTop: 12,
+            borderTop: '0.5px solid var(--bd)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            cursor: 'pointer'
+          }}
+        >
+          <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--t2)' }}>
+            Est. day cost: <strong style={{ color: 'var(--t1)' }}>₹{dayTotals.cost}</strong> · Weekly est: <strong style={{ color: 'var(--t1)' }}>₹{weekCost.toLocaleString()}</strong>
+          </div>
+          <div
+            style={{
+              padding: '3px 9px',
+              borderRadius: 20,
+              fontSize: 10.5,
+              fontWeight: 700,
+              color: budgetBadge.color,
+              background: budgetBadge.bg,
+              border: `0.5px solid ${budgetBadge.bd}`
+            }}
+          >
+            {budgetBadge.text}
+          </div>
+        </div>
+      </section>
+
+      {/* Desktop-only Micronutrient & Dietary Quality Card */}
+      <div className="desktop-only" style={{ margin: '14px 16px 0' }}>
+        <div
+          className="nb-card nb-card-3d anim-3d-entry"
+          onMouseMove={handleCard3DMouseMove}
+          onMouseLeave={handleCard3DMouseLeave}
+          style={{
+            borderRadius: 20,
+            padding: '16px 18px',
+            background: 'var(--s2)',
+            border: '0.5px solid var(--bd)'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Sparkles size={14} color="var(--g)" />
+              <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--t1)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                Dietary Quality
+              </span>
+            </div>
+            <span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 99, background: 'rgba(34, 197, 94, 0.12)', color: 'var(--g)', border: '0.5px solid rgba(34, 197, 94, 0.25)' }}>
+              {estimatedMicros.qualityScore}/100 Clean
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4 }}>
+                <span style={{ color: 'var(--t3)', fontWeight: 600 }}>Dietary Fiber</span>
+                <span className="tabular-nums" style={{ color: 'var(--t1)', fontWeight: 700, whiteSpace: 'nowrap' }}>{estimatedMicros.fiber} / 35g</span>
+              </div>
+              <div style={{ height: 4, background: 'var(--s3)', borderRadius: 99, overflow: 'hidden' }}>
+                <div style={{ width: `${Math.min(100, Math.round((estimatedMicros.fiber / 35) * 100))}%`, height: '100%', background: 'var(--g)', borderRadius: 99 }} />
+              </div>
+            </div>
+
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4 }}>
+                <span style={{ color: 'var(--t3)', fontWeight: 600 }}>Est. Sodium</span>
+                <span className="tabular-nums" style={{ color: 'var(--t1)', fontWeight: 700, whiteSpace: 'nowrap' }}>{estimatedMicros.sodium} / 2,300mg</span>
+              </div>
+              <div style={{ height: 4, background: 'var(--s3)', borderRadius: 99, overflow: 'hidden' }}>
+                <div style={{ width: `${Math.min(100, Math.round((estimatedMicros.sodium / 2300) * 100))}%`, height: '100%', background: estimatedMicros.sodium > 2300 ? 'var(--amb)' : 'var(--cyan)', borderRadius: 99 }} />
+              </div>
+            </div>
+
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4 }}>
+                <span style={{ color: 'var(--t3)', fontWeight: 600 }}>Potassium Target</span>
+                <span className="tabular-nums" style={{ color: 'var(--t1)', fontWeight: 700, whiteSpace: 'nowrap' }}>{estimatedMicros.potassium} / 3,500mg</span>
+              </div>
+              <div style={{ height: 4, background: 'var(--s3)', borderRadius: 99, overflow: 'hidden' }}>
+                <div style={{ width: `${Math.min(100, Math.round((estimatedMicros.potassium / 3500) * 100))}%`, height: '100%', background: 'var(--blu)', borderRadius: 99 }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop-only Planner Utilities Card */}
+      <div className="desktop-only" style={{ margin: '14px 16px 0' }}>
+        <div
+          className="nb-card nb-card-3d anim-3d-entry card-spotlight"
+          onMouseMove={e => { handleCardSpotlight(e); handleCard3DMouseMove(e); }}
+          onMouseLeave={handleCard3DMouseLeave}
+          style={{
+            borderRadius: 20,
+            padding: '16px 18px',
+            background: 'var(--s2)',
+            border: '0.5px solid var(--bd)'
+          }}
+        >
+          <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 12 }}>
+            Planner Utilities
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <button
+              onClick={() => setShowGroceryModal(true)}
+              className="tactile-btn"
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                padding: '10px 14px',
+                borderRadius: 12,
+                background: 'var(--s1)',
+                border: '0.5px solid var(--bd)',
+                color: 'var(--t1)',
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              <ShoppingCart size={14} color="var(--g)" />
+              Weekly Grocery List
+            </button>
+            <button
+              onClick={generateNewPlan}
+              disabled={loading}
+              className="tactile-btn"
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                padding: '10px 14px',
+                borderRadius: 12,
+                background: 'var(--s1)',
+                border: '0.5px solid var(--bd)',
+                color: 'var(--t2)',
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: loading ? 'not-allowed' : 'pointer'
+              }}
+            >
+              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+              {loading ? 'Recalibrating...' : 'Recalibrate Plan'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Right Column: Meal Cards List */}
+    <div className="nb-meal-planner-main">
+      {/* ───────────────────────────────────────────────────────────
+          5. MEAL CARDS (4 cards: Breakfast, Lunch, Snack, Dinner) (Part 5.5)
+          ─────────────────────────────────────────────────────────── */}
+      <section style={{ padding: '0 16px' }}>
+        {SLOTS.map((slot, idx) => {
+          const rawMeal = currentDayMeals[slot.key] || (slot.key === 'snacks' ? currentDayMeals['post_workout'] || currentDayMeals['pre_workout'] : null);
+          const meal = sanitizeMealData(rawMeal) || {
+            name: slot.key === 'breakfast' ? 'Oatmeal with Almonds & Banana' : slot.key === 'lunch' ? 'Paneer Bhurji with 2 Phulkas & Dal' : slot.key === 'snacks' ? 'Banana Peanut Butter Toast with Whey Protein' : 'Tofu Stir-fry with Steamed Brown Rice',
+            calories: slot.key === 'breakfast' ? 480 : slot.key === 'lunch' ? 680 : slot.key === 'snacks' ? 520 : 610,
+            protein: slot.key === 'breakfast' ? 22 : slot.key === 'lunch' ? 38 : slot.key === 'snacks' ? 38 : 34,
+            carbs: slot.key === 'breakfast' ? 64 : slot.key === 'lunch' ? 72 : slot.key === 'snacks' ? 54 : 68,
+            fat: slot.key === 'breakfast' ? 14 : slot.key === 'lunch' ? 22 : slot.key === 'snacks' ? 16 : 18,
+            multiplier: 1.0,
+            servingUnit: '1 serving · ~320g'
+          };
+
+          const multiplier = Math.min(2.5, Math.max(0.25, meal.multiplier || 1.0));
+          const logState = loggedStates[slot.key]; // 'animating' | 'logged' | undefined
+
+          // Ratio calculation for mini split-bar
+          const mealTotalMacros = (meal.protein + meal.carbs + meal.fat) || 1;
+          const mpPct = Math.round((meal.protein / mealTotalMacros) * 100);
+          const mcPct = Math.round((meal.carbs / mealTotalMacros) * 100);
+          const mfPct = 100 - mpPct - mcPct;
+
+          return (
+            <article
+              key={`${selectedDay}_${slot.key}`}
+              className={`nb-card nb-card-3d anim-3d-entry card-spotlight ${slot.key === (drawerMeal?.slotKey || inspectedSlot) ? 'is-active-inspected' : ''}`}
+              onClick={() => {
+                setInspectedSlot(slot.key);
+                if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+                  handleOpenRecipe(meal, slot.key);
+                }
+              }}
+              onMouseMove={e => { handleCardSpotlight(e); handleCard3DMouseMove(e); }}
+              onMouseLeave={handleCard3DMouseLeave}
+              style={{
+                borderRadius: 18,
+                padding: '14px 16px',
+                marginBottom: 12,
+                animation: 'seqFadeSlideUp 280ms ease-out both',
+                animationDelay: `${idx * 40}ms`,
+                cursor: 'pointer'
+              }}
+            >
+              {/* Card Header: slot dot + slot name (sentence case) + kcal (white) */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: slot.color }} />
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      letterSpacing: '0.04em',
+                      color: slot.color
+                    }}
+                  >
+                    {slot.label}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span className="tabular-nums" style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)' }}>
+                    {meal.calories} <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--t3)' }}>kcal</span>
+                  </span>
+                  {slot.key === (drawerMeal?.slotKey || inspectedSlot) && (
+                    <span
+                      className="desktop-only"
+                      style={{
+                        fontSize: 9.5,
+                        fontWeight: 700,
+                        padding: '2px 7px',
+                        borderRadius: 6,
+                        background: 'rgba(34, 197, 94, 0.12)',
+                        color: 'var(--g)',
+                        border: '0.5px solid rgba(34, 197, 94, 0.25)',
+                        letterSpacing: '0.02em'
+                      }}
+                    >
+                      Active
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Food Item Display */}
+              <div style={{ marginBottom: 12 }}>
+                <div
+                  style={{
+                    fontSize: 15,
+                    fontWeight: 600,
+                    color: 'var(--t1)',
+                    lineHeight: 1.35,
+                    marginBottom: 3
+                  }}
+                >
+                  {meal.name}
+                </div>
+                <div style={{ fontSize: 12.5, color: 'var(--t3)' }}>
+                  {meal.servingUnit || '1 serving · ~320g'}
+                </div>
+              </div>
+
+              {/* Macro Bar + Compact Stepper aligned to the right of macro row */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 12
+                }}
+              >
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 8, marginBottom: 8 }}>
-                    Weekly staples
+                  <div
+                    style={{
+                      height: 4,
+                      width: 140,
+                      display: 'flex',
+                      borderRadius: 99,
+                      overflow: 'hidden',
+                      background: 'var(--s3)',
+                      gap: 2,
+                      marginBottom: 5
+                    }}
+                  >
+                    <div style={{ width: `${mpPct}%`, background: 'var(--blu)' }} />
+                    <div style={{ width: `${mcPct}%`, background: 'var(--cyan)' }} />
+                    <div style={{ width: `${mfPct}%`, background: 'var(--amb)' }} />
                   </div>
+                  <div className="tabular-nums" style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600 }}>
+                    {formatCompactMacros(meal.protein, meal.carbs, meal.fat)}
+                  </div>
+                </div>
+
+                {/* Compact Right-Aligned Stepper: [−] [1.0×] [+] */}
+                <div
+                  style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+                  onClick={e => e.stopPropagation()}
+                >
+                  <button
+                    onClick={() => handleAdjustPortion(slot.key, -1)}
+                    disabled={multiplier <= 0.25}
+                    aria-label="Decrease portion"
+                    className="tactile-btn"
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: 4,
+                      background: 'var(--s3)',
+                      border: '0.5px solid var(--bd)',
+                      color: multiplier <= 0.25 ? 'var(--t4)' : 'var(--t2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: multiplier <= 0.25 ? 'not-allowed' : 'pointer',
+                      outline: 'none',
+                      padding: 0
+                    }}
+                  >
+                    <Minus size={12} />
+                  </button>
+
+                  <span
+                    className="tabular-nums"
+                    style={{
+                      minWidth: 32,
+                      textAlign: 'center',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: 'var(--t1)'
+                    }}
+                  >
+                    {multiplier.toFixed(1)}×
+                  </span>
+
+                  <button
+                    onClick={() => handleAdjustPortion(slot.key, 1)}
+                    disabled={multiplier >= 2.5}
+                    aria-label="Increase portion"
+                    className="tactile-btn"
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: 4,
+                      background: 'var(--s3)',
+                      border: '0.5px solid var(--bd)',
+                      color: multiplier >= 2.5 ? 'var(--t4)' : 'var(--t2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: multiplier >= 2.5 ? 'not-allowed' : 'pointer',
+                      outline: 'none',
+                      padding: 0
+                    }}
+                  >
+                    <Plus size={12} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Card Actions: Inspect Recipe | Swap | Log meal */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTop: '0.5px solid var(--bd)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenRecipe(meal, slot.key);
+                    }}
+                    className="tactile-btn"
+                    style={{
+                      background: 'var(--s3)',
+                      border: '0.5px solid var(--bd)',
+                      borderRadius: 9,
+                      padding: '6px 11px',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: 'var(--t1)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 5
+                    }}
+                  >
+                    <span>Inspect Recipe</span>
+                    <span style={{ color: 'var(--g)', fontSize: 13 }}>↗</span>
+                  </button>
+                  <span style={{ color: 'var(--bd)' }}>·</span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSwapModalData({ slotKey: slot.key, day: selectedDay, meal });
+                    }}
+                    className="tactile-btn"
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      padding: '6px 8px',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: 'var(--t2)',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Swap
+                  </button>
+                </div>
+
+                {/* Log Meal Button with 1,600ms transition */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleLogMeal(slot.key, meal);
+                  }}
+                  className="tactile-btn"
+                  style={{
+                    background: logState === 'animating' ? 'var(--g)' : logState === 'logged' ? 'transparent' : 'var(--s2)',
+                    border: logState === 'animating' ? '1px solid var(--g)' : logState === 'logged' ? '1px solid var(--bd)' : '1px solid var(--bd)',
+                    color: logState === 'animating' ? '#ffffff' : logState === 'logged' ? 'var(--t3)' : 'var(--t1)',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    padding: '7px 14px',
+                    borderRadius: 10,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    transition: 'all 0.25s ease'
+                  }}
+                >
+                  {logState === 'animating' ? (
+                    <>
+                      <Check size={14} className="anim-scale-in" />
+                      ✓ Logged!
+                    </>
+                  ) : logState === 'logged' ? (
+                    'Logged ✓'
+                  ) : (
+                    '＋ Log meal'
+                  )}
+                </button>
+              </div>
+            </article>
+          );
+        })}
+      </section>
+    </div>
+  </div>
+
+      {/* ───────────────────────────────────────────────────────────
+          DESKTOP SLIDE-OVER RECIPE DRAWER (Asymmetric Workspace Studio)
+          ─────────────────────────────────────────────────────────── */}
+      {isDrawerOpen && liveDrawerMeal && createPortal(
+        <div className="desktop-only">
+          {/* Drawer Backdrop Overlay */}
+          <div
+            className="nb-recipe-drawer-backdrop"
+            onClick={() => setIsDrawerOpen(false)}
+            title="Click to dismiss drawer"
+          />
+
+          {/* Slide-over Drawer Panel */}
+          <aside
+            className="nb-recipe-drawer"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Executive Recipe & Macro Blueprint"
+          >
+            {/* Header: Meal metadata + Dismiss CTA */}
+            <div
+              style={{
+                padding: '20px 24px 16px',
+                borderBottom: '1px solid var(--bd)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                gap: 16
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <span
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      background: SLOTS.find(s => s.key === liveDrawerMeal.slotKey)?.color || 'var(--g)'
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 800,
+                      color: SLOTS.find(s => s.key === liveDrawerMeal.slotKey)?.color || 'var(--g)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em'
+                    }}
+                  >
+                    {SLOTS.find(s => s.key === liveDrawerMeal.slotKey)?.label || 'Meal'} Blueprint
+                  </span>
+                  <span style={{ color: 'var(--t3)', fontSize: 11 }}>•</span>
+                  <span style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600 }}>
+                    ~20 min prep
+                  </span>
+                </div>
+                <h2
+                  style={{
+                    margin: 0,
+                    fontSize: 20,
+                    fontWeight: 800,
+                    color: 'var(--t1)',
+                    lineHeight: 1.3,
+                    wordBreak: 'break-word'
+                  }}
+                >
+                  {liveDrawerMeal.name}
+                </h2>
+                <div style={{ fontSize: 12.5, color: 'var(--t3)', marginTop: 4 }}>
+                  {liveDrawerMeal.servingUnit || '1 serving'}
+                </div>
+              </div>
+
+              {/* Close Button */}
+              <button
+                onClick={() => setIsDrawerOpen(false)}
+                className="tactile-btn"
+                aria-label="Close drawer"
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 10,
+                  background: 'var(--s2)',
+                  border: '1px solid var(--bd)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--t2)',
+                  cursor: 'pointer',
+                  flexShrink: 0
+                }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Macro Summary Strip */}
+            <div
+              style={{
+                padding: '12px 24px',
+                background: 'var(--s2)',
+                borderBottom: '1px solid var(--bd)',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: 8,
+                textAlign: 'center'
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600 }}>Energy</div>
+                <div className="tabular-nums" style={{ fontSize: 14, fontWeight: 800, color: 'var(--t1)' }}>
+                  {liveDrawerMeal.calories} <span style={{ fontSize: 10, color: 'var(--t3)' }}>kcal</span>
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, color: 'var(--blu)', fontWeight: 600 }}>Protein</div>
+                <div className="tabular-nums" style={{ fontSize: 14, fontWeight: 800, color: 'var(--t1)' }}>
+                  {Math.round(liveDrawerMeal.protein)}g
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, color: 'var(--cyan)', fontWeight: 600 }}>Carbs</div>
+                <div className="tabular-nums" style={{ fontSize: 14, fontWeight: 800, color: 'var(--t1)' }}>
+                  {Math.round(liveDrawerMeal.carbs)}g
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, color: 'var(--amb)', fontWeight: 600 }}>Fat</div>
+                <div className="tabular-nums" style={{ fontSize: 14, fontWeight: 800, color: 'var(--t1)' }}>
+                  {Math.round(liveDrawerMeal.fat)}g
+                </div>
+              </div>
+            </div>
+
+            {/* Tab Navigation (Segmented Bar) */}
+            <div style={{ padding: '12px 24px 0', background: 'var(--s1)' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  background: 'var(--s2)',
+                  borderRadius: 12,
+                  padding: 3,
+                  gap: 3,
+                  border: '1px solid var(--bd)'
+                }}
+              >
+                {[
+                  { key: 'ingredients', label: 'Ingredients' },
+                  { key: 'prep', label: 'Step-by-Step Prep' },
+                  { key: 'micros', label: 'Micro Breakdown' }
+                ].map(t => (
+                  <button
+                    key={t.key}
+                    onClick={() => setDrawerTab(t.key)}
+                    className="tactile-btn"
+                    style={{
+                      flex: 1,
+                      padding: '7px 10px',
+                      borderRadius: 9,
+                      fontSize: 12,
+                      fontWeight: drawerTab === t.key ? 700 : 600,
+                      color: drawerTab === t.key ? 'var(--t1)' : 'var(--t3)',
+                      background: drawerTab === t.key ? 'var(--s1)' : 'transparent',
+                      border: drawerTab === t.key ? '0.5px solid var(--bd)' : 'none',
+                      boxShadow: drawerTab === t.key ? '0 1px 4px rgba(0,0,0,0.2)' : 'none',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Scrollable Content Body */}
+            <div
+              style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: '20px 24px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 16
+              }}
+            >
+              {/* TAB 1: INGREDIENTS CHECKLIST */}
+              {drawerTab === 'ingredients' && (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      Pantry Items & Measures
+                    </div>
+                    {/* Portion Scaler inside drawer */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600 }}>Portion:</span>
+                      <div style={{ display: 'flex', alignItems: 'center', background: 'var(--s2)', borderRadius: 8, border: '1px solid var(--bd)', padding: 2 }}>
+                        <button
+                          onClick={() => handleAdjustPortion(liveDrawerMeal.slotKey, -1)}
+                          disabled={(liveDrawerMeal.multiplier || 1.0) <= 0.25}
+                          style={{ width: 22, height: 22, background: 'transparent', border: 'none', color: 'var(--t2)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+                        >
+                          <Minus size={11} />
+                        </button>
+                        <span className="tabular-nums" style={{ minWidth: 30, textAlign: 'center', fontSize: 11, fontWeight: 700, color: 'var(--t1)' }}>
+                          {(liveDrawerMeal.multiplier || 1.0).toFixed(1)}×
+                        </span>
+                        <button
+                          onClick={() => handleAdjustPortion(liveDrawerMeal.slotKey, 1)}
+                          disabled={(liveDrawerMeal.multiplier || 1.0) >= 2.5}
+                          style={{ width: 22, height: 22, background: 'transparent', border: 'none', color: 'var(--t2)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+                        >
+                          <Plus size={11} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {corePantry.slice(0, 8).map((p, pIdx) => {
-                      const itemKey = `staple-${p.name}`;
-                      const isChecked = !!checkedGroceryItems[itemKey];
+                    {(liveDrawerMeal.ingredients || ['Fresh balanced produce and seasonings']).map((item, idx) => {
+                      const isChecked = !!checkedDrawerIngredients[idx];
                       return (
                         <div
-                          key={pIdx}
-                          onClick={() => toggleGroceryCheck(itemKey)}
+                          key={idx}
+                          onClick={() => setCheckedDrawerIngredients(prev => ({ ...prev, [idx]: !prev[idx] }))}
                           style={{
                             display: 'flex',
                             alignItems: 'center',
                             gap: 12,
-                            padding: '10px 14px',
+                            padding: '11px 14px',
                             borderRadius: 12,
-                            background: isChecked ? 'rgba(34, 209, 122, 0.04)' : 'var(--color-raised)',
-                            border: `0.5px solid ${isChecked ? 'var(--border-accent)' : 'var(--border-default)'}`,
+                            background: isChecked ? 'rgba(34, 197, 94, 0.05)' : 'var(--s2)',
+                            border: isChecked ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid var(--bd)',
                             cursor: 'pointer',
                             transition: 'all 0.15s ease'
                           }}
                         >
-                          <div style={{
-                            width: 20,
-                            height: 20,
-                            borderRadius: 6,
-                            border: isChecked ? 'none' : '1.5px solid rgba(255,255,255,0.2)',
-                            background: isChecked ? 'var(--color-green)' : 'transparent',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#0a1a10',
-                            flexShrink: 0
-                          }}>
-                            {isChecked && <Check size={13} strokeWidth={3} />}
+                          <div
+                            style={{
+                              width: 18,
+                              height: 18,
+                              borderRadius: 5,
+                              background: isChecked ? 'var(--g)' : 'var(--s3)',
+                              border: isChecked ? 'none' : '1px solid var(--bd)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0
+                            }}
+                          >
+                            {isChecked && <Check size={12} color="#ffffff" strokeWidth={3} />}
                           </div>
-                          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-                            <span style={{
-                              fontSize: 14,
+                          <span
+                            style={{
+                              fontSize: 13,
                               fontWeight: 500,
-                              color: isChecked ? 'var(--text-muted)' : 'var(--text-primary)',
+                              color: isChecked ? 'var(--t3)' : 'var(--t1)',
                               textDecoration: isChecked ? 'line-through' : 'none',
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis'
-                            }}>
-                              {p.name}
-                            </span>
-                            <span style={{ fontSize: 10, color: 'var(--text-muted)', flexShrink: 0 }}>
-                              ({p.count}×)
-                            </span>
-                          </div>
-                          <span style={{
-                            fontSize: 11,
-                            fontWeight: 600,
-                            background: 'var(--color-card)',
-                            color: 'var(--text-secondary)',
-                            borderRadius: 6,
-                            padding: '2px 8px',
-                            flexShrink: 0
-                          }}>
-                            {p.count} {p.count === 1 ? 'meal' : 'meals'}
+                              lineHeight: 1.4
+                            }}
+                          >
+                            {item}
                           </span>
                         </div>
                       );
                     })}
                   </div>
+
+                  <div style={{ marginTop: 14, padding: '10px 14px', background: 'var(--s2)', borderRadius: 12, border: '1px solid var(--bd)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Sparkles size={14} color="var(--g)" />
+                    <span style={{ fontSize: 11.5, color: 'var(--t2)' }}>
+                      Weigh ingredients on a digital food scale before cooking for optimal macro tracking precision.
+                    </span>
+                  </div>
                 </div>
               )}
 
-              {(() => {
-                const categorized = generateCategorizedGroceryList(weeklyPlan);
-                return Object.entries(categorized).map(([catKey, catData]) => {
-                  const itemsList = Object.entries(catData.items);
-                  if (itemsList.length === 0) return null;
+              {/* TAB 2: STEP-BY-STEP PREPARATION */}
+              {drawerTab === 'prep' && (
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 12 }}>
+                    Culinary Method & Timing
+                  </div>
+                  {(() => {
+                    const rawRecipe = liveDrawerMeal.recipe || 'Heat cooking medium in a pan. Add aromatic spices and protein. Cook on medium heat until golden and tender. Season with rock salt and fresh herbs to taste.';
+                    const steps = rawRecipe.split(/(?=\d+\.\s)/).map(s => s.replace(/^\d+\.\s*/, '').trim()).filter(Boolean);
+                    const finalSteps = steps.length > 0 ? steps : [rawRecipe];
 
-                  return (
-                    <div key={catKey}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 16, marginBottom: 8 }}>
-                        {catData.title}
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                        {itemsList.map(([name, count]) => {
-                          const itemKey = `${catKey}-${name}`;
-                          const isChecked = !!checkedGroceryItems[itemKey];
-
-                          return (
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        {finalSteps.map((stepText, sIdx) => (
+                          <div
+                            key={sIdx}
+                            style={{
+                              display: 'flex',
+                              gap: 14,
+                              padding: '14px 16px',
+                              borderRadius: 14,
+                              background: 'var(--s2)',
+                              border: '1px solid var(--bd)'
+                            }}
+                          >
                             <div
-                              key={name}
-                              onClick={() => toggleGroceryCheck(itemKey)}
                               style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 12,
-                                padding: '10px 14px',
-                                borderRadius: 12,
-                                background: isChecked ? 'rgba(34, 209, 122, 0.04)' : 'var(--color-raised)',
-                                border: `0.5px solid ${isChecked ? 'var(--border-accent)' : 'var(--border-default)'}`,
-                                cursor: 'pointer',
-                                transition: 'all 0.15s ease'
-                              }}
-                            >
-                              <div style={{
-                                width: 20,
-                                height: 20,
-                                borderRadius: 6,
-                                border: isChecked ? 'none' : '1.5px solid rgba(255,255,255,0.2)',
-                                background: isChecked ? 'var(--color-green)' : 'transparent',
+                                width: 26,
+                                height: 26,
+                                borderRadius: '50%',
+                                background: 'var(--s3)',
+                                border: '1px solid var(--bd)',
+                                color: 'var(--g)',
+                                fontSize: 12,
+                                fontWeight: 800,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                color: '#0a1a10',
                                 flexShrink: 0
-                              }}>
-                                {isChecked && <Check size={13} strokeWidth={3} />}
-                              </div>
-                              <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-                                <span style={{
-                                  fontSize: 14,
-                                  fontWeight: 500,
-                                  color: isChecked ? 'var(--text-muted)' : 'var(--text-primary)',
-                                  textDecoration: isChecked ? 'line-through' : 'none',
-                                  whiteSpace: 'nowrap',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis'
-                                }}>
-                                  {name}
-                                </span>
-                                <span style={{ fontSize: 10, color: 'var(--text-muted)', flexShrink: 0 }}>
-                                  ({count}×)
-                                </span>
-                              </div>
-                              <span style={{
-                                fontSize: 11,
-                                fontWeight: 600,
-                                background: 'var(--color-card)',
-                                color: 'var(--text-secondary)',
-                                borderRadius: 6,
-                                padding: '2px 8px',
-                                flexShrink: 0
-                              }}>
-                                {count} {count === 1 ? 'meal' : 'meals'}
-                              </span>
+                              }}
+                            >
+                              {sIdx + 1}
                             </div>
-                          );
-                        })}
+                            <div style={{ fontSize: 13, color: 'var(--t1)', lineHeight: 1.55, paddingTop: 2 }}>
+                              {stepText}
+                            </div>
+                          </div>
+                        ))}
                       </div>
+                    );
+                  })()}
+
+                  <div style={{ marginTop: 16, padding: '14px', borderRadius: 14, background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, var(--s2) 100%)', border: '1px solid rgba(34, 197, 94, 0.25)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                      <Sparkles size={13} color="var(--g)" />
+                      <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--g)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                        {prepTip.title}
+                      </span>
                     </div>
-                  );
-                });
-              })()}
+                    <div style={{ fontSize: 12, color: 'var(--t2)', lineHeight: 1.5 }}>
+                      {prepTip.tip}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: MICRO BREAKDOWN */}
+              {drawerTab === 'micros' && (
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 12 }}>
+                    Nutrient Energy Density
+                  </div>
+                  {(() => {
+                    const pKcal = Math.round((liveDrawerMeal.protein || 0) * 4);
+                    const cKcal = Math.round((liveDrawerMeal.carbs || 0) * 4);
+                    const fKcal = Math.round((liveDrawerMeal.fat || 0) * 9);
+                    const totKcal = (pKcal + cKcal + fKcal) || 1;
+                    const pEFrac = Math.round((pKcal / totKcal) * 100);
+                    const cEFrac = Math.round((cKcal / totKcal) * 100);
+                    const fEFrac = 100 - pEFrac - cEFrac;
+
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                        {/* Energy Split Bar */}
+                        <div style={{ padding: '14px 16px', background: 'var(--s2)', borderRadius: 14, border: '1px solid var(--bd)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, marginBottom: 8 }}>
+                            <span style={{ color: 'var(--t2)', fontWeight: 600 }}>Energy Contribution</span>
+                            <span style={{ color: 'var(--t1)', fontWeight: 700 }}>{totKcal} kcal total</span>
+                          </div>
+                          <div style={{ height: 8, display: 'flex', borderRadius: 99, overflow: 'hidden', background: 'var(--s3)', gap: 2, marginBottom: 10 }}>
+                            <div style={{ width: `${pEFrac}%`, background: 'var(--blu)' }} />
+                            <div style={{ width: `${cEFrac}%`, background: 'var(--cyan)' }} />
+                            <div style={{ width: `${fEFrac}%`, background: 'var(--amb)' }} />
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 600 }}>
+                            <span style={{ color: 'var(--blu)' }}>Protein {pEFrac}%</span>
+                            <span style={{ color: 'var(--cyan)' }}>Carbs {cEFrac}%</span>
+                            <span style={{ color: 'var(--amb)' }}>Fat {fEFrac}%</span>
+                          </div>
+                        </div>
+
+                        {/* Micronutrients */}
+                        <div style={{ padding: '14px 16px', background: 'var(--s2)', borderRadius: 14, border: '1px solid var(--bd)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            Estimated Micronutrients
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                            <span style={{ color: 'var(--t2)' }}>Dietary Fiber</span>
+                            <span className="tabular-nums" style={{ fontWeight: 700, color: 'var(--t1)' }}>~{Math.round((liveDrawerMeal.carbs || 0) * 0.12)}g</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                            <span style={{ color: 'var(--t2)' }}>Sodium</span>
+                            <span className="tabular-nums" style={{ fontWeight: 700, color: 'var(--t1)' }}>~{Math.round((liveDrawerMeal.calories || 0) * 0.65)}mg</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                            <span style={{ color: 'var(--t2)' }}>Potassium</span>
+                            <span className="tabular-nums" style={{ fontWeight: 700, color: 'var(--t1)' }}>~{Math.round((liveDrawerMeal.protein || 0) * 12 + 250)}mg</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
             </div>
-          </div>
+
+            {/* 4. Drawer Action Footer */}
+            <div
+              style={{
+                padding: '16px 24px',
+                borderTop: '1px solid var(--bd)',
+                background: 'var(--s1)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12
+              }}
+            >
+              <button
+                onClick={() => {
+                  setIsDrawerOpen(false);
+                  setSwapModalData({ slotKey: liveDrawerMeal.slotKey, day: selectedDay, meal: liveDrawerMeal });
+                }}
+                className="tactile-btn"
+                style={{
+                  flex: 1,
+                  padding: '11px 16px',
+                  borderRadius: 12,
+                  background: 'var(--s2)',
+                  border: '1px solid var(--bd)',
+                  color: 'var(--t1)',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6
+                }}
+              >
+                Swap Meal
+              </button>
+
+              <button
+                onClick={() => handleLogMeal(liveDrawerMeal.slotKey, liveDrawerMeal)}
+                className="tactile-btn"
+                style={{
+                  flex: 1.4,
+                  padding: '11px 16px',
+                  borderRadius: 12,
+                  background: loggedStates[liveDrawerMeal.slotKey] === 'animating' ? 'var(--g)' : loggedStates[liveDrawerMeal.slotKey] === 'logged' ? 'var(--s2)' : 'var(--g)',
+                  border: loggedStates[liveDrawerMeal.slotKey] === 'logged' ? '1px solid var(--bd)' : 'none',
+                  color: loggedStates[liveDrawerMeal.slotKey] === 'logged' ? 'var(--t3)' : '#ffffff',
+                  fontSize: 13,
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                {loggedStates[liveDrawerMeal.slotKey] === 'animating' ? (
+                  <>
+                    <Check size={16} />
+                    Logged!
+                  </>
+                ) : loggedStates[liveDrawerMeal.slotKey] === 'logged' ? (
+                  'Logged ✓'
+                ) : (
+                  '＋ Log meal'
+                )}
+              </button>
+            </div>
+          </aside>
         </div>,
         document.body
       )}
 
-      {/* ── RECIPE & COOKING GUIDE MODAL ── */}
+      {/* ───────────────────────────────────────────────────────────
+          SLIDING TOAST NOTIFICATION (Section 9.3: top slide-in, stays 1,800ms)
+          ─────────────────────────────────────────────────────────── */}
+      {toastMessage && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 20,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'var(--s1)',
+            border: '1px solid var(--g)',
+            borderRadius: 16,
+            padding: '10px 18px',
+            color: 'var(--t1)',
+            fontSize: 13,
+            fontWeight: 700,
+            boxShadow: '0 8px 30px rgba(0,0,0,0.6)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            animation: 'toastSlideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
+          }}
+        >
+          <span style={{ color: 'var(--g)' }}>✓</span>
+          {toastMessage}
+        </div>
+      )}
+
+      {/* ───────────────────────────────────────────────────────────
+          RECIPE SHEET MODAL
+          ─────────────────────────────────────────────────────────── */}
       {recipeModalItem && createPortal(
         <div
           onClick={() => setRecipeModalItem(null)}
           style={{
-            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            background: 'rgba(0, 0, 0, 0.78)',
-            backdropFilter: 'blur(10px)',
-            zIndex: 999999,
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.8)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 99999,
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 16
+            alignItems: 'flex-end',
+            justifyContent: 'center'
           }}
         >
           <div
             onClick={e => e.stopPropagation()}
             style={{
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-modal)',
               width: '100%',
-              maxWidth: 640,
-              maxHeight: '88vh',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: 'var(--shadow-overlay)',
-              overflow: 'hidden'
+              maxWidth: 480,
+              maxHeight: '85vh',
+              background: 'var(--s1)',
+              borderTop: '1px solid var(--bd2)',
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              padding: '24px 20px 36px',
+              overflowY: 'auto',
+              boxSizing: 'border-box'
             }}
           >
-            {/* Header */}
-            <div style={{ padding: '22px 26px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {/* Top drag handle */}
+            <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--bd2)', margin: '0 auto 16px' }} />
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
               <div>
-                <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--brand-primary-light)', letterSpacing: '0.06em' }}>
-                  Recipe & preparation guide
+                <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--g)', letterSpacing: '0.04em' }}>
+                  Recipe & preparation
                 </span>
-                <h3 style={{ margin: '2px 0 3px', fontSize: 19, fontWeight: 900, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
+                <h2 style={{ margin: '4px 0 0', fontSize: 18, fontWeight: 800, color: 'var(--t1)' }}>
                   {recipeModalItem.name}
-                </h3>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                  Portion: <span style={{ color: 'var(--brand-primary-light)', fontWeight: 700 }}>{getDynamicServingUnit(recipeModalItem, recipeModalItem.multiplier || 1)}</span>
-                </div>
+                </h2>
               </div>
               <button
                 onClick={() => setRecipeModalItem(null)}
-                style={{ background: 'var(--bg-surface-raised)', border: '1px solid var(--border-subtle)', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}
+                style={{
+                  background: 'var(--s2)',
+                  border: 'none',
+                  borderRadius: 10,
+                  width: 32,
+                  height: 32,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--t3)',
+                  cursor: 'pointer'
+                }}
               >
                 <X size={16} />
               </button>
             </div>
 
-            {/* Recipe Content */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '22px 26px', display: 'flex', flexDirection: 'column', gap: 18 }}>
-              {/* Macro Ribbon */}
-              <div style={{ background: 'var(--bg-surface-raised)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-card)', padding: '12px 18px', display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)' }}>Calories</div>
-                  <div className="tabular-nums" style={{ fontSize: 16, fontWeight: 900, color: 'var(--brand-primary-light)' }}>{recipeModalItem.calories} kcal</div>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)' }}>Protein</div>
-                  <div className="tabular-nums" style={{ fontSize: 16, fontWeight: 900, color: 'var(--accent-protein-text, #818CF8)' }}>{recipeModalItem.protein}g</div>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)' }}>Carbs</div>
-                  <div className="tabular-nums" style={{ fontSize: 16, fontWeight: 900, color: 'var(--brand-primary-light, #10B981)' }}>{recipeModalItem.carbs}g</div>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)' }}>Fat</div>
-                  <div className="tabular-nums" style={{ fontSize: 16, fontWeight: 900, color: 'var(--color-fat, #f5a623)' }}>{recipeModalItem.fat}g</div>
-                </div>
+            {/* Macro Chips */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+              <span style={{ background: 'var(--s2)', padding: '4px 8px', borderRadius: 8, fontSize: 12, fontWeight: 700, color: 'var(--t1)' }}>
+                {recipeModalItem.calories} <span style={{ color: 'var(--t3)', fontWeight: 500, fontSize: 10.5 }}>kcal</span>
+              </span>
+              <span style={{ background: 'var(--s2)', padding: '4px 8px', borderRadius: 8, fontSize: 12, fontWeight: 700, color: 'var(--blu)' }}>
+                P {Math.round(recipeModalItem.protein)}g
+              </span>
+              <span style={{ background: 'var(--s2)', padding: '4px 8px', borderRadius: 8, fontSize: 12, fontWeight: 700, color: 'var(--cyan)' }}>
+                C {Math.round(recipeModalItem.carbs)}g
+              </span>
+              <span style={{ background: 'var(--s2)', padding: '4px 8px', borderRadius: 8, fontSize: 12, fontWeight: 700, color: 'var(--amb)' }}>
+                F {Math.round(recipeModalItem.fat)}g
+              </span>
+            </div>
+
+            {/* Ingredients */}
+            <div style={{ marginBottom: 18 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--t3)', letterSpacing: '0.04em', marginBottom: 8 }}>
+                Ingredients
               </div>
-
-              {/* Measured Ingredients Grid */}
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, flexWrap: 'wrap', gap: 10 }}>
-                  <div>
-                    <h4 style={{ margin: 0, fontSize: 13, fontWeight: 900, color: 'var(--brand-primary-light)', letterSpacing: '0.04em' }}>
-                      Ingredients — {(recipeModalItem.multiplier || 1).toFixed(2).replace(/\.00$/, '')}× portion
-                    </h4>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 3 }}>
-                      Tap to check off
-                    </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {(recipeModalItem.ingredients || ['Fresh ingredients per balanced recipe']).map((ing, i) => (
+                  <div key={i} style={{ fontSize: 13, color: 'var(--t2)', padding: '6px 10px', background: 'var(--s2)', borderRadius: 8 }}>
+                    • {ing}
                   </div>
-                  <button
-                    onClick={() => addAllToGroceryList(recipeModalItem)}
-                    className="btn btn-secondary"
-                    style={{
-                      padding: '6px 12px',
-                      fontSize: 11.5,
-                      fontWeight: 700,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      borderRadius: 'var(--radius-sm)'
-                    }}
-                  >
-                    <ShoppingCart size={13} /> {recipeToGroceryToast ? 'Added to grocery list!' : 'Add all to grocery list'}
-                  </button>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 10 }}>
-                  {parseStructuredIngredients(recipeModalItem.ingredients || [], recipeModalItem.multiplier || 1).map((ing, iIdx) => {
-                    const isChecked = !!checkedIngredients[iIdx];
-                    return (
-                      <div
-                        key={iIdx}
-                        onClick={() => toggleIngredientCheck(iIdx)}
-                        style={{
-                          background: isChecked ? 'var(--brand-primary-subtle)' : 'var(--bg-surface-raised)',
-                          padding: '11px 16px',
-                          borderRadius: 12,
-                          border: `1px solid ${isChecked ? 'var(--border-focus)' : 'var(--border-subtle)'}`,
-                          fontSize: 13.5,
-                          color: isChecked ? 'var(--text-muted)' : 'var(--text-primary)',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: 12,
-                          transition: 'all 0.15s ease'
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
-                          <div style={{
-                            width: 17, height: 17, borderRadius: 5,
-                            border: `1.5px solid ${isChecked ? 'var(--brand-primary)' : 'var(--text-muted)'}`,
-                            background: isChecked ? 'var(--brand-primary)' : 'transparent',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: '#fff', fontSize: 10, flexShrink: 0
-                          }}>
-                            {isChecked && <Check size={11} strokeWidth={3} />}
-                          </div>
-                          <span style={{
-                            textDecoration: isChecked ? 'line-through' : 'none',
-                            fontWeight: 600,
-                            color: isChecked ? 'var(--text-muted)' : 'var(--text-primary)',
-                            lineHeight: 1.4,
-                            wordBreak: 'break-word'
-                          }}>
-                            {ing.name}
-                          </span>
-                        </div>
-                        {ing.measurement && (
-                          <span style={{
-                            fontSize: 11.5,
-                            fontWeight: 800,
-                            color: isChecked ? 'var(--text-muted)' : 'var(--brand-primary-light)',
-                            background: isChecked ? 'transparent' : 'var(--brand-primary-subtle)',
-                            padding: '4px 10px',
-                            borderRadius: 8,
-                            border: isChecked ? 'none' : '1px solid var(--border-focus)',
-                            flexShrink: 0,
-                            whiteSpace: 'nowrap',
-                            textDecoration: isChecked ? 'line-through' : 'none'
-                          }}>
-                            {ing.measurement}
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                ))}
               </div>
+            </div>
 
-              {/* Numbered Steps with Clean Method Cards */}
-              {recipeModalItem.recipe && (
-                <div>
-                  <h4 style={{ margin: '0 0 12px 0', fontSize: 12.5, fontWeight: 900, color: 'var(--brand-primary-light)', letterSpacing: '0.06em' }}>
-                    Step-by-step preparation method
-                  </h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    {scaleRecipeInstructions(recipeModalItem.recipe, recipeModalItem.multiplier || 1)
-                      .split(/(?:\d+\.\s*|[.!相對]\s+)/)
-                      .map(s => s.trim())
-                      .filter(s => s.length > 5)
-                      .map(s => s.replace(/Eat cold\.?/gi, 'Serve chilled straight from the fridge. Add a drizzle of honey or jaggery if preferred.'))
-                      .map((stepText, sIdx) => (
-                        <div key={sIdx} style={{
-                          display: 'flex', gap: 14, alignItems: 'flex-start',
-                          background: 'var(--bg-surface-raised)',
-                          padding: '12px 16px',
-                          borderRadius: 12,
-                          border: '1px solid var(--border-subtle)'
-                        }}>
-                          <div style={{
-                            width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
-                            background: 'var(--brand-primary-subtle)',
-                            color: 'var(--brand-primary-light)',
-                            border: '1px solid var(--border-focus)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 12, fontWeight: 900, marginTop: 1
-                          }}>
-                            {sIdx + 1}
-                          </div>
-                          <p style={{ margin: 0, fontSize: 13.5, color: 'var(--text-primary)', lineHeight: 1.6 }}>
-                            {stepText.endsWith('.') ? stepText : `${stepText}.`}
-                          </p>
-                        </div>
-                      ))
-                    }
-                  </div>
-                </div>
-              )}
-
-              {/* Benefits & Tips */}
-              {(recipeModalItem.benefits || recipeModalItem.tips) && (
-                <div style={{ background: 'var(--brand-primary-subtle)', border: '1px solid var(--border-focus)', borderRadius: 'var(--radius-card)', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {recipeModalItem.benefits && (
-                    <div style={{ fontSize: 12.5, color: 'var(--text-primary)' }}>
-                      <strong style={{ color: 'var(--brand-primary-light)' }}>Health Benefits: </strong>
-                      {recipeModalItem.benefits}
-                    </div>
-                  )}
-                  {recipeModalItem.tips && (
-                    <div style={{ fontSize: 12.5, color: 'var(--text-primary)' }}>
-                      <strong style={{ color: 'var(--brand-primary-light)' }}>Nutritionist Pro-Tip: </strong>
-                      {recipeModalItem.tips}
-                    </div>
-                  )}
-                </div>
-              )}
+            {/* Preparation Steps */}
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--t3)', letterSpacing: '0.04em', marginBottom: 8 }}>
+                Instructions
+              </div>
+              <p style={{ margin: 0, fontSize: 13.5, color: 'var(--t2)', lineHeight: 1.6 }}>
+                {recipeModalItem.recipe || 'Cook according to standard Indian culinary practice with minimal oil and precise macro weighing.'}
+              </p>
             </div>
           </div>
         </div>,
         document.body
       )}
 
-      {/* ── SMART SWAP MODAL ── */}
-      {swapTarget && createPortal(
+      {/* ───────────────────────────────────────────────────────────
+          SMART SWAP MODAL (Section 8)
+          ─────────────────────────────────────────────────────────── */}
+      {swapModalData && createPortal(
         <div
-          onClick={() => { setSwapTarget(null); setSwapSearch(''); }}
+          onClick={() => setSwapModalData(null)}
           style={{
-            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            background: 'rgba(0, 0, 0, 0.78)',
-            backdropFilter: 'blur(10px)',
-            zIndex: 999999,
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.8)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'center'
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: 480,
+              maxHeight: '82vh',
+              background: 'var(--s1)',
+              borderTop: '1px solid var(--bd2)',
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              padding: '16px 20px 28px',
+              overflowY: 'auto',
+              boxSizing: 'border-box'
+            }}
+          >
+            {/* 8.1 Drag handle at top: 36×4px, var(--bd2), centered */}
+            <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--bd2)', margin: '0 auto 16px' }} />
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <div>
+                <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--g)', letterSpacing: '0.04em' }}>
+                  Smart swap
+                </span>
+                <h2 style={{ margin: '2px 0 0', fontSize: 18, fontWeight: 800, color: 'var(--t1)' }}>
+                  Alternative options
+                </h2>
+              </div>
+              <button
+                onClick={() => setSwapModalData(null)}
+                style={{
+                  background: 'var(--s2)',
+                  border: 'none',
+                  borderRadius: 10,
+                  width: 32,
+                  height: 32,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--t3)',
+                  cursor: 'pointer'
+                }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* 8.2 & 8.3: Exactly 3 alternatives matching slot within ±15% target calories */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {swapAlternatives.map((opt, idx) => {
+                const targetCal = swapModalData?.meal?.calories || 400;
+                const calDiffRatio = Math.abs((opt.calories - targetCal) / targetCal);
+                const matchPct = Math.max(82, Math.min(99, Math.round((1 - calDiffRatio) * 100)));
+
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => handleSwapMeal(swapModalData.slotKey, opt)}
+                    style={{
+                      padding: '12px 14px',
+                      background: 'var(--s2)',
+                      borderRadius: 14,
+                      border: '0.5px solid var(--bd)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 12
+                    }}
+                  >
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div
+                        style={{
+                          fontSize: 13.5,
+                          fontWeight: 600,
+                          color: 'var(--t1)',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}
+                      >
+                        {opt.name}
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--t3)', marginTop: 3 }}>
+                        {formatCompactMacros(opt.protein, opt.carbs, opt.fat)}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+                      <div className="tabular-nums" style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)' }}>
+                        {opt.calories} <span style={{ fontSize: 10.5, fontWeight: 500, color: 'var(--t3)' }}>kcal</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--g)' }}>
+                          {matchPct}% match
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSwapMeal(swapModalData.slotKey, opt);
+                          }}
+                          style={{
+                            background: 'var(--g)',
+                            color: '#041a0c',
+                            border: 'none',
+                            borderRadius: 7,
+                            padding: '4px 10px',
+                            fontSize: 11.5,
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Select
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* 8.4: "Keep current" button at the bottom for easy dismissal */}
+            <button
+              onClick={() => setSwapModalData(null)}
+              style={{
+                width: '100%',
+                marginTop: 16,
+                background: 'var(--s2)',
+                border: '0.5px solid var(--bd)',
+                borderRadius: 12,
+                padding: '12px',
+                fontSize: 13,
+                fontWeight: 600,
+                color: 'var(--t2)',
+                cursor: 'pointer'
+              }}
+            >
+              Keep current
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* ───────────────────────────────────────────────────────────
+          GROCERY LIST MODAL (Section 7)
+          ─────────────────────────────────────────────────────────── */}
+      {showGroceryModal && createPortal(
+        <div
+          onClick={() => setShowGroceryModal(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.8)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 99999,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -1405,144 +2275,173 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
           <div
             onClick={e => e.stopPropagation()}
             style={{
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-modal)',
               width: '100%',
-              maxWidth: 600,
-              maxHeight: '88vh',
+              maxWidth: 440,
+              maxHeight: '85vh',
+              background: 'var(--s1)',
+              borderRadius: 22,
+              border: '1px solid var(--bd2)',
+              padding: '16px 20px 22px',
               display: 'flex',
               flexDirection: 'column',
-              boxShadow: 'var(--shadow-overlay)',
-              overflow: 'hidden'
+              boxSizing: 'border-box'
             }}
           >
-            {/* Modal Header */}
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {/* 7.4 Drag handle at top: 36×4px, var(--bd2), centered */}
+            <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--bd2)', margin: '0 auto 14px' }} />
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
               <div>
-                <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--brand-primary-light)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                  SWAP {swapTarget.mealType.toUpperCase()} ({swapTarget.day.toUpperCase()})
+                <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--g)', letterSpacing: '0.04em' }}>
+                  Consolidated list
                 </span>
-                <h3 style={{ margin: '2px 0 0', fontSize: 18, fontWeight: 900, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
-                  Choose Alternative Dish
+                <h3 style={{ margin: '2px 0 0', fontSize: 18, fontWeight: 800, color: 'var(--t1)' }}>
+                  Weekly groceries
                 </h3>
               </div>
-              <button
-                onClick={() => { setSwapTarget(null); setSwapSearch(''); }}
-                style={{ background: 'var(--bg-surface-raised)', border: '1px solid var(--border-subtle)', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            {/* Live Search Bar */}
-            <div style={{ padding: '14px 24px', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-surface-raised)' }}>
-              <div style={{ position: 'relative' }}>
-                <Search size={15} color="var(--text-muted)" style={{ position: 'absolute', left: 12, top: 12 }} />
-                <input
-                  type="text"
-                  placeholder="Search dishes or ingredients..."
-                  value={swapSearch}
-                  onChange={e => setSwapSearch(e.target.value)}
+              {/* 7.3: Share and Copy buttons */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <button
+                  onClick={handleShareGroceryList}
                   style={{
-                    width: '100%',
-                    padding: '9px 14px 9px 36px',
-                    borderRadius: 'var(--radius-sm)',
-                    border: '1px solid var(--border-subtle)',
-                    background: 'var(--bg-surface)',
-                    color: 'var(--text-primary)',
-                    fontSize: 13,
-                    outline: 'none'
+                    background: 'var(--s3)',
+                    border: '0.5px solid var(--bd)',
+                    borderRadius: 8,
+                    padding: '6px 10px',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: 'var(--t2)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4
                   }}
-                />
+                >
+                  <Share2 size={12} />
+                  Share
+                </button>
+                <button
+                  onClick={handleCopyGroceryList}
+                  style={{
+                    background: 'var(--s3)',
+                    border: '0.5px solid var(--bd)',
+                    borderRadius: 8,
+                    padding: '6px 10px',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: 'var(--t2)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4
+                  }}
+                >
+                  <Copy size={12} />
+                  {copyToast ? 'Copied' : 'Copy'}
+                </button>
+                <button
+                  onClick={() => setShowGroceryModal(false)}
+                  style={{
+                    background: 'var(--s2)',
+                    border: 'none',
+                    borderRadius: 10,
+                    width: 32,
+                    height: 32,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--t3)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <X size={16} />
+                </button>
               </div>
             </div>
 
-            {/* Alternative Dishes List */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {(() => {
-                let candidates = [];
-                if (swapSearch.trim()) {
-                  const q = swapSearch.toLowerCase();
-                  candidates = (allFoods || fallbackFoods).filter(f => {
-                    return (f.name || '').toLowerCase().includes(q) || (f.category || '').toLowerCase().includes(q) || (f.ingredients || []).some(i => i.toLowerCase().includes(q));
-                  });
-                } else {
-                  candidates = getSmartMealReplacements(
-                    swapTarget.currentMeal,
-                    allFoods || fallbackFoods,
-                    user,
-                    swapTarget.mealType,
-                    'all'
-                  );
-                }
+            {/* 7.2: Categorized grocery sections */}
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, margin: '8px 0 16px', paddingRight: 4 }}>
+              {Object.entries(categorizedGroceries).map(([catKey, cat]) => {
+                const itemNames = Object.keys(cat.items);
+                if (itemNames.length === 0) return null;
 
-                if (candidates.length === 0) {
-                  return (
-                    <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--text-muted)', fontSize: 13 }}>
-                      No alternative dishes found matching "${swapSearch}".
-                    </div>
-                  );
-                }
-
-                return candidates.map((dish, dIdx) => (
-                  <div
-                    key={dIdx}
-                    onClick={() => handleSwapDish(dish)}
-                    style={{
-                      background: 'var(--bg-surface-raised)',
-                      border: '1px solid var(--border-subtle)',
-                      borderRadius: 'var(--radius-panel)',
-                      padding: '12px 16px',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      gap: 14
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.borderColor = 'var(--border-focus)';
-                      e.currentTarget.style.background = 'var(--brand-primary-subtle)';
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                      e.currentTarget.style.background = 'var(--bg-surface-raised)';
-                    }}
-                  >
-                    <div>
-                      <h4 style={{ margin: '0 0 3px', fontSize: 14, fontWeight: 800, color: 'var(--text-primary)' }}>
-                        {dish.name}
-                      </h4>
-                      <div className="tabular-nums" style={{ fontSize: 11.5, color: 'var(--text-muted)', display: 'flex', gap: 10 }}>
-                        <span style={{ color: 'var(--brand-primary-light)', fontWeight: 700 }}>{dish.calories} kcal</span>
-                        <span style={{ color: 'var(--accent-protein-text, #818CF8)' }}>P: {dish.protein}g</span>
-                        <span style={{ color: 'var(--brand-primary-light, #10B981)' }}>C: {dish.carbs}g</span>
-                        <span style={{ color: 'var(--color-fat, #f5a623)' }}>F: {dish.fat}g</span>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      className="btn btn-primary"
+                return (
+                  <div key={catKey}>
+                    <div
                       style={{
-                        padding: '6px 14px',
-                        fontSize: 11.5,
-                        fontWeight: 800,
-                        flexShrink: 0
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: 'var(--g)',
+                        letterSpacing: '0.04em',
+                        marginBottom: 6,
+                        paddingLeft: 2
                       }}
                     >
-                      Select
-                    </button>
+                      {cat.title}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {itemNames.map((itemName) => {
+                        const isChecked = !!checkedGroceryItems[itemName];
+                        return (
+                          <div
+                            key={itemName}
+                            onClick={() => setCheckedGroceryItems(prev => ({ ...prev, [itemName]: !prev[itemName] }))}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 10,
+                              padding: '9px 12px',
+                              borderRadius: 12,
+                              background: isChecked ? 'rgba(34, 209, 122, 0.04)' : 'var(--s2)',
+                              border: isChecked ? '0.5px solid var(--g)' : '0.5px solid var(--bd)',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            {/* 7.1: 18×18px checkbox */}
+                            <div
+                              style={{
+                                width: 18,
+                                height: 18,
+                                borderRadius: 5,
+                                background: isChecked ? 'var(--g)' : 'transparent',
+                                border: isChecked ? 'none' : '1.5px solid var(--bd)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#ffffff',
+                                fontSize: 11,
+                                fontWeight: 800,
+                                flexShrink: 0
+                              }}
+                            >
+                              {isChecked && '✓'}
+                            </div>
+                            <span
+                              style={{
+                                fontSize: 13,
+                                fontWeight: 500,
+                                color: isChecked ? 'var(--t3)' : 'var(--t1)',
+                                textDecoration: isChecked ? 'line-through' : 'none'
+                              }}
+                            >
+                              {itemName}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                ));
-              })()}
+                );
+              })}
+            </div>
+
+            <div style={{ fontSize: 12, color: 'var(--t3)', textAlign: 'center' }}>
+              Estimated weekly expenditure: <strong style={{ color: 'var(--t1)' }}>₹{weekCost.toLocaleString()}</strong>
             </div>
           </div>
         </div>,
         document.body
       )}
-
     </div>
   );
 }

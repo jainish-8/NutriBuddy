@@ -710,7 +710,7 @@ const VOLUME_MATRIX = {
     tier1: { 
       sets: 4, 
       repRange: '6–8',   
-      restSec: 120, 
+      restSec: 150, 
       rpe: 8,  
       progressionRule: 'When all sets reach 8 reps cleanly, add 2.5 kg upper / 5 kg lower next session.',
       t1Explanation: 'T1 primary compound lifts use a lower rep range (6–8 reps) even in a muscle-growth program — this builds the foundational strength that powers your higher-rep accessory work.'
@@ -1056,6 +1056,25 @@ function filterBySessionTime(exercises, sessionTime) {
   return exercises;                                  // 75+ min = full session
 }
 
+function sharesPrimaryMuscle(ex1, ex2) {
+  // Check if two exercises target the same primary muscle group
+  const g1 = (ex1?.muscleGroup || '').toLowerCase().split(' ')[0];
+  const g2 = (ex2?.muscleGroup || '').toLowerCase().split(' ')[0];
+  const n1 = (ex1?.name || '').toLowerCase();
+  const n2 = (ex2?.name || '').toLowerCase();
+  if (!g1 || !g2) return false;
+  // Direct muscle group match
+  if (g1 === g2 && g1 !== 'general') return true;
+  // Movement pattern clash detection (same-direction push or pull)
+  const bothPush = (n1.includes('bench') || n1.includes('press') || n1.includes('fly') || n1.includes('push')) &&
+                   (n2.includes('bench') || n2.includes('press') || n2.includes('fly') || n2.includes('push'));
+  const bothPull = (n1.includes('row') || n1.includes('pull') || n1.includes('curl') || n1.includes('lat')) &&
+                   (n2.includes('row') || n2.includes('pull') || n2.includes('curl') || n2.includes('lat'));
+  const bothSquat = (n1.includes('squat') || n1.includes('lunge') || n1.includes('leg press')) &&
+                    (n2.includes('squat') || n2.includes('lunge') || n2.includes('leg press'));
+  return bothPush || bothPull || bothSquat;
+}
+
 // ─────────────────────────────────────────────────────────────
 // EXERCISE BUILDER
 // Constructs the per-exercise objects for a single session-day
@@ -1095,32 +1114,54 @@ function buildSessionExercises(sessionType, trainingGoal, period, allPresetExerc
     // Beginner filtering
     if (trainingExperience === 'beginner') {
       const beginnerSubs = {
-        'Barbell Deadlift': 'Romanian Deadlift',
-        'Front Squat': 'Goblet Squat',
-        'Skull Crushers': 'Overhead Dumbbell Extension',
-        'Ab Wheel Rollout': 'Plank',
+        'Barbell Deadlift':   'Dumbbell Romanian Deadlift',
+        'Pull-up':            'Lat Pulldown',
+        'Barbell Row':        'Seated Cable Row',
+        'Ab Wheel Rollout':   'Plank',
+        'Barbell Hip Thrust': 'Glute Bridge',
+        'Front Squat':        'Goblet Squat',
+        'Skull Crushers':     'Overhead Dumbbell Extension',
+      };
+      const beginnerReasons = {
+        'Barbell Deadlift':   'Beginner progression: Dumbbell Romanian deadlift teaches hip hinge mechanics safely before loading conventional barbell deadlifts.',
+        'Pull-up':            'Beginner progression: Lat pulldown builds the same vertical pull pattern until relative strength supports bodyweight pulls.',
+        'Barbell Row':        'Beginner progression: Seated cable row allows neutral spine with no lumbar flexion demand — safer for beginners learning hip hinge.',
+        'Ab Wheel Rollout':   'Beginner progression: Ab wheel requires elite anti-extension strength. Plank builds the same core bracing foundation safely.',
+        'Barbell Hip Thrust': 'Beginner progression: Glute bridge establishes posterior chain activation before adding barbell load.',
+        'Front Squat':        'Beginner progression: Goblet squat teaches squat mechanics with counterbalance weight — ideal entry point.',
+        'Skull Crushers':     'Beginner progression: Overhead dumbbell extension provides a more forgiving elbow path for beginners.',
       };
       if (beginnerSubs[resolved.name]) {
-        const subName = beginnerSubs[resolved.name];
+        const origName = resolved.name;
+        const subName = beginnerSubs[origName];
         resolved = resolveSubstitution(subName, equipment, injuries, allPresetExercises);
-        resolved.substitutionReason = 'Experience Substitution: Safer alternative for beginners.';
+        resolved.substitutionReason = beginnerReasons[origName] || 'Experience Substitution: Safer alternative for beginners.';
       }
     }
 
-    // Senior / Joint Longevity Safeguards (Age >= 45)
-    if (age && parseInt(age, 10) >= 45) {
+    // ── Senior / Joint Longevity Safeguards ──
+    // Age 55+: Apply protective substitutions automatically
+    // Age 45–54: Add coaching notes only (no automatic substitution)
+    const userAge = parseInt(age, 10) || 0;
+
+    if (userAge >= 55) {
       const seniorJointSubs = {
-        'Barbell Back Squat': 'Leg Press',
-        'Barbell Deadlift': 'Romanian Deadlift',
-        'Overhead Barbell Press': 'Dumbbell Shoulder Press',
-        'Barbell Bench Press': 'Dumbbell Bench Press',
-        'Skull Crushers': 'Tricep Rope Pushdown'
+        'Barbell Back Squat':      'Leg Press',
+        'Barbell Deadlift':        'Romanian Deadlift',
+        'Overhead Barbell Press':  'Dumbbell Shoulder Press',
+        'Barbell Bench Press':     'Dumbbell Bench Press',
+        'Skull Crushers':          'Tricep Rope Pushdown',
+        'Behind-The-Neck Press':   'Dumbbell Lateral Raise',
       };
       if (seniorJointSubs[resolved.name]) {
         const subName = seniorJointSubs[resolved.name];
         resolved = resolveSubstitution(subName, equipment, injuries, allPresetExercises);
-        resolved.substitutionReason = 'Joint Longevity: Substituted for joint-friendly movement with reduced spinal compression.';
+        resolved.substitutionReason = `Joint longevity (age 55+): Automatically substituted for a joint-friendly movement with reduced axial spinal compression and lower shear force.`;
       }
+    } else if (userAge >= 45 && tier === 1) {
+      // Ages 45–54: Add a coaching note but do NOT automatically substitute
+      // These users can continue training heavy — just with more deliberate warm-ups
+      resolved.ageNote = `Age advisory (45+): Warm up with an extra ramp-up set at 50% working load. Prioritize technique and controlled tempo over maximum load. Consider reducing load by 10% if joints feel tight.`;
     }
 
     const warmupRamp = generateWarmupRamp(resolved.name, tier);
@@ -1143,7 +1184,12 @@ function buildSessionExercises(sessionType, trainingGoal, period, allPresetExerc
   if (trainingGoal === 'fat_loss') {
     let supersetCount = 0;
     for (let i = 0; i < rawList.length - 1; i++) {
-      if ((rawList[i].tier === 2 || rawList[i].tier === 3) && (rawList[i + 1].tier === 2 || rawList[i + 1].tier === 3) && !rawList[i].isSuperset) {
+      if (
+        (rawList[i].tier === 2 || rawList[i].tier === 3) &&
+        (rawList[i + 1].tier === 2 || rawList[i + 1].tier === 3) &&
+        !rawList[i].isSuperset &&
+        !sharesPrimaryMuscle(rawList[i], rawList[i + 1])
+      ) {
         supersetCount++;
         const label = `Superset ${String.fromCharCode(64 + supersetCount)}`;
         rawList[i].isSuperset = true;
@@ -1205,44 +1251,119 @@ For optimal results:
 // ─────────────────────────────────────────────────────────────
 
 export function calculateTrainerMatchScore(trainingProfile = {}, splitConfig = {}, volumeValidation = []) {
-  const { gymDays, trainingExperience, trainingGoal, injuries, gender } = trainingProfile;
-  
-  // Calculate true volume compliance (checking optimal, moderate, and compound tiers)
-  let volumeMatchPct = 96;
+  const { gymDays, trainingExperience, trainingGoal, injuries } = trainingProfile;
+  const days = parseInt(gymDays, 10) || 3;
+
+  // 1. Volume compliance score (genuine calculation, no clamping)
+  let volumeScore = 80; // Baseline
   if (volumeValidation && volumeValidation.length > 0) {
-    const validCount = volumeValidation.filter(v => v.status === 'optimal' || v.status === 'good' || (v.sets >= 6 && v.sets <= 24)).length;
-    const total = volumeValidation.length;
-    volumeMatchPct = Math.min(99, Math.max(92, Math.round((validCount / total) * 100)));
+    const optimal = volumeValidation.filter(v => v.status === 'optimal').length;
+    const good    = volumeValidation.filter(v => v.status === 'good' || v.totalWeeklySets >= 6).length;
+    const total   = volumeValidation.length;
+    volumeScore   = Math.round(((optimal * 1.0 + (good - optimal) * 0.75) / total) * 100);
+    volumeScore   = Math.max(0, Math.min(100, volumeScore));
   }
 
-  // Recovery index based on experience vs days
-  let recoveryRating = 96;
-  const days = parseInt(gymDays, 10) || 3;
-  if (trainingExperience === 'beginner' && days > 4) recoveryRating = 92;
-  else if (days === 4 || days === 3) recoveryRating = 98;
-  else if (days >= 5) recoveryRating = 95;
+  // 2. Recovery suitability (honest assessment based on experience vs frequency)
+  let recoveryRating;
+  if (trainingExperience === 'beginner' && days > 5) {
+    recoveryRating = 55;  // Serious overtraining risk for beginners at 6–7 days
+  } else if (trainingExperience === 'beginner' && days > 4) {
+    recoveryRating = 70;  // Moderate overtraining risk at 5 days for beginners
+  } else if (trainingExperience === 'beginner' && days === 4) {
+    recoveryRating = 82;  // Acceptable for a motivated beginner
+  } else if (trainingExperience === 'beginner') {
+    recoveryRating = 92;  // 2–3 days ideal for beginners
+  } else if (trainingExperience === 'intermediate' && days >= 4 && days <= 5) {
+    recoveryRating = 96;  // Ideal frequency for intermediate
+  } else if (trainingExperience === 'intermediate' && days === 6) {
+    recoveryRating = 88;  // Pushing limits at 6 days for intermediate
+  } else if (trainingExperience === 'advanced' && days >= 5) {
+    recoveryRating = 92;  // Advanced can handle high frequency
+  } else {
+    recoveryRating = 88;  // Conservative general default
+  }
 
-  // Biomechanical balance & injury safeguards
-  let biomechanicalBalance = 99;
-  if (injuries && injuries.length > 0) biomechanicalBalance = 100;
+  // 3. Biomechanical safety (injuries honestly reduce the score)
+  let biomechanicalBalance;
+  if (!injuries || injuries.length === 0) {
+    biomechanicalBalance = 100; // Full movement freedom
+  } else if (injuries.length === 1) {
+    biomechanicalBalance = 88;  // One substitution applied — slight limitation
+  } else if (injuries.length === 2) {
+    biomechanicalBalance = 76;  // Two substitutions — moderate limitation
+  } else {
+    biomechanicalBalance = 65;  // Multiple injuries — significant modification required
+  }
 
-  const overallScore = Math.min(99, Math.max(92, Math.round((volumeMatchPct * 0.40) + (recoveryRating * 0.35) + (biomechanicalBalance * 0.25))));
+  const overallScore = Math.round(
+    (volumeScore * 0.40) + (recoveryRating * 0.35) + (biomechanicalBalance * 0.25)
+  );
 
-  const goalText = GOAL_LABELS[trainingGoal] || trainingGoal || 'Muscle Building';
-  const expText = EXPERIENCE_LABELS[trainingExperience] || trainingExperience || 'Intermediate';
+  const goalText = GOAL_LABELS[trainingGoal]    || trainingGoal || 'your goals';
+  const expText  = EXPERIENCE_LABELS[trainingExperience] || trainingExperience || 'your level';
+  const injuryNote = injuries?.length > 0
+    ? `Protective substitutions applied for ${injuries.map(i => INJURY_LABELS[i] || i).join(' and ')}.`
+    : 'Full range of motion available — no movement restrictions.';
 
   return {
     overallScore,
-    volumeScore: volumeMatchPct,
+    volumeScore,
     recoveryRating,
     biomechanicalBalance,
-    goalAlignment: `${goalText} Customized`,
-    experienceGrade: `${expText} Level`,
-    safeguardStatus: injuries && injuries.length > 0
-      ? `Joint protection active for ${injuries.map(i => INJURY_LABELS[i] || i).join(', ')}`
-      : 'Full joint and injury protection active',
-    trainerSummary: `Your personalized training program is calibrated with a ${overallScore}% match for your ${gender === 'female' ? 'full-body tone & shape' : 'muscle growth & strength'} goals.`
+    goalAlignment:    `${goalText} calibrated`,
+    experienceGrade:  expText,
+    safeguardStatus:  injuryNote,
+    trainerSummary:   `Your ${splitConfig.splitName || 'training program'} is a ${overallScore}% match for your ${goalText} goals at ${expText}. ${injuryNote}`
   };
+}
+
+function _inferMuscleGroup(name) {
+  const n = (name || '').toLowerCase();
+  if (n.includes('bench') || n.includes('chest') || n.includes('fly') || n.includes('pec'))
+    return 'chest';
+  if (n.includes('row') || n.includes('pulldown') || n.includes('pull-up') || n.includes('lat'))
+    return 'lat back';
+  if (n.includes('squat') || n.includes('leg press') || n.includes('lunge') || n.includes('leg extension'))
+    return 'quad';
+  if (n.includes('deadlift') || n.includes('leg curl') || n.includes('nordic') || n.includes('rdl'))
+    return 'hamstring';
+  if (n.includes('press') || n.includes('lateral') || n.includes('shoulder') || n.includes('overhead'))
+    return 'shoulder';
+  if (n.includes('curl') && !n.includes('leg curl')) return 'bicep';
+  if (n.includes('pushdown') || n.includes('tricep') || n.includes('skull') || n.includes('dip'))
+    return 'tricep';
+  if (n.includes('calf') || n.includes('raise')) return 'calf';
+  if (n.includes('plank') || n.includes('crunch') || n.includes('ab') || n.includes('core'))
+    return 'core';
+  if (n.includes('thrust') || n.includes('glute') || n.includes('bridge') || n.includes('kickback'))
+    return 'glute';
+  return 'general';
+}
+
+function _inferCategory(name) {
+  const n = (name || '').toLowerCase();
+  if (n.includes('squat') || n.includes('lunge') || n.includes('leg press')) return 'squat';
+  if (n.includes('deadlift') || n.includes('rdl') || n.includes('hinge'))    return 'hinge';
+  if (n.includes('bench') || n.includes('fly') || n.includes('push-up'))     return 'horizontal push';
+  if (n.includes('overhead') || n.includes('shoulder press'))                return 'vertical push';
+  if (n.includes('row') || n.includes('seated cable'))                        return 'horizontal pull';
+  if (n.includes('pulldown') || n.includes('pull-up') || n.includes('chin')) return 'vertical pull';
+  if (n.includes('curl') && !n.includes('leg'))                               return 'bicep isolation';
+  if (n.includes('pushdown') || n.includes('skull') || n.includes('extension')) return 'tricep isolation';
+  if (n.includes('lateral') || n.includes('raise'))                          return 'shoulder isolation';
+  if (n.includes('plank') || n.includes('crunch') || n.includes('ab'))       return 'core';
+  return 'general';
+}
+
+function _inferMovementPlane(name) {
+  const n = (name || '').toLowerCase();
+  if (n.includes('incline'))  return 'incline';
+  if (n.includes('decline'))  return 'decline';
+  if (n.includes('overhead')) return 'overhead';
+  if (n.includes('row') || n.includes('seated cable')) return 'horizontal';
+  if (n.includes('pulldown') || n.includes('pull-up')) return 'vertical';
+  return 'neutral';
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1253,13 +1374,23 @@ export function getSmartAlternatives(exerciseName, allPresetExercises = [], equi
   if (!exerciseName) return [];
   const list = Array.isArray(allPresetExercises) ? allPresetExercises : [];
   const target = list.find(p => p && p.name && p.name.toLowerCase() === exerciseName.toLowerCase());
-  if (!target) return [];
 
-  const targetName = target.name.toLowerCase();
-  const targetGroup = (target.muscleGroup || '').toLowerCase();
-  const targetCat = (target.category || '').toLowerCase();
-  const targetPlane = (target.movementPlane || '').toLowerCase();
-  const targetAnatomy = (target.targetAnatomy || '').toLowerCase();
+  // If not in database, build a minimal inference object so rule-based matching still runs
+  const effectiveTarget = target || {
+    name:          exerciseName,
+    muscleGroup:   _inferMuscleGroup(exerciseName),
+    category:      _inferCategory(exerciseName),
+    movementPlane: _inferMovementPlane(exerciseName),
+    targetAnatomy: ''
+  };
+
+  // Replace all subsequent uses of `target` with `effectiveTarget` in this function
+  // (change targetName, targetGroup, targetCat, targetPlane, targetAnatomy to read from effectiveTarget)
+  const targetName    = effectiveTarget.name.toLowerCase();
+  const targetGroup   = (effectiveTarget.muscleGroup   || '').toLowerCase();
+  const targetCat     = (effectiveTarget.category      || '').toLowerCase();
+  const targetPlane   = (effectiveTarget.movementPlane || '').toLowerCase();
+  const targetAnatomy = (effectiveTarget.targetAnatomy || '').toLowerCase();
 
   // Helper to determine exact muscle sub-category & head
   const isUpperChest = (targetGroup.includes('upper') || targetAnatomy.includes('upper') || targetAnatomy.includes('clavicular') || targetPlane.includes('incline') || targetName.includes('incline') || targetName.includes('low-to-high')) && (targetGroup.includes('chest') || targetCat.includes('push') || targetCat.includes('chest'));

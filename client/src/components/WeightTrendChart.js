@@ -111,10 +111,10 @@ export default function WeightTrendChart({
     targetY = padTop + innerH - ((targetWeight - minY) / rangeY) * innerH;
   }
 
-  // Delta calculation
-  const startWeight = displayData[0].weight;
+  // Delta calculation (current entry - previous entry)
   const currentWeight = displayData[displayData.length - 1].weight;
-  const delta = +(currentWeight - startWeight).toFixed(1);
+  const previousWeight = displayData.length > 1 ? displayData[displayData.length - 2].weight : displayData[0].weight;
+  const delta = +(currentWeight - previousWeight).toFixed(1);
   const isLoss = delta < 0;
   const isGoalAligned = (goal === 'lose' || goal === 'fat_loss') ? isLoss : (goal === 'gain' || goal === 'lean_bulk') ? delta > 0 : Math.abs(delta) <= 1;
 

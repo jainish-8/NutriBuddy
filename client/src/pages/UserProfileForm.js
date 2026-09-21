@@ -72,10 +72,26 @@ const COOKING_OPTIONS = [
 ];
 
 const BUDGET_OPTIONS = [
-  { value: 'tight', label: 'Tight Budget (₹3,000 - ₹5,000 / month)', subtitle: 'Budget-focused seasonal Indian staples' },
-  { value: 'moderate', label: 'Moderate — ₹5k–₹10k/mo', subtitle: 'Moderate Budget (₹5,000 – ₹10,000 / month) · Balanced whole-food Indian diet' },
-  { value: 'flexible', label: 'Flexible Budget (₹10,000 - ₹15,000 / month)', subtitle: 'Premium dairy, whey, nuts & paneer' },
-  { value: 'premium', label: 'Premium Budget (₹15,000+ / month)', subtitle: 'Unrestricted premium organic & high-protein foods' }
+  {
+    value: 'tight',
+    label: 'Tight — ₹3k–₹5k/mo',
+    subtitle: 'Budget-focused seasonal Indian staples: oats, dal, eggs, vegetables'
+  },
+  {
+    value: 'moderate',
+    label: 'Moderate — ₹5k–₹10k/mo',
+    subtitle: 'Balanced whole-food Indian diet including paneer, chicken, and curd'
+  },
+  {
+    value: 'flexible',
+    label: 'Flexible — ₹10k–₹15k/mo',
+    subtitle: 'Premium options: whey protein, fish, nuts, paneer, and quality produce'
+  },
+  {
+    value: 'premium',
+    label: 'Premium — ₹15k+/mo',
+    subtitle: 'Unrestricted: organic, imported, and specialty high-protein foods'
+  }
 ];
 
 const PREP_TIME_OPTIONS = [
@@ -95,6 +111,22 @@ const getOptionLabel = (options, val, fallback = 'Select option') => {
   const match = options.find(o => String(o.value) === String(val));
   return match ? match.label : fallback;
 };
+
+const normalizePrepTimeMinutes = (val) => {
+  if (!val) return 30;
+  const legacyMap = {
+    '15_mins': 15, 'under_15_mins': 15,
+    '30_mins': 30, '15_to_30_mins': 30, 'moderate': 30,
+    '45_mins': 45, '30_to_60_mins': 45,
+    '60_mins': 60, 'above_60_mins': 60,
+  };
+  if (legacyMap[val] !== undefined) return legacyMap[val];
+  const num = parseInt(val, 10);
+  return isNaN(num) ? 30 : Math.max(5, Math.min(120, num));
+};
+
+// Export it for use in meal planner and swap engine
+export { normalizePrepTimeMinutes };
 
 export default function UserProfileForm({ user, setUser, setCurrentPage }) {
   const [step, setStep] = useState(1);
@@ -309,10 +341,12 @@ export default function UserProfileForm({ user, setUser, setCurrentPage }) {
 
     // 2. Goal-calibrated calorie target
     const dailyCalories = calculateTargetCalories({
-      tdee: tdeeResults.tdee,
-      bmr: tdeeResults.bmr,
-      goal: form.goal,
-      gender: form.gender
+      tdee:   tdeeResults.tdee,
+      bmr:    tdeeResults.bmr,
+      goal:   form.goal,
+      gender: form.gender,
+      weight: form.weight,
+      height: form.height
     });
 
     // 3. Exact macronutrient partitioning (ISSN / NSCA certified)
@@ -348,12 +382,22 @@ export default function UserProfileForm({ user, setUser, setCurrentPage }) {
 
     // Auto sync training profile for Workout Console
     const trainingProfile = {
-      trainingGoal: form.goal === 'fat_loss' ? 'fat_loss' : (form.goal === 'lean_bulk' || form.goal === 'aggressive_bulk') ? 'hypertrophy' : 'strength',
-      trainingExperience: parseInt(form.gymDays, 10) >= 4 ? 'intermediate' : 'beginner',
-      equipment: 'full_gym',
-      trainingInjuries: [],
-      sessionTime: 60,
-      gymDays: parseInt(form.gymDays, 10) || 3
+      trainingGoal:
+        form.goal === 'fat_loss'        ? 'fat_loss'        :
+        form.goal === 'lean_bulk'       ? 'hypertrophy'     :
+        form.goal === 'aggressive_bulk' ? 'hypertrophy'     :
+        form.goal === 'muscle'          ? 'hypertrophy'     :
+        form.goal === 'hypertrophy'     ? 'hypertrophy'     :
+        form.goal === 'maintain'        ? 'general_fitness' :
+                                          'general_fitness',
+      // Training experience is NOT inferred from gym frequency.
+      // It is set by the user in the Workout Program Builder.
+      // Default to 'beginner' for all new users.
+      trainingExperience: 'beginner',
+      equipment:          'full_gym',
+      trainingInjuries:   [],
+      sessionTime:        60,
+      gymDays:            parseInt(form.gymDays, 10) || 3
     };
     try {
       localStorage.setItem(`nutribuddy_training_profile_${userData.id}`, JSON.stringify(trainingProfile));

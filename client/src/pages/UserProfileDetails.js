@@ -1150,7 +1150,8 @@ export default function UserProfileDetails({ user, onEdit, onLogout, setCurrentP
             {(() => {
               const startW = weightLogs[0]?.weight || weightNum;
               const curW = weightLogs[weightLogs.length - 1]?.weight || weightNum;
-              const netDelta = +(curW - startW).toFixed(1);
+              const prevW = weightLogs.length > 1 ? weightLogs[weightLogs.length - 2]?.weight : startW;
+              const netDelta = +(curW - prevW).toFixed(1);
 
               return (
                 <div className="mobile-2col-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
@@ -1460,7 +1461,7 @@ export default function UserProfileDetails({ user, onEdit, onLogout, setCurrentP
                   key: 'weekly',
                   icon: LineChart,
                   title: 'Sunday Progress Digest',
-                  desc: 'Weekly summary of volume load, calorie adherence, and PR progression'
+                  desc: 'Weekly summary delivered every Sunday at 9:00 AM — calorie adherence, protein consistency, and volume trends.'
                 }
               ].map((item) => {
                 const ItemIcon = item.icon;

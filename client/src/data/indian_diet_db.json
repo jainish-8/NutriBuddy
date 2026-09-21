@@ -103,7 +103,6 @@
     "dietaryStyle": [
       "vegetarian",
       "vegan",
-      "gluten-free",
       "diabetic"
     ],
     "ingredients": [
@@ -184,7 +183,6 @@
     "dietaryStyle": [
       "vegetarian",
       "vegan",
-      "gluten-free",
       "diabetic",
       "low-carb"
     ],
@@ -377,7 +375,8 @@
     "difficulty": "moderate",
     "cuisine": "indian",
     "allergies": [
-      "gluten"
+      "gluten",
+      "dairy"
     ],
     "dietaryStyle": [
       "vegetarian"
@@ -911,8 +910,7 @@
     "name": "Baingan Bharta (1 bowl)",
     "category": "vegetables",
     "mealTypes": [
-      "lunch",
-      "dinner"
+      "snacks"
     ],
     "calories": 85,
     "protein": 2,
@@ -990,8 +988,7 @@
     "name": "Lauki Sabzi (1 bowl)",
     "category": "vegetables",
     "mealTypes": [
-      "lunch",
-      "dinner"
+      "snacks"
     ],
     "calories": 56,
     "protein": 1.2,
@@ -1031,8 +1028,6 @@
     "name": "Steamed Garlic Broccoli (1 bowl)",
     "category": "vegetables",
     "mealTypes": [
-      "lunch",
-      "dinner",
       "snacks"
     ],
     "calories": 68,
@@ -1151,8 +1146,7 @@
     "name": "Cabbage Peas Poriyal (1 bowl)",
     "category": "vegetables",
     "mealTypes": [
-      "lunch",
-      "dinner"
+      "snacks"
     ],
     "calories": 72,
     "protein": 2.2,
@@ -1308,7 +1302,6 @@
     "name": "Masala Buttermilk (1 glass)",
     "category": "dairy",
     "mealTypes": [
-      "lunch",
       "snacks"
     ],
     "calories": 29,
@@ -1358,11 +1351,11 @@
     "difficulty": "no-cook",
     "cuisine": "indian",
     "allergies": [
-      "nuts"
+      "nuts",
+      "dairy"
     ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "diabetic",
       "low-carb",
@@ -1432,10 +1425,11 @@
     "prepTime": 10,
     "difficulty": "no-cook",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "diabetic"
     ],
     "ingredients": [
@@ -1455,7 +1449,8 @@
     "name": "Golden Turmeric Milk (1 cup)",
     "category": "dairy",
     "mealTypes": [
-      "dinner"
+      "snacks",
+      "breakfast"
     ],
     "calories": 88,
     "protein": 6,
@@ -1542,11 +1537,11 @@
     "difficulty": "no-cook",
     "cuisine": "indian",
     "allergies": [
-      "nuts"
+      "nuts",
+      "dairy"
     ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free",
       "diabetic",
       "low-carb"
@@ -1681,8 +1676,7 @@
     "name": "Mixed Vegetable Raita (1 bowl)",
     "category": "dairy",
     "mealTypes": [
-      "lunch",
-      "dinner"
+      "snacks"
     ],
     "calories": 58,
     "protein": 4,
@@ -2393,8 +2387,7 @@
     "name": "Sattvic Pumpkin Sabzi (1 bowl)",
     "category": "vegetables",
     "mealTypes": [
-      "lunch",
-      "dinner"
+      "snacks"
     ],
     "calories": 86,
     "protein": 1.5,
@@ -2589,8 +2582,7 @@
     "name": "Ghia Raita (1 bowl)",
     "category": "dairy",
     "mealTypes": [
-      "lunch",
-      "dinner"
+      "snacks"
     ],
     "calories": 52,
     "protein": 3.5,
@@ -2849,10 +2841,7 @@
     "name": "Stir-Fried Mushroom & Broccoli (1 bowl)",
     "category": "vegetables",
     "mealTypes": [
-      "lunch",
-      "dinner",
-      "snacks",
-      "post_workout"
+      "snacks"
     ],
     "calories": 85,
     "protein": 4,
@@ -2890,7 +2879,6 @@
     "name": "Carrot Ginger Soup (1 bowl)",
     "category": "vegetables",
     "mealTypes": [
-      "dinner",
       "snacks"
     ],
     "calories": 85,
@@ -3010,8 +2998,7 @@
     "name": "Stir-fried Green Beans (1 bowl)",
     "category": "vegetables",
     "mealTypes": [
-      "lunch",
-      "dinner"
+      "snacks"
     ],
     "calories": 73,
     "protein": 2,
@@ -3119,8 +3106,7 @@
     "mealTypes": [
       "breakfast",
       "pre_workout",
-      "snacks",
-      "post_workout"
+      "snacks"
     ],
     "calories": 268,
     "protein": 18,
@@ -3237,8 +3223,7 @@
     "mealTypes": [
       "breakfast",
       "post_workout",
-      "snacks",
-      "pre_workout"
+      "snacks"
     ],
     "calories": 294,
     "protein": 20,
@@ -3314,8 +3299,7 @@
     "mealTypes": [
       "post_workout",
       "breakfast",
-      "snacks",
-      "pre_workout"
+      "snacks"
     ],
     "calories": 205,
     "protein": 28,
@@ -3551,7 +3535,8 @@
     "difficulty": "moderate",
     "cuisine": "indian",
     "allergies": [
-      "fish"
+      "fish",
+      "dairy"
     ],
     "dietaryStyle": [
       "non-vegetarian",
@@ -3613,8 +3598,7 @@
     "category": "beverages",
     "mealTypes": [
       "breakfast",
-      "pre_workout",
-      "post_workout"
+      "pre_workout"
     ],
     "calories": 450,
     "protein": 18,
@@ -4268,7 +4252,6 @@
     "name": "Spiced Mint Buttermilk (1 large glass)",
     "category": "beverages",
     "mealTypes": [
-      "lunch",
       "snacks"
     ],
     "calories": 50,
@@ -4344,8 +4327,7 @@
     "category": "protein",
     "mealTypes": [
       "breakfast",
-      "post_workout",
-      "pre_workout"
+      "post_workout"
     ],
     "calories": 204,
     "protein": 22,
@@ -4893,7 +4875,6 @@
     "mealTypes": [
       "breakfast",
       "snacks",
-      "post_workout",
       "pre_workout"
     ],
     "calories": 132,
@@ -5115,7 +5096,6 @@
     "mealTypes": [
       "breakfast",
       "snacks",
-      "post_workout",
       "pre_workout"
     ],
     "calories": 288,
@@ -6076,8 +6056,7 @@
     "mealTypes": [
       "breakfast",
       "snacks",
-      "pre_workout",
-      "post_workout"
+      "pre_workout"
     ],
     "calories": 211,
     "protein": 14,
@@ -6470,8 +6449,7 @@
     "mealTypes": [
       "breakfast",
       "snacks",
-      "pre_workout",
-      "post_workout"
+      "pre_workout"
     ],
     "calories": 280,
     "protein": 15,
@@ -6716,7 +6694,6 @@
     "dietaryStyle": [
       "vegetarian",
       "vegan",
-      "gluten-free",
       "diabetic"
     ],
     "ingredients": [
@@ -7651,7 +7628,8 @@
     "prepTime": 22,
     "difficulty": "intermediate",
     "allergies": [
-      "gluten"
+      "gluten",
+      "dairy"
     ],
     "ingredients": [
       "Chicken Breast (Skinless Cubes) - 150g",
@@ -8597,10 +8575,11 @@
     "prepTime": 0,
     "difficulty": "basic",
     "cuisine": "indian",
-    "allergies": [],
+    "allergies": [
+      "dairy"
+    ],
     "dietaryStyle": [
       "vegetarian",
-      "vegan",
       "gluten-free"
     ],
     "region": "pan-indian",
@@ -8688,17 +8667,17 @@
   },
   {
     "id": 229,
-    "name": "Walnuts (4 halves / 14g)",
+    "name": "Walnuts",
     "category": "nuts",
     "cuisine": "indian",
     "mealTypes": [
       "snacks"
     ],
-    "calories": 93,
-    "protein": 2,
-    "carbs": 2,
-    "fat": 9,
-    "cost": 20,
+    "calories": 185,
+    "protein": 4,
+    "carbs": 4,
+    "fat": 18,
+    "cost": 35,
     "prepTime": 0,
     "difficulty": "basic",
     "allergies": [
@@ -8712,13 +8691,196 @@
       "low-carb"
     ],
     "region": "pan-indian",
-    "servingUnit": "4 halves (14g)",
+    "servingUnit": "28g (7 walnut halves / 1 oz)",
     "budgetTier": "moderate",
     "ingredients": [
-      "Walnuts - 4 halves (14g)"
+      "Walnuts - 28g (7 walnut halves / 1 oz)"
     ],
-    "recipe": "Eat as is or add to oatmeal, salads, or curd.",
+    "recipe": "Eat as raw snack or add to oatmeal and bowls.",
     "benefits": "Richest plant source of omega-3 (ALA). Supports cognitive function and reduces inflammation.",
     "tips": "Soak in water overnight to reduce phytic acid and improve digestion."
+  },
+  {
+    "id": 230,
+    "name": "Banana & Dates Pre-Workout Snack",
+    "category": "fruits",
+    "cuisine": "indian",
+    "mealTypes": [
+      "pre_workout",
+      "snacks"
+    ],
+    "calories": 195,
+    "protein": 2,
+    "carbs": 50,
+    "fat": 0,
+    "cost": 15,
+    "prepTime": 2,
+    "difficulty": "basic",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "jain",
+      "diabetic"
+    ],
+    "region": "pan-indian",
+    "servingUnit": "1 ripe banana (100g) + 3 pitted dates (40g)",
+    "budgetTier": "tight",
+    "ingredients": [
+      "Ripe banana - 1 medium (100g)",
+      "Medjool or Deglet dates - 3 pieces pitted (40g)"
+    ],
+    "recipe": "1. Peel the banana. 2. Remove pits from dates if not pre-pitted. 3. Eat together 30–45 minutes before training.",
+    "benefits": "Natural simple sugars from banana and dates provide rapid blood glucose for immediate pre-workout energy without any digestive discomfort. Potassium in banana prevents muscle cramps during training.",
+    "tips": "Best consumed 30–45 minutes before workouts under 75 minutes. For longer sessions, pair with a sattu drink for sustained energy."
+  },
+  {
+    "id": 231,
+    "name": "Poha Chivda with Roasted Peanuts",
+    "category": "snacks",
+    "cuisine": "indian",
+    "mealTypes": [
+      "pre_workout",
+      "snacks",
+      "breakfast"
+    ],
+    "calories": 218,
+    "protein": 6,
+    "carbs": 34,
+    "fat": 7,
+    "cost": 12,
+    "prepTime": 8,
+    "difficulty": "basic",
+    "allergies": [
+      "nuts"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "region": "west",
+    "servingUnit": "1 bowl (50g thin poha + 15g roasted peanuts)",
+    "budgetTier": "tight",
+    "ingredients": [
+      "Thin flattened rice (Poha) - 50g",
+      "Roasted peanuts (unsalted) - 15g",
+      "Mustard seeds - 1/2 tsp",
+      "Curry leaves - 6-8",
+      "Turmeric powder - 1/4 tsp",
+      "Salt and lemon juice to taste"
+    ],
+    "recipe": "1. Dry roast thin poha in a kadai on medium heat for 3-4 minutes until crispy. 2. Add mustard seeds, curry leaves, and turmeric. 3. Toss in roasted peanuts. 4. Finish with lemon juice and salt.",
+    "benefits": "Thin poha is light on digestion — ideal 45–60 minutes before training. Peanuts add protein and healthy fats for sustained energy without GI heaviness.",
+    "tips": "Can be made in bulk and stored in an airtight container for 5 days. Naturally gluten-free and vegan."
+  },
+  {
+    "id": 232,
+    "name": "Coconut Water with Soaked Almonds",
+    "category": "beverages",
+    "cuisine": "indian",
+    "mealTypes": [
+      "pre_workout",
+      "snacks"
+    ],
+    "calories": 148,
+    "protein": 4,
+    "carbs": 22,
+    "fat": 5,
+    "cost": 30,
+    "prepTime": 2,
+    "difficulty": "basic",
+    "allergies": [
+      "nuts"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "region": "pan-indian",
+    "servingUnit": "1 glass coconut water (250ml) + 8 soaked almonds",
+    "budgetTier": "moderate",
+    "ingredients": [
+      "Fresh coconut water - 250ml (or packaged, no sugar added)",
+      "Raw almonds - 8 pieces (soaked overnight, skin removed)"
+    ],
+    "recipe": "1. Soak almonds overnight in water. 2. Remove skin by pinching each almond. 3. Drink coconut water and eat soaked almonds together before training.",
+    "benefits": "Coconut water provides natural electrolytes (potassium 600mg, magnesium, sodium) for hydration and cramp prevention. Soaking removes phytic acid from almonds for better mineral absorption.",
+    "tips": "One of the best hydrating pre-workout options especially in Indian summers. Avoid if allergic to tree nuts. Choose packaged coconut water with no added sugar."
+  },
+  {
+    "id": 233,
+    "name": "Ragi Mudde with Sambar (South Indian Pre-Workout)",
+    "category": "grains",
+    "cuisine": "indian",
+    "mealTypes": [
+      "pre_workout",
+      "breakfast"
+    ],
+    "calories": 282,
+    "protein": 8,
+    "carbs": 57,
+    "fat": 2,
+    "cost": 18,
+    "prepTime": 15,
+    "difficulty": "moderate",
+    "allergies": [],
+    "dietaryStyle": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "diabetic"
+    ],
+    "region": "south",
+    "servingUnit": "2 ragi mudde balls (60g ragi flour) + 1 cup sambar (200ml)",
+    "budgetTier": "tight",
+    "ingredients": [
+      "Finger millet flour (Ragi atta) - 60g",
+      "Water - 200ml",
+      "Vegetable sambar - 1 cup (200ml, homemade or packet)",
+      "Salt to taste"
+    ],
+    "recipe": "1. Bring 200ml salted water to a rolling boil. 2. Reduce heat to low. 3. Add ragi flour gradually while stirring constantly to prevent lumps. 4. Cook on low heat for 8–10 minutes, stirring continuously, until the mass thickens and pulls cleanly away from the pan sides. 5. Shape into smooth balls using wet hands. 6. Serve immediately with hot sambar.",
+    "benefits": "Ragi is among the richest cereal sources of calcium (344mg/100g) and iron. Its complex carbohydrates digest slowly, providing sustained energy for 2–3 hours of training without blood sugar spikes. Naturally gluten-free.",
+    "tips": "Traditional South Indian pre-activity staple eaten by farmers and athletes for centuries. Eat 60 minutes before training for best results. Ragi mudde hardens when cold — eat immediately after preparation."
+  },
+  {
+    "id": 234,
+    "name": "Bajra Roti with Jaggery & Ghee",
+    "category": "grains",
+    "cuisine": "indian",
+    "mealTypes": [
+      "pre_workout",
+      "breakfast"
+    ],
+    "calories": 262,
+    "protein": 6,
+    "carbs": 47,
+    "fat": 6,
+    "cost": 14,
+    "prepTime": 12,
+    "difficulty": "moderate",
+    "allergies": [
+      "dairy"
+    ],
+    "dietaryStyle": [
+      "vegetarian",
+      "gluten-free"
+    ],
+    "region": "rajasthani",
+    "servingUnit": "2 bajra rotis (60g flour) + 1 tsp ghee + 10g jaggery",
+    "budgetTier": "tight",
+    "ingredients": [
+      "Pearl millet flour (Bajra atta) - 60g",
+      "Warm water - as needed to knead",
+      "Pure desi ghee - 1 tsp (5g)",
+      "Organic jaggery (Gur) - 10g"
+    ],
+    "recipe": "1. Knead bajra flour with warm water into a soft pliable dough (no resting needed). 2. Divide into 2 equal portions. 3. Flatten each into a thick roti (0.5cm) by patting with hands — bajra dough does not roll easily with a belan. 4. Cook on a hot dry tawa until dark spots appear on both sides (2-3 min per side). 5. Serve immediately topped with 1/2 tsp ghee each and small pieces of jaggery.",
+    "benefits": "Bajra is rich in magnesium, phosphorus, and B-complex vitamins essential for energy metabolism. The jaggery provides natural iron and immediate glucose. Traditional Rajasthani pre-activity fuel consumed by farmers and wrestlers for generations.",
+    "tips": "Bajra roti must be eaten hot — it becomes very hard and dry when cold. The ghee provides fat-soluble vitamins. Best consumed 45–60 minutes before moderate-to-heavy training sessions."
   }
 ]

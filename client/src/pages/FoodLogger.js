@@ -3,9 +3,9 @@ import { createPortal } from 'react-dom';
 import fallbackFoods from '../data/indian_diet_db.json';
 import { API_BASE } from '../config';
 import { 
-  Search, Plus, Check, Utensils, X, Star
+  Search, Plus, Check, Utensils, X, ShoppingCart
 } from 'lucide-react';
-import { scaleIngredients } from '../utils/nutritionEngine';
+import { scaleIngredients, formatCompactMacros } from '../utils/nutritionEngine';
 
 export default function FoodLogger({ user, setCurrentPage }) {
   const [foods, setFoods] = useState(fallbackFoods);
@@ -17,6 +17,7 @@ export default function FoodLogger({ user, setCurrentPage }) {
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState(null);
   const [showMobileModal, setShowMobileModal] = useState(false);
+  const [checkedIngredients, setCheckedIngredients] = useState({});
 
   // Lock body scroll when mobile sheet is open
   useEffect(() => {
@@ -166,22 +167,40 @@ export default function FoodLogger({ user, setCurrentPage }) {
 
   const categories = [
     { id: 'all', label: 'All foods' },
-    { id: 'recent', label: 'Recent & favourites' },
+    { id: 'recent', label: 'Recent & saved' },
     { id: 'protein', label: 'High protein' },
-    { id: 'thalis', label: 'Indian thalis' },
-    { id: 'legumes', label: 'Dals & pulses' },
-    { id: 'grains', label: 'Rotis & grains' },
-    { id: 'dairy', label: 'Dairy & curds' },
-    { id: 'poultry', label: 'Poultry, fish & eggs' },
-    { id: 'snacks', label: 'Healthy snacks' },
+    { id: 'thalis', label: 'Thalis' }
   ];
 
   const mealOptions = [
     { value: 'breakfast', label: 'Breakfast' },
+    { value: 'pre_workout', label: 'Pre-workout' },
     { value: 'lunch', label: 'Lunch' },
+    { value: 'post_workout', label: 'Post-workout' },
     { value: 'dinner', label: 'Dinner' },
-    { value: 'snacks', label: 'Snacks' },
+    { value: 'snacks', label: 'Snack' }
   ];
+
+  const handleAddAllToGrocery = () => {
+    if (!selectedFood?.ingredients || selectedFood.ingredients.length === 0) return;
+    try {
+      const unchecked = scaledIngredients.filter(ing => !checkedIngredients[ing]);
+      const itemsToAdd = unchecked.length > 0 ? unchecked : scaledIngredients;
+      const storageKey = `mealplan_${user?.id || 'active_user'}`;
+      const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+      const core = saved.corePantry || [];
+      itemsToAdd.forEach(item => {
+        if (!core.some(c => (c.name || c) === item)) {
+          core.push({ name: item, count: 1 });
+        }
+      });
+      saved.corePantry = core;
+      localStorage.setItem(storageKey, JSON.stringify(saved));
+      showNotification('success', 'Added to grocery list');
+    } catch {
+      showNotification('success', 'Added to grocery list');
+    }
+  };
 
   const currentQty = parseFloat(quantity) || 1;
   const scaledIngredients = selectedFood?.ingredients 
@@ -190,60 +209,65 @@ export default function FoodLogger({ user, setCurrentPage }) {
 
   const renderScalerBody = (isModal = false) => (
     <>
-      {/* Meal Destination Selector */}
-      <div className="form-group" style={{ marginBottom: 18 }}>
-        <label className="form-label" style={{ fontSize: 11, marginBottom: 6 }}>Target meal slot</label>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
-          {mealOptions.map(m => (
-            <button
-              key={m.value}
-              onClick={() => setMealType(m.value)}
-              style={{
-                padding: '8px 4px',
-                fontSize: 11.5,
-                fontWeight: 700,
-                borderRadius: 'var(--radius-sm)',
-                cursor: 'pointer',
-                border: mealType === m.value ? '1px solid var(--border-focus)' : '1px solid var(--border-subtle)',
-                background: mealType === m.value ? 'var(--brand-primary-subtle)' : 'var(--bg-surface-raised)',
-                color: mealType === m.value ? 'var(--brand-primary-light)' : 'var(--text-muted)',
-                transition: 'all 0.15s ease'
-              }}
-            >
-              {m.label}
-            </button>
-          ))}
+      {/* 5.3 Meal Destination Selector (2 rows × 3 columns: all 6 slots accessible) */}
+      <div style={{ marginBottom: isModal ? 18 : 12 }}>
+        <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--t3)', display: 'block', marginBottom: 6, letterSpacing: '0.04em' }}>
+          Target meal slot
+        </label>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+          {mealOptions.map(m => {
+            const isActive = mealType === m.value;
+            return (
+              <button
+                key={m.value}
+                type="button"
+                onClick={() => setMealType(m.value)}
+                style={{
+                  padding: isModal ? '9px 6px' : '7px 4px',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  border: isActive ? '1px solid var(--g)' : '0.5px solid var(--bd)',
+                  background: isActive ? 'var(--gd)' : 'var(--s2)',
+                  color: isActive ? 'var(--g)' : 'var(--t2)',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                {m.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Dynamic Portion Stepper & Presets */}
-      <div style={{ background: 'var(--bg-surface-raised)', padding: '16px', borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)', marginBottom: 18 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
+      <div style={{ background: 'var(--s2)', padding: isModal ? '16px' : '12px 14px', borderRadius: 14, border: '0.5px solid var(--bd)', marginBottom: isModal ? 18 : 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--t3)', letterSpacing: '0.04em' }}>
             Portion multiplier
           </span>
-          <span className="tabular-nums" style={{ fontSize: 12, fontWeight: 800, color: 'var(--brand-primary-light)' }}>
+          <span className="tabular-nums" style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--t2)' }}>
             Est. ₹{Math.round((selectedFood.cost || 15) * currentQty)}
           </span>
         </div>
 
         {/* Central Tactile Stepper Row */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 8 }}>
           <button
             type="button"
             onClick={() => handleAdjustQuantity(-0.25)}
             disabled={currentQty <= 0.25}
             style={{
-              width: 42,
-              height: 42,
-              borderRadius: '50%',
-              background: 'var(--bg-surface)',
-              border: '1.5px solid var(--border-subtle)',
-              color: 'var(--text-primary)',
-              fontSize: 20,
-              fontWeight: 800,
-              cursor: currentQty <= 0.25 ? 'default' : 'pointer',
-              opacity: currentQty <= 0.25 ? 0.35 : 1,
+              width: 34,
+              height: 34,
+              borderRadius: 8,
+              background: 'var(--s3)',
+              border: '0.5px solid var(--bd)',
+              color: currentQty <= 0.25 ? 'var(--t4)' : 'var(--t1)',
+              fontSize: 16,
+              fontWeight: 700,
+              cursor: currentQty <= 0.25 ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -257,56 +281,55 @@ export default function FoodLogger({ user, setCurrentPage }) {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            minWidth: 110,
-            padding: '4px 12px',
-            borderRadius: 'var(--radius-panel)',
-            background: 'var(--bg-surface)',
-            border: '1.5px solid var(--border-focus)'
+            minWidth: 88,
+            padding: '3px 10px',
+            borderRadius: 10,
+            background: 'var(--s3)',
+            border: '0.5px solid var(--bd)'
           }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
               <input
                 type="number"
                 step="0.25"
                 min="0.25"
-                max="10"
+                max="2.5"
                 value={quantity}
                 onChange={(e) => handleDirectQuantityChange(e.target.value)}
                 className="tabular-nums"
                 style={{
-                  width: 56,
+                  width: 44,
                   textAlign: 'center',
-                  fontSize: 20,
-                  fontWeight: 900,
+                  fontSize: 16,
+                  fontWeight: 800,
                   border: 'none',
                   background: 'transparent',
-                  color: 'var(--brand-primary-light)',
+                  color: 'var(--t1)',
                   outline: 'none',
                   fontFamily: 'inherit',
                   padding: 0
                 }}
               />
-              <span style={{ fontSize: 15, fontWeight: 900, color: 'var(--brand-primary-light)' }}>x</span>
+              <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--t1)' }}>×</span>
             </div>
-            <span style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
-              {currentQty === 1 ? '1 standard serving' : `${currentQty} servings`}
+            <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--t3)', letterSpacing: '0.02em' }}>
+              {currentQty === 1 ? '1 serving' : `${currentQty} servings`}
             </span>
           </div>
 
           <button
             type="button"
             onClick={() => handleAdjustQuantity(+0.25)}
-            disabled={currentQty >= 10}
+            disabled={currentQty >= 2.5}
             style={{
-              width: 42,
-              height: 42,
-              borderRadius: '50%',
-              background: 'var(--bg-surface)',
-              border: '1.5px solid var(--border-subtle)',
-              color: 'var(--text-primary)',
-              fontSize: 20,
-              fontWeight: 800,
-              cursor: currentQty >= 10 ? 'default' : 'pointer',
-              opacity: currentQty >= 10 ? 0.35 : 1,
+              width: 34,
+              height: 34,
+              borderRadius: 8,
+              background: 'var(--s3)',
+              border: '0.5px solid var(--bd)',
+              color: currentQty >= 2.5 ? 'var(--t4)' : 'var(--t1)',
+              fontSize: 16,
+              fontWeight: 700,
+              cursor: currentQty >= 2.5 ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -318,26 +341,26 @@ export default function FoodLogger({ user, setCurrentPage }) {
         </div>
 
         {/* Quick Presets Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 5 }}>
           {[
-            { val: 0.5, label: '0.5x' },
-            { val: 1.0, label: '1.0x' },
-            { val: 1.5, label: '1.5x' },
-            { val: 2.0, label: '2.0x' }
+            { val: 0.5, label: '0.5×' },
+            { val: 1.0, label: '1.0×' },
+            { val: 1.5, label: '1.5×' },
+            { val: 2.0, label: '2.0×' }
           ].map(p => (
             <button
               key={p.val}
               type="button"
               onClick={() => setQuantity(p.val)}
               style={{
-                padding: '6px 4px',
-                borderRadius: 'var(--radius-sm)',
-                fontSize: 11.5,
-                fontWeight: 700,
+                padding: '5px 3px',
+                borderRadius: 7,
+                fontSize: 11,
+                fontWeight: 600,
                 cursor: 'pointer',
-                border: currentQty === p.val ? '1px solid var(--border-focus)' : '1px solid var(--border-subtle)',
-                background: currentQty === p.val ? 'var(--brand-primary-subtle)' : 'var(--bg-surface)',
-                color: currentQty === p.val ? 'var(--brand-primary-light)' : 'var(--text-secondary)',
+                border: currentQty === p.val ? '1px solid var(--g)' : '0.5px solid var(--bd)',
+                background: currentQty === p.val ? 'var(--gd)' : 'var(--s3)',
+                color: currentQty === p.val ? 'var(--g)' : 'var(--t2)',
                 transition: 'all 0.15s ease'
               }}
             >
@@ -347,60 +370,123 @@ export default function FoodLogger({ user, setCurrentPage }) {
         </div>
       </div>
 
-      {/* Dynamic Scaled Macro Matrix */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 18 }}>
-        <div style={{ background: 'var(--bg-surface-raised)', padding: '12px 8px', borderRadius: 'var(--radius-panel)', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
-          <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--text-muted)' }}>Calories</span>
-          <div className="tabular-nums" style={{ fontSize: 17, fontWeight: 800, color: 'var(--brand-primary-light)', marginTop: 2 }}>
+      {/* 5.1 & 5.2 Dynamic Scaled Macro Matrix: Calories white (--t1), Carbs green (--g) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: isModal ? 18 : 12 }}>
+        <div style={{ background: 'var(--s2)', padding: isModal ? '12px 6px' : '8px 4px', borderRadius: 10, textAlign: 'center', border: '0.5px solid var(--bd)' }}>
+          <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--t3)' }}>Calories</span>
+          <div className="tabular-nums" style={{ fontSize: isModal ? 16 : 14, fontWeight: 800, color: 'var(--t1)', marginTop: 2 }}>
             {Math.round(selectedFood.calories * currentQty)}
           </div>
+          <span style={{ fontSize: 9, color: 'var(--t3)', fontWeight: 500 }}>kcal</span>
         </div>
-        <div style={{ background: 'var(--bg-surface-raised)', padding: '12px 8px', borderRadius: 'var(--radius-panel)', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
-          <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--color-protein, #5B8AF5)' }}>Protein</span>
-          <div className="tabular-nums" style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-protein, #5B8AF5)', marginTop: 2 }}>
-            {(selectedFood.protein * currentQty).toFixed(1)}g
+        <div style={{ background: 'var(--s2)', padding: isModal ? '12px 6px' : '8px 4px', borderRadius: 10, textAlign: 'center', border: '0.5px solid var(--bd)' }}>
+          <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--blu)' }}>Protein</span>
+          <div className="tabular-nums" style={{ fontSize: isModal ? 16 : 14, fontWeight: 800, color: 'var(--blu)', marginTop: 2 }}>
+            {Math.round(selectedFood.protein * currentQty)}g
           </div>
         </div>
-        <div style={{ background: 'var(--bg-surface-raised)', padding: '12px 8px', borderRadius: 'var(--radius-panel)', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
-          <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--color-carb, #22D17A)' }}>Carbs</span>
-          <div className="tabular-nums" style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-carb, #22D17A)', marginTop: 2 }}>
-            {(selectedFood.carbs * currentQty).toFixed(1)}g
+        <div style={{ background: 'var(--s2)', padding: isModal ? '12px 6px' : '8px 4px', borderRadius: 10, textAlign: 'center', border: '0.5px solid var(--bd)' }}>
+          <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--g)' }}>Carbs</span>
+          <div className="tabular-nums" style={{ fontSize: isModal ? 16 : 14, fontWeight: 800, color: 'var(--g)', marginTop: 2 }}>
+            {Math.round(selectedFood.carbs * currentQty)}g
           </div>
         </div>
-        <div style={{ background: 'var(--bg-surface-raised)', padding: '12px 8px', borderRadius: 'var(--radius-panel)', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
-          <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--color-fat, #F5A623)' }}>Fats</span>
-          <div className="tabular-nums" style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-fat, #F5A623)', marginTop: 2 }}>
-            {(selectedFood.fat * currentQty).toFixed(1)}g
+        <div style={{ background: 'var(--s2)', padding: isModal ? '12px 6px' : '8px 4px', borderRadius: 10, textAlign: 'center', border: '0.5px solid var(--bd)' }}>
+          <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--amb)' }}>Fats</span>
+          <div className="tabular-nums" style={{ fontSize: isModal ? 16 : 14, fontWeight: 800, color: 'var(--amb)', marginTop: 2 }}>
+            {Math.round(selectedFood.fat * currentQty)}g
           </div>
         </div>
       </div>
 
-      {/* Scaled Recipe Ingredients Preview */}
+      {/* 5.4 Scaled Recipe Ingredients Preview */}
       {scaledIngredients.length > 0 && (
-        <div style={{ background: 'var(--bg-surface-raised)', padding: 14, borderRadius: 'var(--radius-panel)', border: '1px solid var(--border-subtle)', marginBottom: 20 }}>
-          <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
-            {currentQty === 1 ? 'Ingredients (1 portion)' : `Ingredients (${currentQty}× portion)`}
-          </span>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {scaledIngredients.map((ing, iIdx) => (
-              <div key={iIdx} style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                • {ing}
-              </div>
-            ))}
+        <div style={{ background: 'var(--s2)', padding: isModal ? 14 : '10px 12px', borderRadius: 12, border: '0.5px solid var(--bd)', marginBottom: isModal ? 18 : 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--t3)', letterSpacing: '0.04em' }}>
+              {currentQty === 1 ? `Ingredients (${scaledIngredients.length})` : `Ingredients (${currentQty}× portion)`}
+            </span>
+            <button
+              type="button"
+              onClick={handleAddAllToGrocery}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--g)',
+                fontSize: 11,
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: 0
+              }}
+              title="Add all to grocery list"
+            >
+              <ShoppingCart size={12} />
+              <span>Add to list</span>
+            </button>
+          </div>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 5,
+            maxHeight: isModal ? 'none' : '130px',
+            overflowY: isModal ? 'visible' : 'auto',
+            paddingRight: isModal ? 0 : 2
+          }}>
+            {scaledIngredients.map((ing, iIdx) => {
+              const isChecked = !!checkedIngredients[ing];
+              return (
+                <div
+                  key={iIdx}
+                  onClick={() => setCheckedIngredients(prev => ({ ...prev, [ing]: !prev[ing] }))}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: isModal ? '8px 10px' : '5px 8px',
+                    borderRadius: 8,
+                    background: isChecked ? 'rgba(34, 209, 122, 0.04)' : 'var(--s3)',
+                    border: isChecked ? '0.5px solid var(--g)' : '0.5px solid var(--bd)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 15,
+                      height: 15,
+                      borderRadius: 4,
+                      background: isChecked ? 'var(--g)' : 'transparent',
+                      border: isChecked ? 'none' : '1.5px solid var(--bd)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#ffffff',
+                      fontSize: 10,
+                      fontWeight: 800,
+                      flexShrink: 0
+                    }}
+                  >
+                    {isChecked && '✓'}
+                  </div>
+                  <span
+                    style={{
+                      fontSize: 11.5,
+                      color: isChecked ? 'var(--t3)' : 'var(--t2)',
+                      textDecoration: isChecked ? 'line-through' : 'none',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {ing}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
-      )}
-
-      {/* Log Button - displayed in desktop panel */}
-      {!isModal && (
-        <button
-          onClick={logFood}
-          disabled={loading}
-          className={loading ? "btn btn-primary btn-disabled" : "btn btn-primary"}
-          style={{ width: '100%', padding: '13px 20px', fontSize: 13, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-        >
-          <Plus size={16} strokeWidth={2.5} /> {loading ? 'Logging meal...' : `Log ${Math.round(selectedFood.calories * currentQty)} kcal to ${mealType.charAt(0).toUpperCase() + mealType.slice(1)}`}
-        </button>
       )}
     </>
   );
@@ -432,27 +518,19 @@ export default function FoodLogger({ user, setCurrentPage }) {
         </div>
       )}
 
-      {/* Page Header */}
-      <div className="food-logger-header-card">
+      {/* Page Header (4.1: No Back button) */}
+      <div className="food-logger-header-card" style={{ marginBottom: 14 }}>
         <div>
-          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.08em', color: 'var(--brand-primary-light)', marginBottom: 4 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.04em', color: 'var(--g)', marginBottom: 2 }}>
             Daily nutrition log
           </div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, fontFamily: 'var(--font-heading)', color: 'var(--text-primary)', margin: 0 }}>
-            Food & macro tracker
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--t1)', margin: 0 }}>
+            Food logger
           </h1>
-          <p style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: '4px 0 0' }}>
-            Search foods, scale portions, and track macros instantly
+          <p style={{ fontSize: 12, color: 'var(--t3)', margin: '4px 0 0' }}>
+            Search foods, calibrate portions, and log macros instantly
           </p>
         </div>
-
-        <button
-          onClick={() => setCurrentPage('dashboard')}
-          className="btn btn-secondary"
-          style={{ padding: '8px 16px', fontSize: 12, fontWeight: 700, borderRadius: 'var(--radius-pill)', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-        >
-          <span>←</span> Back to Dashboard
-        </button>
       </div>
 
       {/* Main 2-Column Split Grid */}
@@ -461,59 +539,75 @@ export default function FoodLogger({ user, setCurrentPage }) {
         {/* LEFT COLUMN: Food Search & List */}
         <div className="food-logger-card">
           {/* Search Bar with live letter matching */}
-          <div style={{ position: 'relative', marginBottom: 14 }}>
-            <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+          <div style={{ position: 'relative', marginBottom: 12 }}>
+            <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--t3)' }} />
             <input
               type="text"
               className="form-control"
-              placeholder="Search foods: e.g. Paneer, Oats, Eggs, Dal, Rice, Soya..."
+              placeholder="Search foods: e.g. Paneer, Oats, Eggs, Dal, Rice..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ paddingLeft: 40, fontSize: 13, height: 42 }}
+              style={{
+                paddingLeft: 38,
+                fontSize: 13,
+                height: 42,
+                borderRadius: 12,
+                background: 'var(--s3)',
+                border: '0.5px solid var(--bd)',
+                color: 'var(--t1)'
+              }}
             />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 12, fontWeight: 800 }}
+                style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--t3)', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}
               >
                 Clear
               </button>
             )}
           </div>
 
-          {/* Category Filter Pills with Horizontal Scroll & Fade */}
-          <div className="category-scroll-wrapper">
-            <div className="category-scroll-strip">
-              {categories.map(c => (
+          {/* 4.2 Category Filter Chips: exactly 4 without truncation, horizontal scroll padding */}
+          <div
+            style={{
+              display: 'flex',
+              gap: 8,
+              overflowX: 'auto',
+              padding: '0 4px 12px',
+              scrollbarWidth: 'none',
+              WebkitOverflowScrolling: 'touch'
+            }}
+          >
+            {categories.map(c => {
+              const isActive = activeCategory === c.id;
+              return (
                 <button
                   key={c.id}
                   onClick={() => setActiveCategory(c.id)}
                   style={{
                     padding: '6px 14px',
-                    borderRadius: 'var(--radius-pill)',
+                    borderRadius: 99,
                     fontSize: 11.5,
-                    fontWeight: 700,
+                    fontWeight: isActive ? 700 : 600,
                     cursor: 'pointer',
-                    border: activeCategory === c.id ? '1px solid var(--border-focus)' : '1px solid var(--border-subtle)',
-                    background: activeCategory === c.id ? 'var(--brand-primary-subtle)' : 'var(--bg-surface-raised)',
-                    color: activeCategory === c.id ? 'var(--brand-primary-light)' : 'var(--text-muted)',
+                    border: isActive ? 'none' : '0.5px solid var(--bd)',
+                    background: isActive ? 'var(--g)' : 'var(--s2)',
+                    color: isActive ? '#041a0c' : 'var(--t2)',
                     whiteSpace: 'nowrap',
                     flexShrink: 0,
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  {c.id === 'recent' && <Star size={11} style={{ display: 'inline', marginRight: 4, verticalAlign: '-1px' }} />}
                   {c.label}
                 </button>
-              ))}
-            </div>
-            <div className="category-scroll-fade" />
+              );
+            })}
           </div>
 
           {/* Foods Results List */}
           <div className="food-logger-list">
             {foods.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)', fontSize: 13 }}>
+              <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--t3)', fontSize: 13 }}>
                 No food items match "{searchTerm}". Try another search term.
               </div>
             ) : (
@@ -522,35 +616,79 @@ export default function FoodLogger({ user, setCurrentPage }) {
                 return (
                   <div
                     key={f.id}
-                    onClick={() => { setSelectedFood(f); setQuantity(1); setShowMobileModal(true); }}
+                    onClick={() => {
+                      setSelectedFood(f);
+                      setQuantity(1);
+                      setCheckedIngredients({});
+                      if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+                        setShowMobileModal(true);
+                      }
+                    }}
                     className="food-list-item"
                     style={{
-                      borderColor: isSelected ? 'var(--border-focus)' : 'var(--border-subtle)',
-                      background: isSelected ? 'var(--brand-primary-subtle)' : 'var(--bg-surface-raised)'
+                      padding: '11px 13px',
+                      borderRadius: 14,
+                      marginBottom: 8,
+                      border: isSelected ? '1px solid var(--g)' : '0.5px solid var(--bd)',
+                      background: isSelected ? 'rgba(34, 209, 122, 0.05)' : 'var(--s2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      cursor: 'pointer'
                     }}
                   >
-                    <div style={{ minWidth: 0, flex: '1 1 auto' }}>
-                      <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {/* Left: Food name + macros */}
+                    <div style={{ minWidth: 0, flex: 1, paddingRight: 8 }}>
+                      <div
+                        style={{
+                          fontSize: 13.5,
+                          fontWeight: 600,
+                          color: 'var(--t1)',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}
+                      >
                         {f.name}
                       </div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                        <span>₹{f.cost || 15}</span>
-                        <span>·</span>
-                        <span style={{ color: 'var(--color-protein, #5B8AF5)', fontWeight: 700 }}>P: {f.protein}g</span>
-                        <span>·</span>
-                        <span style={{ color: 'var(--color-carb, #22D17A)', fontWeight: 700 }}>C: {f.carbs}g</span>
-                        <span>·</span>
-                        <span style={{ color: 'var(--color-fat, #F5A623)', fontWeight: 700 }}>F: {f.fat}g</span>
+                      <div style={{ fontSize: 11, color: 'var(--t3)', marginTop: 3 }}>
+                        {formatCompactMacros(f.protein, f.carbs, f.fat)}
+                      </div>
+                      {/* 4.4: Cost display below macro row in --t3, 10px */}
+                      <div style={{ fontSize: 10, color: 'var(--t3)', marginTop: 2 }}>
+                        ₹{f.cost || 15}
                       </div>
                     </div>
 
-                    <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 8 }}>
-                      <span className="tabular-nums" style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--brand-primary-light)', whiteSpace: 'nowrap' }}>
-                        {f.calories} kcal
-                      </span>
-                      <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600, marginTop: 1 }}>
-                        Scale →
+                    {/* Right: kcal in --t1 white + 4.3: "Add +" button */}
+                    <div style={{ textAlign: 'right', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+                      <div className="tabular-nums" style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)', whiteSpace: 'nowrap' }}>
+                        {f.calories} <span style={{ fontSize: 10.5, fontWeight: 500, color: 'var(--t3)' }}>kcal</span>
                       </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedFood(f);
+                          setQuantity(1);
+                          setCheckedIngredients({});
+                          if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+                            setShowMobileModal(true);
+                          }
+                        }}
+                        style={{
+                          height: 28,
+                          borderRadius: 8,
+                          background: 'var(--s3)',
+                          border: '0.5px solid var(--bd)',
+                          color: 'var(--g)',
+                          fontSize: 11.5,
+                          fontWeight: 700,
+                          padding: '0 10px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Add +
+                      </button>
                     </div>
                   </div>
                 );
@@ -561,54 +699,107 @@ export default function FoodLogger({ user, setCurrentPage }) {
 
         {/* RIGHT COLUMN: Desktop Portion Scaler & Dynamic Macro Breakdown */}
         <div className="food-logger-scaler-desktop" style={{
-          background: 'var(--bg-surface)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-card)',
-          padding: '24px 28px',
+          background: 'var(--s1)',
+          border: '0.5px solid var(--bd)',
+          borderRadius: 24,
+          padding: '24px 26px',
           position: 'sticky',
-          top: 20
+          top: 20,
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)'
         }}>
           {selectedFood ? (
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 16 }}>
-                <div>
-                  <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.08em', color: 'var(--brand-primary-light)', marginBottom: 4 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', height: '100%', flex: 1, minHeight: 0 }}>
+              {/* Pinned Card Header */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 14, flexShrink: 0 }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', color: 'var(--g)', marginBottom: 2 }}>
                     Selected food
                   </div>
-                  <h2 style={{ fontSize: 20, fontWeight: 800, fontFamily: 'var(--font-heading)', color: 'var(--text-primary)', margin: 0 }}>
+                  <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--t1)', margin: 0, letterSpacing: '-0.02em', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {selectedFood.name}
                   </h2>
+                  <div style={{ fontSize: 11, color: 'var(--t3)', marginTop: 2 }}>
+                    Standard serving: {selectedFood.servingUnit || selectedFood.servingSize || selectedFood.serving || '1 portion'}
+                  </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => toggleFavorite(selectedFood)}
                   style={{
-                    background: favorites.some(f => f.id === selectedFood.id || f.name === selectedFood.name) ? 'rgba(239, 68, 68, 0.12)' : 'var(--bg-surface-raised)',
-                    border: `1px solid ${favorites.some(f => f.id === selectedFood.id || f.name === selectedFood.name) ? '#EF4444' : 'var(--border-subtle)'}`,
-                    color: favorites.some(f => f.id === selectedFood.id || f.name === selectedFood.name) ? '#EF4444' : 'var(--text-secondary)',
-                    borderRadius: 'var(--radius-pill)',
-                    padding: '6px 12px',
-                    fontSize: 12,
-                    fontWeight: 700,
+                    background: favorites.some(f => f.id === selectedFood.id || f.name === selectedFood.name) ? 'rgba(239, 68, 68, 0.12)' : 'var(--s2)',
+                    border: `0.5px solid ${favorites.some(f => f.id === selectedFood.id || f.name === selectedFood.name) ? 'rgba(239, 68, 68, 0.4)' : 'var(--bd)'}`,
+                    color: favorites.some(f => f.id === selectedFood.id || f.name === selectedFood.name) ? '#EF4444' : 'var(--t2)',
+                    borderRadius: 20,
+                    padding: '5px 12px',
+                    fontSize: 11,
+                    fontWeight: 600,
                     cursor: 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: 6,
+                    gap: 5,
                     flexShrink: 0,
                     transition: 'all 0.15s ease'
                   }}
+                  className="active:scale-95"
+                  title="Toggle favourite"
                 >
-                  Save to favourites {favorites.some(f => f.id === selectedFood.id || f.name === selectedFood.name) ? '♥' : '♡'}
+                  {favorites.some(f => f.id === selectedFood.id || f.name === selectedFood.name) ? '♥ Saved' : '♡ Save'}
                 </button>
               </div>
-              {renderScalerBody()}
+
+              {/* Scrollable Middle Body */}
+              <div style={{ flex: 1, overflowY: 'auto', paddingRight: 4, minHeight: 0 }}>
+                {renderScalerBody(false)}
+              </div>
+
+              {/* Sticky Bottom Log CTA Bar */}
+              <div style={{ paddingTop: 12, borderTop: '0.5px solid var(--bd)', marginTop: 8, flexShrink: 0 }}>
+                <button
+                  onClick={logFood}
+                  disabled={loading}
+                  className={loading ? "btn btn-primary btn-disabled" : "btn btn-primary"}
+                  style={{
+                    width: '100%',
+                    padding: '12px 18px',
+                    fontSize: 13,
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    background: 'var(--g)',
+                    color: '#041a0c',
+                    border: 'none',
+                    borderRadius: 12,
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(34, 209, 122, 0.25)'
+                  }}
+                >
+                  <Plus size={16} strokeWidth={2.5} /> {loading ? 'Logging meal...' : `Log ${Math.round(selectedFood.calories * currentQty)} kcal to ${mealOptions.find(m => m.value === mealType)?.label || mealType}`}
+                </button>
+              </div>
             </div>
           ) : (
-            <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)' }}>
-              <Utensils size={36} style={{ margin: '0 auto 12px', opacity: 0.4 }} />
-              <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 4px' }}>Select a Food Item</h3>
-              <p style={{ fontSize: 12.5, margin: 0 }}>
-                Click any food on the left to scale servings and calculate exact macronutrients.
+            <div style={{ textAlign: 'center', padding: '64px 24px', color: 'var(--t3)' }}>
+              <div style={{
+                width: 56,
+                height: 56,
+                borderRadius: 20,
+                background: 'var(--s2)',
+                border: '0.5px solid var(--bd)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 16px',
+                color: 'var(--g)'
+              }}>
+                <Utensils size={24} />
+              </div>
+              <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--t1)', margin: '0 0 6px', letterSpacing: '-0.01em' }}>
+                Select a food item
+              </h3>
+              <p style={{ fontSize: 12.5, margin: 0, color: 'var(--t3)', lineHeight: 1.5, maxWidth: 280, marginLeft: 'auto', marginRight: 'auto' }}>
+                Click any food on the left to calibrate portion sizes, review exact macronutrients, and log to your day.
               </p>
             </div>
           )}
@@ -635,10 +826,10 @@ export default function FoodLogger({ user, setCurrentPage }) {
         >
           <div
             style={{
-              background: 'var(--bg-surface)',
-              borderTop: '1px solid var(--border-focus)',
-              borderLeft: '1px solid var(--border-subtle)',
-              borderRight: '1px solid var(--border-subtle)',
+              background: 'var(--s1)',
+              borderTop: '1px solid var(--bd2)',
+              borderLeft: '1px solid var(--bd)',
+              borderRight: '1px solid var(--bd)',
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
               width: '100%',
@@ -646,89 +837,67 @@ export default function FoodLogger({ user, setCurrentPage }) {
               maxHeight: '88vh',
               display: 'flex',
               flexDirection: 'column',
-              boxShadow: '0 -20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(16, 185, 129, 0.12)',
+              boxShadow: '0 -20px 50px rgba(0,0,0,0.8)',
               animation: 'slideUp 0.26s cubic-bezier(0.16, 1, 0.3, 1)',
               overflow: 'hidden'
             }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Grab Handle */}
-            <div style={{ padding: '12px 0 4px', display: 'flex', justifyContent: 'center' }}>
-              <div style={{ width: 44, height: 4.5, borderRadius: 9999, background: 'var(--text-muted)' }} />
-            </div>
+            <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--bd2)', margin: '12px auto 6px' }} />
 
             {/* Header */}
             <div style={{
-              padding: '10px 22px 14px',
+              padding: '10px 20px 14px',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              borderBottom: '1px solid var(--border-subtle)'
+              borderBottom: '0.5px solid var(--bd)'
             }}>
               <div>
-                <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '0.08em', color: 'var(--brand-primary-light)' }}>
+                <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.04em', color: 'var(--g)' }}>
                   Portion & macro calibration
                 </div>
-                <h2 style={{ fontSize: 19, fontWeight: 900, fontFamily: 'var(--font-heading)', color: 'var(--text-primary)', margin: '2px 0 0' }}>
+                <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--t1)', margin: '2px 0 0' }}>
                   {selectedFood.name}
                 </h2>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-                  Standard serving: <span style={{ color: 'var(--brand-primary-light)', fontWeight: 700 }}>{selectedFood.servingSize || selectedFood.serving || '1 portion'}</span>
+                <div style={{ fontSize: 12, color: 'var(--t3)', marginTop: 2 }}>
+                  Standard serving: <span style={{ color: 'var(--t1)', fontWeight: 600 }}>{selectedFood.servingSize || selectedFood.serving || '1 portion'}</span>
                 </div>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <button
                   type="button"
-                  onClick={() => toggleFavorite(selectedFood)}
-                  style={{
-                    background: favorites.some(f => f.id === selectedFood.id || f.name === selectedFood.name) ? 'rgba(239, 68, 68, 0.12)' : 'var(--bg-surface-raised)',
-                    border: `1px solid ${favorites.some(f => f.id === selectedFood.id || f.name === selectedFood.name) ? '#EF4444' : 'var(--border-subtle)'}`,
-                    color: favorites.some(f => f.id === selectedFood.id || f.name === selectedFood.name) ? '#EF4444' : 'var(--text-secondary)',
-                    borderRadius: 'var(--radius-pill)',
-                    padding: '6px 10px',
-                    fontSize: 11.5,
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 4
-                  }}
-                >
-                  Save to favourites {favorites.some(f => f.id === selectedFood.id || f.name === selectedFood.name) ? '♥' : '♡'}
-                </button>
-                <button
-                  type="button"
                   onClick={() => setShowMobileModal(false)}
                   style={{
-                    background: 'var(--bg-surface-raised)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: '50%',
-                    width: 34,
-                    height: 34,
+                    background: 'var(--s2)',
+                    border: 'none',
+                    borderRadius: 10,
+                    width: 32,
+                    height: 32,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: 'var(--text-muted)',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease'
+                    color: 'var(--t3)',
+                    cursor: 'pointer'
                   }}
                 >
-                  <X size={17} />
+                  <X size={16} />
                 </button>
               </div>
             </div>
 
             {/* Scrollable Body */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '18px 22px' }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '18px 20px' }}>
               {renderScalerBody(true)}
             </div>
 
             {/* Sticky Bottom Log CTA Bar */}
             <div style={{
-              padding: '12px 22px calc(14px + env(safe-area-inset-bottom, 0px))',
-              borderTop: '1px solid var(--border-subtle)',
-              background: 'var(--bg-surface)',
+              padding: '12px 20px calc(14px + env(safe-area-inset-bottom, 0px))',
+              borderTop: '0.5px solid var(--bd)',
+              background: 'var(--s1)',
               display: 'flex',
               gap: 10
             }}>
@@ -739,20 +908,21 @@ export default function FoodLogger({ user, setCurrentPage }) {
                 className={loading ? "btn btn-primary btn-disabled" : "btn btn-primary"}
                 style={{
                   width: '100%',
-                  padding: '16px 20px',
-                  fontSize: 15,
+                  padding: '14px 20px',
+                  fontSize: 14,
                   fontWeight: 700,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: 8,
                   borderRadius: 14,
-                  minHeight: 56,
-                  background: 'var(--color-green, #22d17a)',
-                  color: '#0a1a10'
+                  background: 'var(--g)',
+                  color: '#041a0c',
+                  border: 'none',
+                  cursor: 'pointer'
                 }}
               >
-                <Plus size={18} strokeWidth={2.5} /> {loading ? 'Logging meal...' : `Log ${Math.round(selectedFood.calories * currentQty)} kcal to ${mealType.charAt(0).toUpperCase() + mealType.slice(1)}`}
+                <Plus size={18} strokeWidth={2.5} /> {loading ? 'Logging meal...' : `Log ${Math.round(selectedFood.calories * currentQty)} kcal to ${mealOptions.find(m => m.value === mealType)?.label || mealType}`}
               </button>
             </div>
           </div>

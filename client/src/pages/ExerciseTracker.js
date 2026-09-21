@@ -1612,7 +1612,15 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
   // Streak & Shield
   const [streak, setStreak] = useState(0);
   const [streakShield, setStreakShield] = useState(false);
+  const [showShieldTooltip, setShowShieldTooltip] = useState(false);
   const [notification, setNotification] = useState(null);
+
+  useEffect(() => {
+    if (showShieldTooltip) {
+      const timer = setTimeout(() => setShowShieldTooltip(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showShieldTooltip]);
 
   // Modals & Drawers
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -1625,6 +1633,9 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
     trainingInjuries: user?.trainingInjuries || [],
     sessionTime: user?.sessionTime || 60,
   });
+
+  const isBeginner = ((generatedProgram?.profile?.trainingExperience || user?.trainingExperience || intakeForm?.trainingExperience || 'beginner').toLowerCase() === 'beginner');
+  const showRpe = !isBeginner;
 
   // Completed Session Summary Celebration Modal
   const [completedSummary, setCompletedSummary] = useState(null); // { name, duration, totalVolume, totalSets, prList }
@@ -1650,13 +1661,22 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
 
   // Body scroll lock effect whenever any modal is open
   useEffect(() => {
-    if (showIntakeModal || showCancelConfirm || completedSummary || previewTemplate || prCelebration || showExerciseSearchModal || smartAltTarget) {
+    const isAnyModalOpen = Boolean(
+      showIntakeModal || showCancelConfirm || completedSummary || previewTemplate || prCelebration || showExerciseSearchModal || smartAltTarget
+    );
+    if (isAnyModalOpen) {
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overscrollBehavior = 'contain';
     } else {
       document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      document.body.style.overscrollBehavior = '';
     }
     return () => {
       document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      document.body.style.overscrollBehavior = '';
     };
   }, [showIntakeModal, showCancelConfirm, completedSummary, previewTemplate, prCelebration, showExerciseSearchModal, smartAltTarget]);
 
@@ -3280,14 +3300,18 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
       {previewTemplate && createPortal(
         <div 
           onClick={() => setPreviewTemplate(null)}
+          onTouchMove={(e) => {
+            if (e.target === e.currentTarget) e.preventDefault();
+          }}
           style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            background: 'rgba(0, 0, 0, 0.7)',
+            background: 'rgba(0, 0, 0, 0.75)',
             backdropFilter: 'blur(8px)',
             zIndex: 999999,
             display: 'flex',
             justifyContent: 'flex-end',
-            animation: 'fadeIn 0.2s ease'
+            animation: 'fadeIn 0.2s ease',
+            overscrollBehavior: 'contain'
           }}
         >
           <div 
@@ -3298,7 +3322,8 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
               borderLeft: '1px solid var(--border-subtle)',
               display: 'flex', flexDirection: 'column',
               boxShadow: 'var(--shadow-overlay)',
-              position: 'relative'
+              position: 'relative',
+              overscrollBehavior: 'contain'
             }}
           >
             {/* Drawer Header */}
@@ -3331,7 +3356,16 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
             </div>
 
             {/* Drawer Body (Exercises) */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              overscrollBehavior: 'contain',
+              WebkitOverflowScrolling: 'touch',
+              padding: '20px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12
+            }}>
               <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
                 Included Exercises ({previewTemplate.exercises.length})
               </span>
@@ -3397,11 +3431,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
       {isConsoleMode ? (
         /* ==================== VIEW B: ACTIVE WORKOUT CONSOLE ==================== */
         <div className="fadeInUp" style={{
-          background: 'var(--bg-surface)',
-          borderRadius: 'var(--radius-card)',
-          border: '1px solid var(--border-subtle)',
-          boxShadow: 'var(--shadow-overlay)',
-          overflow: 'hidden',
+          background: 'var(--bg)',
           display: 'flex',
           flexDirection: 'column',
           width: '100%',
@@ -3415,73 +3445,81 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
               {/* Left: Digital Stopwatch + Workout Routine Title */}
               <div className="workout-console-header-top">
                 <div className="console-stopwatch-pill">
-                  <span className="pulse-dot" style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--brand-primary-light)', display: 'inline-block' }} />
-                  <Clock size={14} color="var(--brand-primary-light)" />
+                  <span className="pulse-dot" style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--g)', display: 'inline-block', boxShadow: '0 0 8px rgba(34, 209, 122, 0.6)' }} />
+                  <Clock size={14} color="var(--g)" />
                   <span className="tabular-nums console-stopwatch-time">
                     {formatMMSS(elapsedSeconds)}
                   </span>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                  <span style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)', letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--t1)', fontFamily: "'Inter', sans-serif", letterSpacing: '-0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {workoutName}
                   </span>
-                  <span className="tabular-nums" style={{ fontSize: 10.5, fontWeight: 800, background: 'var(--bg-surface-raised)', color: 'var(--text-secondary)', padding: '3px 8px', borderRadius: 6, border: '1px solid var(--border-subtle)', flexShrink: 0 }}>
+                  <span className="tabular-nums" style={{ fontSize: 11, fontWeight: 700, background: 'var(--s2)', color: 'var(--t2)', padding: '3px 8px', borderRadius: 6, border: '0.5px solid var(--bd2)', flexShrink: 0 }}>
                     {activeExercises.reduce((acc, ex) => acc + (ex.sets || []).filter(s => s.completed).length, 0)} / {activeExercises.reduce((acc, ex) => acc + (ex.sets || []).length, 0)} Sets
                   </span>
                 </div>
               </div>
 
-              {/* Desktop Actions */}
+              {/* Desktop Actions (Single Clean Global Active Bar) */}
               <div className="workout-console-header-actions desktop-header-actions" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   onClick={() => setShowCancelConfirm(true)}
+                  className="tactile-btn"
                   style={{
-                    background: 'none',
-                    border: 'none',
-                    color: 'var(--text-muted)',
-                    fontSize: 11,
-                    fontWeight: 600,
+                    height: 32,
+                    padding: '0 12px',
+                    borderRadius: 10,
+                    background: 'rgba(244, 63, 94, 0.1)',
+                    border: '1px solid rgba(244, 63, 94, 0.25)',
+                    color: '#fb7185',
+                    fontSize: 12,
+                    fontWeight: 700,
                     cursor: 'pointer',
-                    padding: '6px 8px',
-                    textDecoration: 'underline',
-                    opacity: 0.75
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    transition: 'all 0.15s ease'
                   }}
                 >
-                  Discard Session
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsConsoleMode(false);
-                    scrollToTop();
-                  }}
-                  className="btn btn-secondary"
-                  style={{ padding: '8px 14px', fontSize: 12, borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800 }}
-                  title="Browse other tabs while your workout stays active in the background"
-                >
-                  <ArrowLeft size={13} /> Minimize
+                  <Trash2 size={13} color="#fb7185" />
+                  <span>Discard Session</span>
                 </button>
 
                 <button
                   onClick={handleFinishWorkout}
-                  className="btn btn-primary"
-                  style={{ padding: '8px 18px', fontSize: 12, borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 900, background: 'var(--brand-primary-light)', color: '#000' }}
+                  className="tactile-btn"
+                  style={{
+                    height: 32,
+                    padding: '0 18px',
+                    fontSize: 12.5,
+                    borderRadius: 10,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    fontWeight: 800,
+                    background: 'var(--g)',
+                    color: '#041a0c',
+                    border: 'none',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(34, 209, 122, 0.35)'
+                  }}
                 >
-                  <Check size={14} strokeWidth={2.5} /> Finish Workout
+                  <Check size={14} strokeWidth={2.5} color="#041a0c" />
+                  <span>Finish Workout</span>
                 </button>
               </div>
             </div>
 
-            {/* Mobile Sticky Top Bar (Tier 1: Global Session Controls) */}
+            {/* Mobile Sticky Top Bar (Tier 1: Global Session Controls - STRICTLY MOBILE ONLY) */}
             <div
-              className="workout-console-header-mobile h-12 px-4 flex items-center justify-between"
+              className="workout-console-header-mobile md:hidden h-12 px-4 flex items-center justify-between"
               style={{
                 height: 48,
                 padding: '0 16px',
-                display: 'flex',
+                display: isMobileViewport ? 'flex' : 'none',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 width: '100%',
@@ -3496,15 +3534,16 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                   setIsConsoleMode(false);
                   scrollToTop();
                 }}
-                className="console-mobile-minimize-btn h-8 px-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-zinc-300 flex items-center gap-1 shrink-0 cursor-pointer active:scale-95"
+                className="console-mobile-minimize-btn active:scale-95"
                 style={{
                   height: 32,
                   padding: '0 10px',
-                  backgroundColor: '#18181b',
-                  border: '1px solid #27272a',
-                  borderRadius: 8,
+                  backgroundColor: 'var(--s2)',
+                  border: '0.5px solid var(--bd)',
+                  borderRadius: 10,
                   fontSize: 12,
-                  color: '#d4d4d8',
+                  fontWeight: 700,
+                  color: 'var(--t1)',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 4,
@@ -3528,11 +3567,11 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                   justifyContent: 'center'
                 }}
               >
-                <span className="tabular-nums" style={{ color: 'var(--color-green)', fontSize: 18, fontWeight: 700, fontFamily: 'var(--font-mono, monospace)', letterSpacing: '-0.02em' }}>
+                <span className="tabular-nums" style={{ color: 'var(--g)', fontSize: 17, fontWeight: 800, fontFamily: "'JetBrains Mono', monospace", letterSpacing: '-0.02em' }}>
                   {formatMMSS(elapsedSeconds)}
                 </span>
-                <span style={{ fontSize: 14, color: 'var(--text-muted)' }}>|</span>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120, fontSize: 14, fontWeight: 600, color: 'var(--text-secondary)' }}>
+                <span style={{ fontSize: 13, color: 'var(--t3)' }}>|</span>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120, fontSize: 13, fontWeight: 700, color: 'var(--t2)' }}>
                   {workoutName}
                 </span>
               </div>
@@ -3542,20 +3581,25 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                 <button
                   type="button"
                   onClick={handleFinishWorkout}
-                  className="nb-btn-secondary active:scale-95 flex items-center gap-1 cursor-pointer"
+                  className="tactile-btn"
                   style={{
                     height: 32,
-                    padding: '0 12px',
+                    padding: '0 14px',
                     fontSize: 12,
-                    fontWeight: 600,
+                    fontWeight: 800,
+                    background: 'var(--g)',
+                    color: '#041a0c',
+                    borderRadius: 10,
+                    border: 'none',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: 4,
                     cursor: 'pointer',
-                    whiteSpace: 'nowrap'
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 2px 10px rgba(34, 209, 122, 0.3)'
                   }}
                 >
-                  <Check size={13} strokeWidth={2.5} />
+                  <Check size={13} strokeWidth={3} color="#041a0c" />
                   <span>Finish</span>
                 </button>
 
@@ -3570,7 +3614,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                       padding: 0,
                       backgroundColor: 'transparent',
                       border: 'none',
-                      color: 'var(--text-muted)',
+                      color: 'var(--t3)',
                       display: 'inline-flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -3592,9 +3636,9 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                           position: 'absolute',
                           top: 'calc(100% + 6px)',
                           right: 0,
-                          backgroundColor: '#12141A',
-                          border: '1px solid #27272A',
-                          borderRadius: 12,
+                          backgroundColor: 'var(--s1)',
+                          border: '0.5px solid var(--bd)',
+                          borderRadius: 14,
                           padding: 6,
                           boxShadow: '0 10px 30px rgba(0,0,0,0.8)',
                           zIndex: 200,
@@ -3607,7 +3651,6 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                             setShowConsoleOverflow(false);
                             setShowCancelConfirm(true);
                           }}
-                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-rose-400 hover:bg-zinc-800/80 cursor-pointer"
                           style={{
                             width: '100%',
                             display: 'flex',
@@ -3617,14 +3660,14 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                             borderRadius: 8,
                             backgroundColor: 'transparent',
                             border: 'none',
-                            color: '#EF4444',
+                            color: '#fb7185',
                             fontSize: 12,
-                            fontWeight: 600,
+                            fontWeight: 700,
                             cursor: 'pointer',
                             textAlign: 'left'
                           }}
                         >
-                          <Trash2 size={13} color="#EF4444" />
+                          <Trash2 size={13} color="#fb7185" />
                           <span>Discard Workout</span>
                         </button>
                       </div>
@@ -3637,14 +3680,14 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
             {/* Mobile-Only Interactive Exercise Switcher Track (Directly Underneath Top Bar) */}
             <div
               ref={carouselTrackRef}
-              className="console-mobile-chips-track flex md:hidden overflow-x-auto no-scrollbar gap-1.5 py-2 px-3 bg-[#09090C] border-b border-zinc-800/80 mb-3"
+              className="console-mobile-chips-track flex md:hidden overflow-x-auto no-scrollbar gap-1.5 py-2 px-3 mb-3"
               style={{
                 display: 'flex',
                 overflowX: 'auto',
                 gap: 6,
                 padding: '8px 12px',
-                backgroundColor: '#09090C',
-                borderBottom: '1px solid rgba(39, 39, 42, 0.8)',
+                backgroundColor: 'var(--s1)',
+                borderBottom: '0.5px solid var(--bd)',
                 marginBottom: 12,
                 boxSizing: 'border-box',
                 width: '100%',
@@ -3677,19 +3720,19 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                       alignItems: 'center',
                       gap: 6,
                       cursor: 'pointer',
-                      background: isCurrent ? 'rgba(34, 209, 122, 0.08)' : 'transparent',
+                      background: isCurrent ? 'var(--gd)' : 'transparent',
                       border: 'none',
-                      borderBottom: isCurrent ? '2px solid var(--color-green)' : '2px solid transparent',
-                      color: isCurrent ? 'var(--text-primary)' : 'var(--text-muted)',
+                      borderBottom: isCurrent ? '2px solid var(--g)' : '2px solid transparent',
+                      color: isCurrent ? 'var(--t1)' : 'var(--t2)',
                       fontSize: 13,
-                      fontWeight: isCurrent ? 600 : 500
+                      fontWeight: isCurrent ? 700 : 500
                     }}
                   >
                     <span>{ex.name}</span>
                     <span style={{
                       fontSize: 11,
-                      fontWeight: 600,
-                      color: isCurrent ? 'var(--color-green)' : isAllDone ? 'var(--color-green)' : 'var(--text-muted)'
+                      fontWeight: 700,
+                      color: isCurrent || isAllDone ? 'var(--g)' : 'var(--t3)'
                     }}>
                       {doneCount}/{totCount}
                     </span>
@@ -3699,24 +3742,25 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
               <button
                 type="button"
                 onClick={() => setShowExerciseSearchModal(true)}
-                className="h-8 text-xs px-2.5 rounded-xl bg-zinc-900/40 border border-zinc-800 text-zinc-400 shrink-0 flex items-center gap-1 cursor-pointer hover:text-white transition-all active:scale-95"
+                className="tactile-btn"
                 style={{
                   height: 32,
                   fontSize: 12,
                   padding: '0 10px',
-                  borderRadius: 12,
+                  borderRadius: 10,
                   flexShrink: 0,
                   whiteSpace: 'nowrap',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 4,
-                  backgroundColor: 'rgba(24, 24, 27, 0.4)',
-                  border: '1px dashed #3f3f46',
-                  color: '#a1a1aa',
+                  backgroundColor: 'var(--s2)',
+                  border: '0.5px dashed var(--bd)',
+                  color: 'var(--t2)',
+                  fontWeight: 700,
                   cursor: 'pointer'
                 }}
               >
-                <Plus size={12} color="#10B981" />
+                <Plus size={12} color="var(--g)" />
                 <span>Add</span>
               </button>
             </div>
@@ -3727,8 +3771,8 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
           {/* ACTIVE REST TIMER BANNER (DESKTOP) */}
           {restActive && (
             <div className="desktop-rest-banner" style={{
-              background: restRemaining <= 10 ? 'rgba(239, 68, 68, 0.12)' : 'var(--brand-primary-subtle)',
-              borderBottom: `1px solid ${restRemaining <= 10 ? 'rgba(239, 68, 68, 0.3)' : 'var(--border-focus)'}`,
+              background: restRemaining <= 10 ? 'rgba(245, 91, 91, 0.12)' : 'var(--gd)',
+              borderBottom: `0.5px solid ${restRemaining <= 10 ? 'rgba(245, 91, 91, 0.3)' : 'var(--gb)'}`,
               padding: '10px 20px',
               display: 'flex',
               justifyContent: 'space-between',
@@ -3738,28 +3782,31 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
               gap: 8
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Clock size={15} color={restRemaining <= 10 ? '#EF4444' : 'var(--brand-primary-light)'} />
-                <span style={{ fontSize: 12.5, fontWeight: 800, color: restRemaining <= 10 ? '#EF4444' : 'var(--brand-primary-light)' }}>
+                <Clock size={15} color={restRemaining <= 10 ? 'var(--red)' : 'var(--g)'} />
+                <span style={{ fontSize: 12.5, fontWeight: 800, color: restRemaining <= 10 ? 'var(--red)' : 'var(--g)', fontFamily: "'JetBrains Mono', monospace" }}>
                   Resting: {restRemaining}s remaining
                 </span>
               </div>
 
               <div style={{ display: 'flex', gap: 6 }}>
                 <button
+                  type="button"
                   onClick={() => setRestRemaining(prev => prev + 30)}
-                  style={{ background: 'var(--bg-surface-raised)', border: '1px solid var(--border-subtle)', padding: '4px 10px', borderRadius: 8, fontSize: 11, color: 'var(--text-secondary)', cursor: 'pointer', fontWeight: 700 }}
+                  style={{ background: 'var(--s2)', border: '0.5px solid var(--bd)', padding: '5px 12px', borderRadius: 8, fontSize: 11, color: 'var(--t2)', cursor: 'pointer', fontWeight: 700, fontFamily: "'Inter', sans-serif" }}
                 >
                   +30s
                 </button>
                 <button
+                  type="button"
                   onClick={() => setRestRemaining(prev => Math.max(0, prev - 15))}
-                  style={{ background: 'var(--bg-surface-raised)', border: '1px solid var(--border-subtle)', padding: '4px 10px', borderRadius: 8, fontSize: 11, color: 'var(--text-secondary)', cursor: 'pointer', fontWeight: 700 }}
+                  style={{ background: 'var(--s2)', border: '0.5px solid var(--bd)', padding: '5px 12px', borderRadius: 8, fontSize: 11, color: 'var(--t2)', cursor: 'pointer', fontWeight: 700, fontFamily: "'Inter', sans-serif" }}
                 >
                   -15s
                 </button>
                 <button
+                  type="button"
                   onClick={() => setRestActive(false)}
-                  style={{ background: 'var(--bg-surface-raised)', border: '1px solid var(--border-subtle)', padding: '4px 12px', borderRadius: 8, fontSize: 11, color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 800 }}
+                  style={{ background: 'var(--s2)', border: '0.5px solid var(--bd)', padding: '5px 14px', borderRadius: 8, fontSize: 11, color: 'var(--t1)', cursor: 'pointer', fontWeight: 800, fontFamily: "'Inter', sans-serif" }}
                 >
                   Skip
                 </button>
@@ -3768,635 +3815,708 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
           )}
 
           {/* TOOL BOTTOM SHEET MODAL (PORTAL) - Accessible by both Desktop and Mobile */}
-          {/* TOOL BOTTOM SHEET MODAL (PORTAL) */}
-                  {activeDrawer && createPortal(
-                    <div className="app-modal-backdrop" onClick={() => setActiveDrawer(null)} style={{ zIndex: 1150 }}>
-                      <div
-                        className="native-bottom-sheet fadeInUp"
-                        onClick={e => e.stopPropagation()}
+          {activeDrawer && createPortal(
+            <div className="app-modal-backdrop" onClick={() => setActiveDrawer(null)} style={{ zIndex: 1150 }}>
+              <div
+                className="native-bottom-sheet fadeInUp"
+                onClick={e => e.stopPropagation()}
+                style={{
+                  position: 'fixed',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  background: 'var(--s1)',
+                  borderTop: '0.5px solid var(--bd)',
+                  borderTopLeftRadius: 20,
+                  borderTopRightRadius: 20,
+                  padding: '20px 20px calc(24px + env(safe-area-inset-bottom, 16px))',
+                  boxShadow: '0 -10px 40px rgba(0,0,0,0.6)',
+                  maxHeight: '82vh',
+                  overflowY: 'auto',
+                  maxWidth: 540,
+                  margin: '0 auto',
+                  fontFamily: "'Inter', sans-serif"
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
+                  <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--bd)' }} />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                  <span style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--t1)', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {activeDrawer === 'warmup' && <><Flame size={15} color="var(--g)" /> <span>Warm-Up Ramp Protocol</span></>}
+                    {activeDrawer === 'plates' && <><Disc size={15} color="var(--g)" /> <span>Barbell Plate Calculator</span></>}
+                    {activeDrawer === 'cues' && <><Sparkles size={15} color="var(--g)" /> <span>Form & Execution Cues</span></>}
+                    {activeDrawer === 'swap' && <><Repeat size={15} color="var(--g)" /> <span>Smart Exercise Alternatives</span></>}
+                    {activeDrawer === 'anatomy' && <><Activity size={15} color="var(--g)" /> <span>Muscle & Anatomy Profile</span></>}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setActiveDrawer(null)}
+                    style={{ background: 'var(--s2)', border: '0.5px solid var(--bd)', borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--t2)' }}
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
+
+                {activeDrawer === 'anatomy' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ background: 'var(--s2)', padding: 12, borderRadius: 12, border: '0.5px solid var(--bd2)' }}>
+                      <span style={{ fontSize: 10, color: 'var(--t3)', display: 'block', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Primary mover</span>
+                      <span style={{ fontWeight: 800, color: 'var(--t1)', fontSize: 14 }}>{currentActiveEx.targetAnatomy || currentActiveEx.muscleGroup}</span>
+                    </div>
+                    <div style={{ background: 'var(--s2)', padding: 12, borderRadius: 12, border: '0.5px solid var(--bd2)' }}>
+                      <span style={{ fontSize: 10, color: 'var(--t3)', display: 'block', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Assisting synergists</span>
+                      <span style={{ fontWeight: 700, color: 'var(--t2)', fontSize: 13 }}>{currentActiveEx.synergists || 'Stabilizing Core'}</span>
+                    </div>
+                    <div style={{ background: 'var(--s2)', padding: 12, borderRadius: 12, border: '0.5px solid var(--bd2)' }}>
+                      <span style={{ fontSize: 10, color: 'var(--t3)', display: 'block', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Movement plane</span>
+                      <span style={{ fontWeight: 700, color: 'var(--t2)', fontSize: 13 }}>{currentActiveEx.movementPlane || currentActiveEx.category}</span>
+                    </div>
+                  </div>
+                )}
+
+                {activeDrawer === 'cues' && (
+                  <div>
+                    {currentActiveEx.cues && currentActiveEx.cues.length > 0 ? (
+                      <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: 'var(--t2)', lineHeight: 1.8 }}>
+                        {currentActiveEx.cues.map((c, i) => <li key={i}>{c}</li>)}
+                      </ul>
+                    ) : (
+                      <p style={{ margin: 0, fontSize: 12, color: 'var(--t3)' }}>Focus on controlled eccentric lowering and explosive contraction.</p>
+                    )}
+                  </div>
+                )}
+
+                {activeDrawer === 'warmup' && (
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                      <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--g)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                        Target Working Load
+                      </span>
+                      <span style={{ fontSize: 12, color: 'var(--t2)' }}>
+                        Working Weight: <strong style={{ color: 'var(--t1)', fontFamily: "'JetBrains Mono', monospace" }}>{currentActiveEx.sets[0]?.weight || 60} kg</strong>
+                      </span>
+                    </div>
+                    {(() => {
+                      const target = parseFloat(currentActiveEx.sets[0]?.weight) || 60;
+                      const w1 = Math.round(target * 0.5);
+                      const w2 = Math.round(target * 0.7);
+                      const w3 = Math.round(target * 0.85);
+                      return (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 10 }}>
+                          <div style={{ background: 'var(--s2)', padding: 12, borderRadius: 12, border: '0.5px solid var(--bd2)' }}>
+                            <span style={{ fontSize: 10, color: 'var(--t3)', display: 'block', fontWeight: 800, textTransform: 'uppercase' }}>Bar / Light (50%)</span>
+                            <span style={{ fontSize: 15, fontWeight: 900, color: 'var(--t1)', fontFamily: "'JetBrains Mono', monospace" }}>{w1} kg × 10</span>
+                          </div>
+                          <div style={{ background: 'var(--s2)', padding: 12, borderRadius: 12, border: '0.5px solid var(--bd2)' }}>
+                            <span style={{ fontSize: 10, color: 'var(--t3)', display: 'block', fontWeight: 800, textTransform: 'uppercase' }}>Feeder (70%)</span>
+                            <span style={{ fontSize: 15, fontWeight: 900, color: 'var(--t1)', fontFamily: "'JetBrains Mono', monospace" }}>{w2} kg × 5</span>
+                          </div>
+                          <div style={{ background: 'var(--s2)', padding: 12, borderRadius: 12, border: '0.5px solid var(--bd2)' }}>
+                            <span style={{ fontSize: 10, color: 'var(--t3)', display: 'block', fontWeight: 800, textTransform: 'uppercase' }}>Primer (85%)</span>
+                            <span style={{ fontSize: 15, fontWeight: 900, color: 'var(--t1)', fontFamily: "'JetBrains Mono', monospace" }}>{w3} kg × 2</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+
+                {activeDrawer === 'plates' && (
+                  <div>
+                    {(() => {
+                      const target = parseFloat(currentActiveEx.sets[0]?.weight) || 60;
+                      const plates = calculatePlates(target);
+                      return (
+                        <div>
+                          <div style={{ fontSize: 12, color: 'var(--t2)', marginBottom: 12 }}>
+                            Load per side for <strong style={{ color: 'var(--t1)', fontFamily: "'JetBrains Mono', monospace" }}>{target} kg</strong> (on standard 20 kg Olympic barbell):
+                          </div>
+                          {plates.length > 0 ? (
+                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                              {plates.map((p, pIdx) => (
+                                <span key={pIdx} style={{
+                                  background: p >= 20 ? 'rgba(91, 142, 245, 0.15)' : p >= 10 ? 'var(--gd)' : 'rgba(245, 168, 51, 0.15)',
+                                  color: p >= 20 ? 'var(--blu)' : p >= 10 ? 'var(--g)' : 'var(--amb)',
+                                  border: `1px solid ${p >= 20 ? 'rgba(91, 142, 245, 0.35)' : p >= 10 ? 'var(--gb)' : 'rgba(245, 168, 51, 0.35)'}`,
+                                  padding: '8px 14px', borderRadius: 8, fontWeight: 800, fontSize: 13,
+                                  fontFamily: "'JetBrains Mono', monospace"
+                                }}>
+                                  {p} kg
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <span style={{ fontSize: 12, color: 'var(--t3)' }}>Load empty bar (20 kg) or use dumbbells.</span>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+
+                {activeDrawer === 'swap' && (
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 6 }}>
+                      <span style={{ fontSize: 11, color: 'var(--t3)' }}>
+                        Pick a replacement movement:
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveDrawer(null);
+                          setSmartAltTarget({ ex: currentActiveEx, isConsole: true });
+                        }}
                         style={{
-                          position: 'fixed',
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          background: 'var(--bg-surface)',
-                          borderTop: '1px solid var(--border-subtle)',
-                          borderTopLeftRadius: 20,
-                          borderTopRightRadius: 20,
-                          padding: '20px 20px calc(24px + env(safe-area-inset-bottom, 16px))',
-                          boxShadow: '0 -10px 40px rgba(0,0,0,0.6)',
-                          maxHeight: '82vh',
-                          overflowY: 'auto',
-                          maxWidth: 540,
-                          margin: '0 auto'
+                          padding: '5px 12px', borderRadius: 8, background: 'var(--gd)',
+                          border: '0.5px solid var(--gb)', color: 'var(--g)',
+                          fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                          display: 'inline-flex', alignItems: 'center', gap: 4,
+                          fontFamily: "'Inter', sans-serif"
                         }}
                       >
-                        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
-                          <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border-subtle)' }} />
-                        </div>
+                        <span>Full Exercise Library</span>
+                        <ArrowRight size={11} />
+                      </button>
+                    </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                          <span style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: 8 }}>
-                            {activeDrawer === 'warmup' && <><Flame size={15} color="#10B981" /> <span>Warm-Up Ramp Protocol</span></>}
-                            {activeDrawer === 'plates' && <><Disc size={15} color="#10B981" /> <span>Barbell Plate Calculator</span></>}
-                            {activeDrawer === 'cues' && <><Sparkles size={15} color="#10B981" /> <span>Form & Execution Cues</span></>}
-                            {activeDrawer === 'swap' && <><Repeat size={15} color="#10B981" /> <span>Smart Exercise Alternatives</span></>}
-                            {activeDrawer === 'anatomy' && <><Activity size={15} color="#10B981" /> <span>Muscle & Anatomy Profile</span></>}
-                          </span>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 8 }}>
+                      {(() => {
+                        const alts = getSmartAlternatives(currentActiveEx.name, PRESET_EXERCISES);
+                        const list = alts.length > 0 ? alts : PRESET_EXERCISES.filter(p => p.name !== currentActiveEx.name && p.category === currentActiveEx.category).slice(0, 6);
+                        return list.slice(0, 6).map(subEx => (
                           <button
+                            key={subEx.name}
                             type="button"
-                            onClick={() => setActiveDrawer(null)}
-                            style={{ background: 'var(--bg-surface-raised)', border: 'none', borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}
+                            onClick={() => {
+                              handleSwitchExercise(subEx, { isConsole: true, ex: currentActiveEx });
+                              setActiveDrawer(null);
+                            }}
+                            style={{
+                              padding: '10px 14px', borderRadius: 12, background: 'var(--s2)',
+                              border: '0.5px solid var(--bd2)', color: 'var(--t1)',
+                              fontSize: 12, fontWeight: 700, textAlign: 'left', cursor: 'pointer',
+                              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                              fontFamily: "'Inter', sans-serif"
+                            }}
                           >
-                            <X size={15} />
+                            <div>
+                              <span style={{ display: 'block', fontWeight: 800, color: 'var(--t1)' }}>{subEx.name}</span>
+                              <span style={{ fontSize: 10, color: 'var(--t3)' }}>{subEx.muscleGroup || subEx.category}</span>
+                            </div>
+                            <span style={{ fontSize: 10, color: 'var(--g)', display: 'flex', alignItems: 'center', gap: 2, fontWeight: 700 }}>
+                              Swap <ArrowRight size={10} />
+                            </span>
                           </button>
-                        </div>
-
-                        {activeDrawer === 'anatomy' && (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                            <div style={{ background: 'var(--bg-surface-raised)', padding: 12, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
-                              <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 800 }}>Primary mover</span>
-                              <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{currentActiveEx.targetAnatomy || currentActiveEx.muscleGroup}</span>
-                            </div>
-                            <div style={{ background: 'var(--bg-surface-raised)', padding: 12, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
-                              <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 800 }}>Assisting synergists</span>
-                              <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>{currentActiveEx.synergists || 'Stabilizing Core'}</span>
-                            </div>
-                            <div style={{ background: 'var(--bg-surface-raised)', padding: 12, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
-                              <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 800 }}>Movement plane</span>
-                              <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>{currentActiveEx.movementPlane || currentActiveEx.category}</span>
-                            </div>
-                          </div>
-                        )}
-
-                        {activeDrawer === 'cues' && (
-                          <div>
-                            {currentActiveEx.cues && currentActiveEx.cues.length > 0 ? (
-                              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.8 }}>
-                                {currentActiveEx.cues.map((c, i) => <li key={i}>{c}</li>)}
-                              </ul>
-                            ) : (
-                              <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted)' }}>Focus on controlled eccentric lowering and explosive contraction.</p>
-                            )}
-                          </div>
-                        )}
-
-                        {activeDrawer === 'warmup' && (
-                          <div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                              <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--brand-primary-light)', }}>
-                                Target Working Load
-                              </span>
-                              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                                Working Weight: <strong>{currentActiveEx.sets[0]?.weight || 60} kg</strong>
-                              </span>
-                            </div>
-                            {(() => {
-                              const target = parseFloat(currentActiveEx.sets[0]?.weight) || 60;
-                              const w1 = Math.round(target * 0.5);
-                              const w2 = Math.round(target * 0.7);
-                              const w3 = Math.round(target * 0.85);
-                              return (
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 10 }}>
-                                  <div style={{ background: 'var(--bg-surface-raised)', padding: 12, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
-                                    <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block' }}>Bar / Light (50%)</span>
-                                    <span style={{ fontSize: 15, fontWeight: 900, color: 'var(--text-primary)' }}>{w1} kg × 10</span>
-                                  </div>
-                                  <div style={{ background: 'var(--bg-surface-raised)', padding: 12, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
-                                    <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block' }}>Feeder (70%)</span>
-                                    <span style={{ fontSize: 15, fontWeight: 900, color: 'var(--text-primary)' }}>{w2} kg × 5</span>
-                                  </div>
-                                  <div style={{ background: 'var(--bg-surface-raised)', padding: 12, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
-                                    <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block' }}>Primer (85%)</span>
-                                    <span style={{ fontSize: 15, fontWeight: 900, color: 'var(--text-primary)' }}>{w3} kg × 2</span>
-                                  </div>
-                                </div>
-                              );
-                            })()}
-                          </div>
-                        )}
-
-                        {activeDrawer === 'plates' && (
-                          <div>
-                            {(() => {
-                              const target = parseFloat(currentActiveEx.sets[0]?.weight) || 60;
-                              const plates = calculatePlates(target);
-                              return (
-                                <div>
-                                  <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 12 }}>
-                                    Load per side for <strong>{target} kg</strong> (on standard 20 kg Olympic barbell):
-                                  </div>
-                                  {plates.length > 0 ? (
-                                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                                      {plates.map((p, pIdx) => (
-                                        <span key={pIdx} style={{
-                                          background: p >= 20 ? '#2563EB' : p >= 10 ? '#16A34A' : '#D97706',
-                                          color: '#fff', padding: '8px 14px', borderRadius: 8, fontWeight: 900, fontSize: 13
-                                        }}>
-                                          {p} kg
-                                        </span>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Load empty bar (20 kg) or use dumbbells.</span>
-                                  )}
-                                </div>
-                              );
-                            })()}
-                          </div>
-                        )}
-
-                        {activeDrawer === 'swap' && (
-                          <div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 6 }}>
-                              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                                Pick a replacement movement:
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setActiveDrawer(null);
-                                  setSmartAltTarget({ ex: currentActiveEx, isConsole: true });
-                                }}
-                                style={{
-                                  padding: '4px 10px', borderRadius: 8, background: 'rgba(16, 185, 129, 0.1)',
-                                  border: '1px solid rgba(16, 185, 129, 0.3)', color: '#10B981',
-                                  fontSize: 11, fontWeight: 700, cursor: 'pointer',
-                                  display: 'inline-flex', alignItems: 'center', gap: 4
-                                }}
-                              >
-                                <span>Full Exercise Library</span>
-                                <ArrowRight size={11} />
-                              </button>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 8 }}>
-                              {(() => {
-                                const alts = getSmartAlternatives(currentActiveEx.name, PRESET_EXERCISES);
-                                const list = alts.length > 0 ? alts : PRESET_EXERCISES.filter(p => p.name !== currentActiveEx.name && p.category === currentActiveEx.category).slice(0, 6);
-                                return list.slice(0, 6).map(subEx => (
-                                  <button
-                                    key={subEx.name}
-                                    type="button"
-                                    onClick={() => {
-                                      handleSwitchExercise(subEx, { isConsole: true, ex: currentActiveEx });
-                                      setActiveDrawer(null);
-                                    }}
-                                    style={{
-                                      padding: '10px 14px', borderRadius: 10, background: 'var(--bg-surface-raised)',
-                                      border: '1px solid var(--border-subtle)', color: 'var(--text-primary)',
-                                      fontSize: 12, fontWeight: 700, textAlign: 'left', cursor: 'pointer',
-                                      display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                                    }}
-                                  >
-                                    <div>
-                                      <span style={{ display: 'block', fontWeight: 800 }}>{subEx.name}</span>
-                                      <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{subEx.muscleGroup || subEx.category}</span>
-                                    </div>
-                                    <span style={{ fontSize: 10, color: 'var(--brand-primary-light)', display: 'flex', alignItems: 'center', gap: 2 }}>
-                                      Swap <ArrowRight size={10} />
-                                    </span>
-                                  </button>
-                                ));
-                              })()}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>,
-                    document.body
-                  )}
+                        ));
+                      })()}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>,
+            document.body
+          )}
 
           {/* DESKTOP CONSOLE WORKSPACE (2-COLUMN OBSIDIAN EMERALD GRID) */}
           {!isMobileViewport && (
-            <div className="hidden md:grid workout-console-layout" style={{ display: 'grid', gridTemplateColumns: '290px 1fr', minHeight: 640, background: 'var(--bg-surface)' }}>
+            <div className="hidden md:grid workout-console-layout" style={{ display: 'grid', gridTemplateColumns: '290px 1fr', minHeight: 640, background: 'var(--bg)' }}>
               <div className="workout-console-left">
-                <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 4 }}>
-                EXERCISES IN WORKOUT ({activeExercises.length})
-              </span>
+                <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', color: 'var(--t3)', marginBottom: 8, textTransform: 'uppercase', fontFamily: "'Inter', sans-serif" }}>
+                  EXERCISES IN WORKOUT ({activeExercises.length})
+                </span>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, overflowY: 'auto' }}>
-                {activeExercises.map((ex, idx) => {
-                  const doneCount = (ex.sets || []).filter(s => s.completed).length;
-                  const totCount = (ex.sets || []).length;
-                  const isCurrent = idx === currentExIndex;
-                  const isAllDone = totCount > 0 && doneCount === totCount;
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, overflowY: 'auto' }}>
+                  {activeExercises.map((ex, idx) => {
+                    const doneCount = (ex.sets || []).filter(s => s.completed).length;
+                    const totCount = (ex.sets || []).length;
+                    const isCurrent = idx === currentExIndex;
+                    const isAllDone = totCount > 0 && doneCount === totCount;
 
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        setCurrentExIndex(idx);
-                        setActiveDrawer(null);
-                      }}
-                      style={{
-                        padding: '12px 14px',
-                        borderRadius: 12,
-                        border: isCurrent ? '1.5px solid var(--brand-primary-light)' : '1px solid var(--border-subtle)',
-                        background: isCurrent ? 'var(--brand-primary-subtle)' : 'var(--bg-surface-raised)',
-                        textAlign: 'left',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        gap: 10
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setCurrentExIndex(idx);
+                          setActiveDrawer(null);
+                        }}
+                        style={{
+                          padding: '12px 14px',
+                          borderRadius: 12,
+                          border: isCurrent ? '1px solid var(--gb)' : '0.5px solid var(--bd2)',
+                          background: isCurrent ? 'var(--gd)' : 'var(--s2)',
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: 10,
+                          fontFamily: "'Inter', sans-serif"
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                          <span style={{
+                            width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+                            background: isAllDone ? 'var(--g)' : isCurrent ? 'var(--g)' : 'var(--t3)'
+                          }} />
+                          <span style={{
+                            fontSize: 13,
+                            fontWeight: isCurrent ? 700 : 500,
+                            color: isCurrent ? 'var(--t1)' : 'var(--t2)',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}>
+                            {ex.name}
+                          </span>
+                        </div>
+
                         <span style={{
-                          width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
-                          background: isAllDone ? '#10B981' : isCurrent ? 'var(--brand-primary-light)' : 'var(--text-muted)'
-                        }} />
-                        <span style={{
-                          fontSize: 13,
-                          fontWeight: isCurrent ? 800 : 600,
-                          color: isCurrent ? 'var(--text-primary)' : 'var(--text-secondary)',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis'
+                          fontSize: 10.5,
+                          fontWeight: 700,
+                          padding: '3px 8px',
+                          borderRadius: 6,
+                          background: isAllDone ? 'var(--gd)' : 'rgba(255, 255, 255, 0.04)',
+                          color: isAllDone ? 'var(--g)' : 'var(--t3)',
+                          border: isAllDone ? '0.5px solid var(--gb)' : 'none',
+                          flexShrink: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          fontFamily: "'JetBrains Mono', monospace"
                         }}>
-                          {ex.name}
+                          {isAllDone && <Check size={11} strokeWidth={3} />}
+                          {doneCount}/{totCount}
                         </span>
-                      </div>
+                      </button>
+                    );
+                  })}
+                </div>
 
-                      <span style={{
-                        fontSize: 10,
-                        fontWeight: 800,
-                        padding: '2px 8px',
-                        borderRadius: 6,
-                        background: isAllDone ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.06)',
-                        color: isAllDone ? '#10B981' : 'var(--text-muted)',
-                        flexShrink: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 4
-                      }}>
-                        {isAllDone && <Check size={11} strokeWidth={3} />}
-                        {doneCount}/{totCount}
-                      </span>
-                    </button>
-                  );
-                })}
+                {/* Add Exercise Search Trigger */}
+                <div style={{ marginTop: 12, paddingTop: 12, borderTop: '0.5px solid var(--bd2)' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowExerciseSearchModal(true)}
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      padding: '11px 14px',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      borderRadius: 12,
+                      background: 'var(--s2)',
+                      border: '0.5px solid var(--bd)',
+                      color: 'var(--t1)',
+                      cursor: 'pointer',
+                      fontFamily: "'Inter', sans-serif",
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <Search size={14} color="var(--g)" />
+                    <span>Search & Add Exercise</span>
+                  </button>
+                </div>
               </div>
-
-              {/* Add Exercise Search Trigger */}
-              <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border-subtle)' }}>
-                <button
-                  type="button"
-                  onClick={() => setShowExerciseSearchModal(true)}
-                  className="btn btn-secondary"
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 6,
-                    padding: '10px 12px',
-                    fontSize: 12,
-                    fontWeight: 800,
-                    borderRadius: 10,
-                    background: 'var(--bg-surface-raised)',
-                    border: '1px solid var(--border-subtle)',
-                    color: 'var(--text-primary)'
-                  }}
-                >
-                  <Search size={14} /> + Search & Add Exercise
-                </button>
-              </div>
-            </div>
 
               {/* RIGHT COLUMN: Desktop Active Exercise Workspace */}
               <div className="workout-console-right" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20, minWidth: 0 }}>
                 {currentActiveEx ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     {/* Exercise Header Card with Precise Anatomy Strip */}
-                      <div className="console-ex-summary-card">
-                        {/* Top Row: Title & Category on Left, PR Badge fixed on Right */}
-                        <div className="console-ex-header-row">
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', minWidth: 0 }}>
-                            <h2 style={{ fontSize: 20, fontWeight: 900, margin: 0, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)', letterSpacing: '-0.01em' }}>
-                              {currentActiveEx.name}
-                            </h2>
-                            <span style={{ fontSize: 10.5, fontWeight: 800, background: 'var(--brand-primary-subtle)', color: 'var(--brand-primary-light)', padding: '3px 10px', borderRadius: 8, border: '1px solid var(--border-focus)' }}>
-                              {currentActiveEx.category || 'Compound'}
-                            </span>
-                          </div>
-    
-                          {/* Personal Record Badge (Permanently Anchored on Right) */}
-                          <div style={{
-                            background: 'var(--brand-primary-subtle)',
-                            border: '1px solid var(--border-focus)',
-                            borderRadius: 12,
-                            padding: '7px 16px',
-                            textAlign: 'right',
-                            flexShrink: 0
-                          }}>
-                            <span style={{ fontSize: 9.5, fontWeight: 900, color: 'var(--brand-primary-light)', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
-                              <Trophy size={11} /> PERSONAL RECORD
-                            </span>
-                            <span className="tabular-nums" style={{ fontSize: 13.5, fontWeight: 900, color: 'var(--text-primary)', display: 'block', marginTop: 1 }}>
-                              {activeExPR ? `${activeExPR.weight} kg × ${activeExPR.reps}` : 'No record logged'}
-                            </span>
-                          </div>
-                        </div>
-    
-                        {/* Subtitle Row: Exact Muscle Anatomy & Targeting Strip */}
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-                          <span style={{ fontSize: 12, color: 'var(--brand-primary-light)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
-                            <Activity size={13} />
-                            Target: {currentActiveEx.targetAnatomy || currentActiveEx.muscleGroup}
+                    <div className="console-ex-summary-card">
+                      {/* Top Row: Title & Category on Left, PR Badge fixed on Right */}
+                      <div className="console-ex-header-row">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', minWidth: 0 }}>
+                          <h2 style={{ fontSize: 22, fontWeight: 800, margin: 0, color: 'var(--t1)', fontFamily: "'Inter', sans-serif", letterSpacing: '-0.02em' }}>
+                            {currentActiveEx.name}
+                          </h2>
+                          <span style={{ fontSize: 11, fontWeight: 700, background: 'var(--gd)', color: 'var(--g)', padding: '3px 10px', borderRadius: 8, border: '0.5px solid var(--gb)', fontFamily: "'Inter', sans-serif" }}>
+                            {currentActiveEx.category || 'Compound'}
                           </span>
-                          {currentActiveEx.synergists && (
-                            <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
-                              • Synergists: {currentActiveEx.synergists}
-                            </span>
-                          )}
                         </div>
-    
-                        {/* Quick Tools Strip (Horizontal Scroll, Zero Wrap) */}
-                        <div className="console-utility-track flex-nowrap overflow-x-auto" style={{
-                          display: 'flex',
-                          flexWrap: 'nowrap',
-                          overflowX: 'auto',
-                          gap: 8,
-                          paddingBottom: 4,
-                          WebkitOverflowScrolling: 'touch',
-                          scrollbarWidth: 'none',
-                          width: '100%',
-                          maxWidth: '100%',
-                          minWidth: 0,
-                          boxSizing: 'border-box'
+
+                        {/* Personal Record Badge (Permanently Anchored on Right) */}
+                        <div style={{
+                          background: 'rgba(245, 168, 51, 0.08)',
+                          border: '0.5px solid rgba(245, 168, 51, 0.25)',
+                          borderRadius: 12,
+                          padding: '7px 16px',
+                          textAlign: 'right',
+                          flexShrink: 0
                         }}>
-                          {[
-                            { key: 'warmup', label: 'Warm-Up', icon: <Calculator size={13} /> },
-                            { key: 'plates', label: 'Plates', icon: <Disc size={13} /> },
-                            { key: 'cues', label: 'Form Cues', icon: <Info size={13} /> },
-                            { key: 'swap', label: 'Swap', icon: <RefreshCw size={13} /> }
-                          ].map(btn => {
-                            const active = activeDrawer === btn.key;
+                          <span style={{ fontSize: 9.5, fontWeight: 800, color: 'var(--amb)', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, fontFamily: "'Inter', sans-serif" }}>
+                            <Trophy size={11} /> PERSONAL RECORD
+                          </span>
+                          <span className="tabular-nums" style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--t1)', display: 'block', marginTop: 1, fontFamily: "'JetBrains Mono', monospace" }}>
+                            {activeExPR ? `${activeExPR.weight} kg × ${activeExPR.reps}` : 'No record logged'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Subtitle Row: Exact Muscle Anatomy & Targeting Strip */}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                        <span style={{ fontSize: 12, color: 'var(--cyan)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5, fontFamily: "'Inter', sans-serif" }}>
+                          <Activity size={13} />
+                          Target: {currentActiveEx.targetAnatomy || currentActiveEx.muscleGroup}
+                        </span>
+                        {currentActiveEx.synergists && (
+                          <span style={{ fontSize: 11.5, color: 'var(--t3)', fontFamily: "'Inter', sans-serif" }}>
+                            • Synergists: {currentActiveEx.synergists}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Quick Tools Strip (Horizontal Scroll, Zero Wrap) */}
+                      <div className="console-utility-track flex-nowrap overflow-x-auto" style={{
+                        display: 'flex',
+                        flexWrap: 'nowrap',
+                        overflowX: 'auto',
+                        gap: 8,
+                        paddingBottom: 4,
+                        WebkitOverflowScrolling: 'touch',
+                        scrollbarWidth: 'none',
+                        width: '100%',
+                        maxWidth: '100%',
+                        minWidth: 0,
+                        boxSizing: 'border-box'
+                      }}>
+                        {[
+                          { key: 'warmup', label: 'Warm-Up', icon: <Calculator size={13} /> },
+                          { key: 'plates', label: 'Plates', icon: <Disc size={13} /> },
+                          { key: 'cues', label: 'Form Cues', icon: <Info size={13} /> },
+                          { key: 'swap', label: 'Swap', icon: <RefreshCw size={13} /> }
+                        ].map(btn => {
+                          const active = activeDrawer === btn.key;
+                          return (
+                            <button
+                              key={btn.key}
+                              type="button"
+                              onClick={() => setActiveDrawer(active ? null : btn.key)}
+                              className={`console-utility-pill ${active ? 'active' : ''}`}
+                              style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
+                            >
+                              {btn.icon}
+                              <span>{btn.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* SET MATRIX TABLE */}
+                    <div className="set-matrix-table-container" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
+                      <div className="hidden md:block desktop-set-matrix-view">
+                        {/* Column Headers */}
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: showRpe ? '50px 120px 130px 100px 100px 70px' : '50px 140px 150px 120px 70px',
+                          gap: 12,
+                          paddingBottom: 10,
+                          borderBottom: '0.5px solid var(--bd)',
+                          marginBottom: 12,
+                          alignItems: 'center'
+                        }}>
+                          <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: "'Inter', sans-serif" }}>Set</span>
+                          <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: "'Inter', sans-serif" }}>Previous</span>
+                          <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: "'Inter', sans-serif" }}>Weight (kg)</span>
+                          <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: "'Inter', sans-serif" }}>Reps</span>
+                          {showRpe && <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: "'Inter', sans-serif" }}>Effort (1-10)</span>}
+                          <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', fontFamily: "'Inter', sans-serif" }}>Done</span>
+                        </div>
+
+                        {/* Sets Rows */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          {currentActiveEx.sets.map((set, setIdx) => {
+                            const prevFormatted = formatPreviousSet(currentActiveEx.name, setIdx);
+                            const isPr = checkIfWeightIsPR(currentActiveEx.name, set.weight);
+
                             return (
-                              <button
-                                key={btn.key}
-                                type="button"
-                                onClick={() => setActiveDrawer(active ? null : btn.key)}
-                                className={`console-utility-pill ${active ? 'active' : ''}`}
-                                style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
+                              <div
+                                key={set.id}
+                                style={{
+                                  display: 'grid',
+                                  gridTemplateColumns: showRpe ? '50px 120px 130px 100px 100px 70px' : '50px 140px 150px 120px 70px',
+                                  gap: 12,
+                                  alignItems: 'center',
+                                  padding: '8px 12px',
+                                  borderRadius: 12,
+                                  background: set.completed ? 'rgba(34, 209, 122, 0.04)' : 'var(--s2)',
+                                  border: `0.5px solid ${set.completed ? 'rgba(34, 209, 122, 0.25)' : 'var(--bd2)'}`,
+                                  transition: 'all 0.15s ease'
+                                }}
                               >
-                                {btn.icon}
-                                <span>{btn.label}</span>
-                              </button>
+                                {/* Set Number */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  <span style={{
+                                    width: 28, height: 28, borderRadius: 8,
+                                    background: set.isWarmup ? 'rgba(91, 142, 245, 0.15)' : 'var(--s3)',
+                                    color: set.isWarmup ? 'var(--blu)' : 'var(--t2)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: 11, fontWeight: 800,
+                                    fontFamily: "'JetBrains Mono', monospace"
+                                  }}>
+                                    {set.isWarmup ? 'W' : set.id}
+                                  </span>
+                                </div>
+
+                                {/* Previous Best */}
+                                <div style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }}>
+                                  {prevFormatted || '—'}
+                                </div>
+
+                                {/* Weight Input */}
+                                <div style={{ position: 'relative' }}>
+                                  <input
+                                    type="number"
+                                    placeholder="0"
+                                    value={set.weight || ''}
+                                    disabled={set.completed}
+                                    onChange={(e) => handleUpdateSetField(currentExIndex, setIdx, 'weight', e.target.value)}
+                                    style={{
+                                      width: '100%',
+                                      padding: '7px 10px',
+                                      fontSize: 13,
+                                      fontWeight: 700,
+                                      textAlign: 'center',
+                                      background: set.completed ? 'rgba(34, 209, 122, 0.06)' : 'var(--s3)',
+                                      border: `0.5px solid ${set.completed ? 'rgba(34, 209, 122, 0.35)' : isPr ? 'var(--amb)' : 'var(--bd)'}`,
+                                      borderRadius: 10,
+                                      color: 'var(--t1)',
+                                      outline: 'none',
+                                      fontFamily: "'JetBrains Mono', monospace"
+                                    }}
+                                  />
+                                </div>
+
+                                {/* Reps Input */}
+                                <div>
+                                  <input
+                                    type="number"
+                                    placeholder="0"
+                                    value={set.reps || ''}
+                                    disabled={set.completed}
+                                    onChange={(e) => handleUpdateSetField(currentExIndex, setIdx, 'reps', e.target.value)}
+                                    style={{
+                                      width: '100%',
+                                      padding: '7px 10px',
+                                      fontSize: 13,
+                                      fontWeight: 700,
+                                      textAlign: 'center',
+                                      background: set.completed ? 'rgba(34, 209, 122, 0.06)' : 'var(--s3)',
+                                      border: `0.5px solid ${set.completed ? 'rgba(34, 209, 122, 0.35)' : 'var(--bd)'}`,
+                                      borderRadius: 10,
+                                      color: 'var(--t1)',
+                                      outline: 'none',
+                                      fontFamily: "'JetBrains Mono', monospace"
+                                    }}
+                                  />
+                                </div>
+
+                                {/* Effort Selector */}
+                                {showRpe && (
+                                  <div>
+                                    <button
+                                      type="button"
+                                      disabled={set.completed}
+                                      onClick={() => setOpenRpePicker({ exIdx: currentExIndex, setIdx })}
+                                      style={{
+                                        width: '100%',
+                                        padding: '7px 10px',
+                                        background: set.completed ? 'rgba(34, 209, 122, 0.06)' : 'var(--s3)',
+                                        border: `0.5px solid ${set.completed ? 'rgba(34, 209, 122, 0.35)' : 'var(--bd)'}`,
+                                        borderRadius: 10,
+                                        color: 'var(--t1)',
+                                        fontSize: 11,
+                                        fontWeight: 700,
+                                        cursor: set.completed ? 'default' : 'pointer',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        fontFamily: "'JetBrains Mono', monospace"
+                                      }}
+                                    >
+                                      <span>{set.rpe}/10</span>
+                                      <ChevronDown size={12} color="var(--t3)" />
+                                    </button>
+                                  </div>
+                                )}
+
+                                {/* CLEAR TACTILE DONE BUTTON WITH INSTANT FEEDBACK */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleCheckoffSet(currentExIndex, setIdx)}
+                                  style={{
+                                    width: 38, height: 38, borderRadius: 10,
+                                    background: set.completed ? 'var(--g)' : 'var(--gd)',
+                                    border: `1px solid ${set.completed ? 'var(--g)' : 'var(--gb)'}`,
+                                    color: set.completed ? '#041a0c' : 'var(--g)',
+                                    cursor: 'pointer',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    margin: '0 auto', transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                                    boxShadow: set.completed ? '0 0 16px rgba(34, 209, 122, 0.4)' : 'none',
+                                    transform: set.completed ? 'scale(1.05)' : 'scale(1)'
+                                  }}
+                                  title={set.completed ? 'Completed! Click to undo' : 'Click to log set as done'}
+                                >
+                                  <Check size={18} strokeWidth={set.completed ? 3.5 : 2.5} color={set.completed ? '#041a0c' : 'var(--g)'} />
+                                </button>
+                              </div>
                             );
                           })}
                         </div>
                       </div>
 
-                      {/* SET MATRIX TABLE */}
-                      <div className="set-matrix-table-container" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
-                        <div className="hidden md:block desktop-set-matrix-view">
-                            {/* Column Headers */}
-                            <div style={{
-                              display: 'grid',
-                              gridTemplateColumns: '50px 120px 130px 100px 100px 70px',
-                              gap: 12,
-                              paddingBottom: 10,
-                              borderBottom: '1px solid var(--border-subtle)',
-                              marginBottom: 12,
-                              alignItems: 'center'
-                            }}>
-                              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)' }}>Set</span>
-                              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)' }}>Previous</span>
-                              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)' }}>Weight (kg)</span>
-                              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)' }}>Reps</span>
-                              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)' }}>Effort (1-10)</span>
-                              <span style={{ fontSize: 10, fontWeight: 900, color: 'var(--text-muted)', textAlign: 'center' }}>Done</span>
-                            </div>
-    
-                            {/* Sets Rows */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                              {currentActiveEx.sets.map((set, setIdx) => {
-                                const prevFormatted = formatPreviousSet(currentActiveEx.name, setIdx);
-                                const isPr = checkIfWeightIsPR(currentActiveEx.name, set.weight);
-    
-                                return (
-                                  <div
-                                    key={set.id}
-                                    style={{
-                                      display: 'grid',
-                                      gridTemplateColumns: '50px 120px 130px 100px 100px 70px',
-                                      gap: 12,
-                                      alignItems: 'center',
-                                      padding: '10px 12px',
-                                      borderRadius: 12,
-                                      background: set.completed ? 'rgba(16, 185, 129, 0.04)' : 'var(--bg-surface)',
-                                      border: `1px solid ${set.completed ? 'rgba(16, 185, 129, 0.2)' : 'var(--border-subtle)'}`,
-                                      transition: 'all 0.15s ease'
-                                    }}
-                                  >
-                                    {/* Set Number */}
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                      <span style={{
-                                        width: 26, height: 26, borderRadius: 6,
-                                        background: set.isWarmup ? 'rgba(129, 140, 248, 0.15)' : 'var(--bg-surface-raised)',
-                                        color: set.isWarmup ? '#818CF8' : 'var(--text-secondary)',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        fontSize: 11, fontWeight: 900
-                                      }}>
-                                        {set.isWarmup ? 'W' : set.id}
-                                      </span>
-                                    </div>
-    
-                                    {/* Previous Best */}
-                                    <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>
-                                      {prevFormatted || '—'}
-                                    </div>
-    
-                                    {/* Weight Input */}
-                                    <div style={{ position: 'relative' }}>
-                                      <input
-                                        type="number"
-                                        placeholder="0"
-                                        value={set.weight || ''}
-                                        disabled={set.completed}
-                                        onChange={(e) => handleUpdateSetField(currentExIndex, setIdx, 'weight', e.target.value)}
-                                        style={{
-                                          width: '100%',
-                                          padding: '8px 10px',
-                                          fontSize: 13,
-                                          fontWeight: 800,
-                                          textAlign: 'center',
-                                          background: set.completed ? 'rgba(16, 185, 129, 0.05)' : 'var(--bg-input)',
-                                          border: `1px solid ${set.completed ? 'rgba(16, 185, 129, 0.4)' : isPr ? 'var(--brand-primary-light)' : 'var(--border-subtle)'}`,
-                                          borderRadius: 10,
-                                          color: 'var(--text-primary)',
-                                          outline: 'none'
-                                        }}
-                                      />
-                                    </div>
-    
-                                    {/* Reps Input */}
-                                    <div>
-                                      <input
-                                        type="number"
-                                        placeholder="0"
-                                        value={set.reps || ''}
-                                        disabled={set.completed}
-                                        onChange={(e) => handleUpdateSetField(currentExIndex, setIdx, 'reps', e.target.value)}
-                                        style={{
-                                          width: '100%',
-                                          padding: '8px 10px',
-                                          fontSize: 13,
-                                          fontWeight: 800,
-                                          textAlign: 'center',
-                                          background: set.completed ? 'rgba(16, 185, 129, 0.05)' : 'var(--bg-input)',
-                                          border: `1px solid ${set.completed ? 'rgba(16, 185, 129, 0.4)' : 'var(--border-subtle)'}`,
-                                          borderRadius: 10,
-                                          color: 'var(--text-primary)',
-                                          outline: 'none'
-                                        }}
-                                      />
-                                    </div>
-    
-                                    {/* Effort Selector */}
-                                    <div>
-                                      <button
-                                        type="button"
-                                        disabled={set.completed}
-                                        onClick={() => setOpenRpePicker({ exIdx: currentExIndex, setIdx })}
-                                        style={{
-                                          width: '100%',
-                                          padding: '8px 10px',
-                                          background: set.completed ? 'rgba(16, 185, 129, 0.05)' : 'var(--bg-input)',
-                                          border: `1px solid ${set.completed ? 'rgba(16, 185, 129, 0.4)' : 'var(--border-subtle)'}`,
-                                          borderRadius: 10,
-                                          color: 'var(--text-primary)',
-                                          fontSize: 11,
-                                          fontWeight: 800,
-                                          cursor: set.completed ? 'default' : 'pointer',
-                                          display: 'flex',
-                                          justifyContent: 'space-between',
-                                          alignItems: 'center'
-                                        }}
-                                      >
-                                        <span>{set.rpe}/10</span>
-                                        <ChevronDown size={12} color="var(--text-muted)" />
-                                      </button>
-                                    </div>
-    
-                                    {/* CLEAR TACTILE DONE BUTTON WITH INSTANT FEEDBACK */}
-                                    <button
-                                      type="button"
-                                      onClick={() => handleCheckoffSet(currentExIndex, setIdx)}
-                                      style={{
-                                        width: 44, height: 44, borderRadius: 12,
-                                        background: set.completed ? '#10B981' : 'rgba(16, 185, 129, 0.08)',
-                                        border: `2px solid ${set.completed ? '#10B981' : 'rgba(16, 185, 129, 0.35)'}`,
-                                        color: set.completed ? '#ffffff' : '#10B981',
-                                        cursor: 'pointer',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        margin: '0 auto', transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                                        boxShadow: set.completed ? '0 0 18px rgba(16, 185, 129, 0.45)' : 'none',
-                                        transform: set.completed ? 'scale(1.05)' : 'scale(1)'
-                                      }}
-                                      title={set.completed ? 'Completed! Click to undo' : 'Click to log set as done'}
-                                    >
-                                      <Check size={22} strokeWidth={set.completed ? 3.5 : 2.5} />
-                                    </button>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-
-                        {/* Add & Remove Set Actions: One expanded Add Set button + One compact Remove Set icon button */}
-                        <div className="console-set-action-bar">
+                      {/* Add & Remove Set Actions */}
+                      <div className="console-set-action-bar">
+                        <button
+                          type="button"
+                          onClick={() => handleAddSet(false)}
+                          style={{
+                            background: 'var(--s2)',
+                            border: '0.5px solid var(--bd)',
+                            color: 'var(--t1)',
+                            borderRadius: 12,
+                            padding: '10px 18px',
+                            fontSize: 12.5,
+                            fontWeight: 700,
+                            fontFamily: "'Inter', sans-serif",
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          <Plus size={15} color="var(--g)" /> Add Set
+                        </button>
+                        {currentActiveEx.sets.length > 1 && (
                           <button
                             type="button"
-                            onClick={() => handleAddSet(false)}
-                            className="btn btn-secondary console-add-set-expanded-btn"
-                          >
-                            <Plus size={15} /> Add Set
-                          </button>
-                          {currentActiveEx.sets.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveSet(currentActiveEx.sets.length - 1)}
-                              className="btn btn-secondary console-remove-set-icon-btn"
-                              title="Remove Last Set"
-                              aria-label="Remove Last Set"
-                            >
-                              <Trash2 size={15} />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* DESKTOP BOTTOM EXERCISE PAGINATION NAVIGATION */}
-                      <div className="desktop-bottom-nav" style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginTop: 16,
-                        paddingTop: 16,
-                        borderTop: '1px solid var(--border-subtle)',
-                        gap: 12,
-                        flexWrap: 'wrap'
-                      }}>
-                        {currentExIndex > 0 ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setCurrentExIndex(prev => prev - 1);
-                              setActiveDrawer(null);
-                              scrollToTop();
-                            }}
-                            className="btn btn-secondary"
-                            style={{ padding: '10px 18px', fontSize: 12.5, borderRadius: 12, display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700 }}
-                          >
-                            <ArrowLeft size={15} /> Previous Exercise
-                          </button>
-                        ) : <div />}
-    
-                        <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>
-                          Exercise {currentExIndex + 1} of {activeExercises.length}
-                        </div>
-    
-                        {currentExIndex < activeExercises.length - 1 ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setCurrentExIndex(prev => prev + 1);
-                              setActiveDrawer(null);
-                              scrollToTop();
-                            }}
-                            className="btn btn-primary"
+                            onClick={() => handleRemoveSet(currentActiveEx.sets.length - 1)}
                             style={{
-                              padding: '10px 22px', fontSize: 12.5, borderRadius: 12,
-                              background: 'var(--brand-primary-light)', color: '#000',
-                              fontWeight: 900, display: 'flex', alignItems: 'center', gap: 8
+                              background: 'rgba(245, 91, 91, 0.08)',
+                              border: '0.5px solid rgba(245, 91, 91, 0.2)',
+                              color: 'var(--red)',
+                              borderRadius: 12,
+                              width: 38,
+                              height: 38,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease'
                             }}
+                            title="Remove Last Set"
+                            aria-label="Remove Last Set"
                           >
-                            Next Exercise <ArrowRight size={15} />
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={handleFinishWorkout}
-                            className="btn btn-primary"
-                            style={{
-                              padding: '12px 24px', fontSize: 14, borderRadius: 14,
-                              background: 'var(--color-green, #22d17a)', color: '#0a1a10', fontWeight: 700,
-                              display: 'flex', alignItems: 'center', gap: 6,
-                              boxShadow: '0 4px 16px rgba(34, 209, 122, 0.35)'
-                            }}
-                          >
-                            <Check size={16} strokeWidth={3} color="#0a1a10" /> Complete Workout
+                            <Trash2 size={15} />
                           </button>
                         )}
                       </div>
+                    </div>
+
+                    {/* DESKTOP BOTTOM EXERCISE PAGINATION NAVIGATION */}
+                    <div className="desktop-bottom-nav" style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginTop: 16,
+                      paddingTop: 16,
+                      borderTop: '0.5px solid var(--bd2)',
+                      gap: 12,
+                      flexWrap: 'wrap'
+                    }}>
+                      {currentExIndex > 0 ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCurrentExIndex(prev => prev - 1);
+                            setActiveDrawer(null);
+                            scrollToTop();
+                          }}
+                          style={{
+                            padding: '10px 18px',
+                            fontSize: 12.5,
+                            borderRadius: 12,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            fontWeight: 700,
+                            background: 'var(--s2)',
+                            border: '0.5px solid var(--bd)',
+                            color: 'var(--t1)',
+                            cursor: 'pointer',
+                            fontFamily: "'Inter', sans-serif"
+                          }}
+                        >
+                          <ArrowLeft size={15} /> Previous Exercise
+                        </button>
+                      ) : <div />}
+
+                      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--t3)', fontFamily: "'Inter', sans-serif" }}>
+                        Exercise {currentExIndex + 1} of {activeExercises.length}
+                      </div>
+
+                      {currentExIndex < activeExercises.length - 1 ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCurrentExIndex(prev => prev + 1);
+                            setActiveDrawer(null);
+                            scrollToTop();
+                          }}
+                          style={{
+                            padding: '10px 22px',
+                            fontSize: 12.5,
+                            borderRadius: 12,
+                            background: 'var(--g)',
+                            color: '#041a0c',
+                            fontWeight: 800,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            border: 'none',
+                            cursor: 'pointer',
+                            boxShadow: '0 4px 16px rgba(34, 209, 122, 0.3)',
+                            fontFamily: "'Inter', sans-serif"
+                          }}
+                        >
+                          Next Exercise <ArrowRight size={15} color="#041a0c" />
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleFinishWorkout}
+                          style={{
+                            padding: '12px 24px',
+                            fontSize: 14,
+                            borderRadius: 12,
+                            background: 'var(--g)',
+                            color: '#041a0c',
+                            fontWeight: 800,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            border: 'none',
+                            cursor: 'pointer',
+                            boxShadow: '0 4px 16px rgba(34, 209, 122, 0.35)',
+                            fontFamily: "'Inter', sans-serif"
+                          }}
+                        >
+                          <Check size={16} strokeWidth={3} color="#041a0c" /> Complete Workout
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ) : (
-                  <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)' }}>
+                  <div style={{ padding: 48, textAlign: 'center', color: 'var(--t3)', fontFamily: "'Inter', sans-serif" }}>
                     No exercises loaded in this workout session.
                   </div>
                 )}
@@ -4433,7 +4553,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                   onOpenRpe={(setIdx) => setOpenRpePicker({ exIdx: currentExIndex, setIdx })}
                   onSwapExercise={() => setActiveDrawer(activeDrawer === 'swap' ? null : 'swap')}
                   onAddExercise={() => setShowExerciseSearchModal(true)}
-                  showRpe={((generatedProgram?.profile?.trainingExperience || user?.trainingExperience || intakeForm?.trainingExperience || 'beginner').toLowerCase() !== 'beginner')}
+                  showRpe={showRpe}
                 />
               ) : (
                 <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)' }}>
@@ -4445,21 +4565,21 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
 
           {/* MOBILE STICKY BOTTOM ACTION BAR (Tier 4: Pacing & Directional Navigation) */}
           <div
-            className="console-sticky-bottom-bar sticky bottom-0 bg-[#09090C]/95 backdrop-blur-md p-3 border-t border-zinc-800"
+            className="console-sticky-bottom-bar sticky bottom-0"
             style={{
-              background: 'rgba(9, 9, 12, 0.95)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              borderTop: '1px solid #27272A',
+              background: 'rgba(15, 21, 32, 0.95)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              borderTop: '0.5px solid var(--bd)',
               padding: 12
             }}
           >
             {/* Rest countdown strip if resting */}
             {restActive && (
-              <div className="console-sticky-rest-strip" style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
+              <div className="console-sticky-rest-strip" style={{ background: restRemaining <= 10 ? 'rgba(245, 91, 91, 0.12)' : 'var(--gd)', border: `0.5px solid ${restRemaining <= 10 ? 'rgba(245, 91, 91, 0.3)' : 'var(--gb)'}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Clock size={13} color={restRemaining <= 10 ? '#EF4444' : '#10B981'} />
-                  <span style={{ fontSize: 12, fontWeight: 800, color: restRemaining <= 10 ? '#EF4444' : '#10B981', letterSpacing: '0.02em' }}>
+                  <Clock size={13} color={restRemaining <= 10 ? 'var(--red)' : 'var(--g)'} />
+                  <span style={{ fontSize: 12, fontWeight: 800, color: restRemaining <= 10 ? 'var(--red)' : 'var(--g)', letterSpacing: '0.02em', fontFamily: "'JetBrains Mono', monospace" }}>
                     Rest: {formatMMSS(restRemaining)}
                   </span>
                 </div>
@@ -4468,6 +4588,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                     type="button"
                     onClick={() => setRestRemaining(prev => prev + 30)}
                     className="console-rest-btn"
+                    style={{ background: 'var(--s2)', border: '0.5px solid var(--bd)', color: 'var(--t2)', borderRadius: 8, padding: '4px 10px', fontSize: 11, fontWeight: 700, fontFamily: "'Inter', sans-serif" }}
                   >
                     +30s
                   </button>
@@ -4475,7 +4596,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                     type="button"
                     onClick={() => setRestActive(false)}
                     className="console-rest-btn"
-                    style={{ fontWeight: 800, color: '#E4E4E7' }}
+                    style={{ background: 'var(--s2)', border: '0.5px solid var(--bd)', color: 'var(--t1)', borderRadius: 8, padding: '4px 12px', fontSize: 11, fontWeight: 800, fontFamily: "'Inter', sans-serif" }}
                   >
                     Skip
                   </button>
@@ -4495,16 +4616,16 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                   }
                 }}
                 disabled={currentExIndex === 0}
-                className="console-sticky-nav-btn prev h-11 w-11 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 flex items-center justify-center shrink-0 cursor-pointer active:scale-95"
+                className="console-sticky-nav-btn prev flex items-center justify-center shrink-0 cursor-pointer active:scale-95"
                 style={{
                   width: 44,
                   height: 44,
                   borderRadius: 12,
                   opacity: currentExIndex === 0 ? 0.35 : 1,
                   cursor: currentExIndex === 0 ? 'not-allowed' : 'pointer',
-                  background: '#18181b',
-                  border: '1px solid #27272A',
-                  color: '#d4d4d8',
+                  background: 'var(--s2)',
+                  border: '0.5px solid var(--bd)',
+                  color: 'var(--t2)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -4525,12 +4646,12 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                   }}
                   className="console-sticky-nav-btn next flex-1 active:scale-95 transition"
                   style={{
-                    height: 56,
+                    height: 52,
                     borderRadius: 14,
-                    background: 'var(--color-green)',
-                    color: '#0a1a10',
+                    background: 'var(--g)',
+                    color: '#041a0c',
                     fontSize: 14,
-                    fontWeight: 700,
+                    fontWeight: 800,
                     border: 'none',
                     display: 'flex',
                     alignItems: 'center',
@@ -4538,13 +4659,15 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                     gap: 8,
                     flex: 1,
                     minWidth: 0,
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 16px rgba(34, 209, 122, 0.3)',
+                    fontFamily: "'Inter', sans-serif"
                   }}
                 >
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     Next: {activeExercises[currentExIndex + 1]?.name}
                   </span>
-                  <ArrowRight size={18} color="#0a1a10" />
+                  <ArrowRight size={18} color="#041a0c" />
                 </button>
               ) : (
                 <button
@@ -4552,12 +4675,12 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                   onClick={handleFinishWorkout}
                   className="console-sticky-nav-btn finish flex-1 active:scale-95 transition"
                   style={{
-                    height: 56,
+                    height: 52,
                     borderRadius: 14,
-                    background: 'var(--color-green)',
-                    color: '#0a1a10',
+                    background: 'var(--g)',
+                    color: '#041a0c',
                     fontSize: 14,
-                    fontWeight: 700,
+                    fontWeight: 800,
                     border: 'none',
                     display: 'flex',
                     alignItems: 'center',
@@ -4565,10 +4688,12 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                     gap: 8,
                     flex: 1,
                     minWidth: 0,
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 16px rgba(34, 209, 122, 0.35)',
+                    fontFamily: "'Inter', sans-serif"
                   }}
                 >
-                  <Check size={18} strokeWidth={3} color="#0a1a10" />
+                  <Check size={18} strokeWidth={3} color="#041a0c" />
                   <span>Finish workout</span>
                 </button>
               )}
@@ -4586,8 +4711,8 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                   bottom: 0,
                   left: 0,
                   right: 0,
-                  background: 'var(--bg-surface)',
-                  borderTop: '1px solid var(--border-subtle)',
+                  background: 'var(--s1)',
+                  borderTop: '0.5px solid var(--bd)',
                   borderTopLeftRadius: 20,
                   borderTopRightRadius: 20,
                   padding: '20px 20px calc(24px + env(safe-area-inset-bottom, 16px))',
@@ -4596,26 +4721,27 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                   margin: '0 auto',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 14
+                  gap: 14,
+                  fontFamily: "'Inter', sans-serif"
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: -4 }}>
-                  <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border-subtle)' }} />
+                  <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--bd)' }} />
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontSize: 15, fontWeight: 900, color: 'var(--text-primary)' }}>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--t1)' }}>
                       Rate of Perceived Exertion (RPE)
                     </div>
-                    <div style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
+                    <div style={{ fontSize: 11.5, color: 'var(--t3)' }}>
                       Set {activeExercises[openRpePicker.exIdx]?.sets?.[openRpePicker.setIdx]?.id || openRpePicker.setIdx + 1} • How close were you to muscular failure?
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setOpenRpePicker(null)}
-                    style={{ background: 'var(--bg-surface-raised)', border: 'none', borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}
+                    style={{ background: 'var(--s2)', border: '0.5px solid var(--bd)', borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--t2)' }}
                   >
                     <X size={15} />
                   </button>
@@ -4623,16 +4749,16 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, maxHeight: '60vh', overflowY: 'auto' }}>
                   {[
-                    { rpe: '10', title: '10 — Max Effort', desc: '0 Reps in Reserve (Failure)', color: '#EF4444' },
+                    { rpe: '10', title: '10 — Max Effort', desc: '0 Reps in Reserve (Failure)', color: 'var(--red)' },
                     { rpe: '9.5', title: '9.5 — Near Failure', desc: 'Maybe 0–1 Rep in Reserve', color: '#F97316' },
-                    { rpe: '9', title: '9 — Very Heavy', desc: '1 Rep in Reserve (1 RIR)', color: '#F59E0B' },
+                    { rpe: '9', title: '9 — Very Heavy', desc: '1 Rep in Reserve (1 RIR)', color: 'var(--amb)' },
                     { rpe: '8.5', title: '8.5 — Heavy Load', desc: '1–2 Reps in Reserve', color: '#EAB308' },
-                    { rpe: '8', title: '8 — Standard Working', desc: '2 Reps in Reserve (Optimal)', color: '#10B981' },
-                    { rpe: '7.5', title: '7.5 — Moderate Working', desc: '2–3 Reps in Reserve', color: '#10B981' },
-                    { rpe: '7', title: '7 — Speed / Technique', desc: '3 Reps in Reserve (Smooth)', color: '#06B6D4' },
-                    { rpe: '6', title: '6 — Light Working', desc: '4+ Reps in Reserve', color: '#6366F1' },
+                    { rpe: '8', title: '8 — Standard Working', desc: '2 Reps in Reserve (Optimal)', color: 'var(--g)' },
+                    { rpe: '7.5', title: '7.5 — Moderate Working', desc: '2–3 Reps in Reserve', color: 'var(--g)' },
+                    { rpe: '7', title: '7 — Speed / Technique', desc: '3 Reps in Reserve (Smooth)', color: 'var(--cyan)' },
+                    { rpe: '6', title: '6 — Light Working', desc: '4+ Reps in Reserve', color: 'var(--blu)' },
                     { rpe: '5', title: '5 — Warm-up Set', desc: 'Submaximal / Prep', color: '#8B5CF6' },
-                    { rpe: '4', title: '1–4 — Light / Bar', desc: 'Mobility & Feeder Set', color: '#9CA3AF' }
+                    { rpe: '4', title: '1–4 — Light / Bar', desc: 'Mobility & Feeder Set', color: 'var(--t3)' }
                   ].map(item => {
                     const isSelected = String(activeExercises[openRpePicker.exIdx]?.sets?.[openRpePicker.setIdx]?.rpe) === item.rpe;
                     return (
@@ -4646,23 +4772,24 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                         style={{
                           padding: '10px 12px',
                           borderRadius: 12,
-                          background: isSelected ? 'var(--brand-primary-subtle)' : 'var(--bg-surface-raised)',
-                          border: isSelected ? '1.5px solid var(--brand-primary-light)' : '1px solid var(--border-subtle)',
+                          background: isSelected ? 'var(--gd)' : 'var(--s2)',
+                          border: isSelected ? '1px solid var(--gb)' : '0.5px solid var(--bd2)',
                           textAlign: 'left',
                           cursor: 'pointer',
                           display: 'flex',
                           flexDirection: 'column',
                           gap: 2,
-                          transition: 'all 0.15s ease'
+                          transition: 'all 0.15s ease',
+                          fontFamily: "'Inter', sans-serif"
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <span style={{ fontSize: 12.5, fontWeight: 800, color: isSelected ? 'var(--brand-primary-light)' : 'var(--text-primary)' }}>
+                          <span style={{ fontSize: 12.5, fontWeight: 800, color: isSelected ? 'var(--g)' : 'var(--t1)' }}>
                             {item.title}
                           </span>
                           <span style={{ width: 8, height: 8, borderRadius: '50%', background: item.color }} />
                         </div>
-                        <span style={{ fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.2 }}>
+                        <span style={{ fontSize: 10, color: 'var(--t3)', lineHeight: 1.2 }}>
                           {item.desc}
                         </span>
                       </button>
@@ -4864,12 +4991,19 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
             </div>
 
             {/* Right: Phase target badge with glowing emerald indicator */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#A1A1AA', flexShrink: 0 }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#10B981', boxShadow: '0 0 8px #10B981', flexShrink: 0 }} />
-              <span style={{ fontWeight: 700, color: '#FFFFFF' }}>RPE {WEEKS_METADATA[selectedWeek]?.rpe || '7.0'}</span>
-              <span style={{ color: '#52525B' }}>•</span>
-              <span style={{ color: '#A1A1AA' }}>{WEEKS_METADATA[selectedWeek]?.tag || 'Base Load'}</span>
-            </div>
+            {showRpe ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#A1A1AA', flexShrink: 0 }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#10B981', boxShadow: '0 0 8px #10B981', flexShrink: 0 }} />
+                <span style={{ fontWeight: 700, color: '#FFFFFF' }}>RPE {WEEKS_METADATA[selectedWeek]?.rpe || '7.0'}</span>
+                <span style={{ color: '#52525B' }}>•</span>
+                <span style={{ color: '#A1A1AA' }}>{WEEKS_METADATA[selectedWeek]?.tag || 'Base Load'}</span>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#A1A1AA', flexShrink: 0 }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#10B981', boxShadow: '0 0 8px #10B981', flexShrink: 0 }} />
+                <span style={{ fontWeight: 700, color: '#FFFFFF' }}>{WEEKS_METADATA[selectedWeek]?.phase || 'Base Phase'}</span>
+              </div>
+            )}
           </div>
 
           {/* 3. Segmented Day Selector Track */}
@@ -5385,7 +5519,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
               </div>
             </div>
 
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, position: 'relative' }}>
               <button
                 type="button"
                 onClick={handleToggleStreakShield}
@@ -5414,22 +5548,49 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  alert("Streak Shield protects your streak if you miss one day. Earn it by maintaining a 7-day streak.");
+                  setShowShieldTooltip(prev => !prev);
                 }}
-                title="Streak Shield protects your streak if you miss one day. Earn it by maintaining a 7-day streak."
+                title="Streak Shield info"
+                aria-label="Streak Shield information"
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: 'var(--text-muted)',
+                  color: showShieldTooltip ? '#10B981' : 'var(--text-muted)',
                   cursor: 'pointer',
                   padding: '4px',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  borderRadius: '50%'
+                  borderRadius: '50%',
+                  transition: 'color 0.15s ease'
                 }}
               >
                 <Info size={14} />
               </button>
+
+              {showShieldTooltip && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: 'calc(100% + 8px)',
+                    right: 0,
+                    width: 240,
+                    backgroundColor: 'var(--s3)',
+                    border: '0.5px solid var(--bd)',
+                    borderRadius: 12,
+                    padding: '10px 14px',
+                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5)',
+                    color: 'var(--t1)',
+                    fontSize: 12,
+                    fontWeight: 500,
+                    lineHeight: 1.45,
+                    zIndex: 60,
+                    pointerEvents: 'auto',
+                    animation: 'toastSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+                  }}
+                >
+                  Streak Shield protects your streak if you miss one day. Earn it by maintaining a 7-day unbroken streak.
+                </div>
+              )}
             </div>
           </div>
 
@@ -5502,7 +5663,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                     <span 
                       style={{ fontSize: 11, fontWeight: 800, color: '#10B981', display: 'inline-flex', alignItems: 'center', gap: 6, letterSpacing: '0.06em', }}
                     >
-                      <Sparkles size={13} color="#10B981" /> ACTIVE PROGRAM
+                      <Sparkles size={13} color="#10B981" /> Active program
                     </span>
                     <span 
                       style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#D4D4D8', fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 9999, border: '1px solid rgba(255, 255, 255, 0.08)' }}
@@ -5649,8 +5810,8 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                 </span>
               </div>
 
-              {/* VERTICAL LIST OF COMPACT ROUTINE CARDS */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 80 }}>
+              {/* VERTICAL LIST OF COMPACT ROUTINE CARDS (Responsive Multi-Column on Desktop) */}
+              <div className="nb-workout-splits-grid">
                 {ROUTINE_SPLITS.map((split, sIdx) => {
                   const cat = SPLIT_CATEGORIES[split.name] || { color: '#10B981', label: 'Split' };
                   return (

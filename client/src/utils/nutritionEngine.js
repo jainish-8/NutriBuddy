@@ -215,20 +215,30 @@ export function calculateTDEE({ weight, height, age, gender, profession, gymDays
   // Light (Cardio / light resistance, 4.5 METs): +0.032 PAL / day
   // Moderate (Standard Hypertrophy / NSCA split, 6.5 METs): +0.052 PAL / day
   // High (Intense Heavy Strength / CrossFit / Supersets, 8.5 METs): +0.075 PAL / day
-  let intensityAddend = 0.052;
-  if (gymIntensity === 'light') intensityAddend = 0.032;
-  else if (gymIntensity === 'high') intensityAddend = 0.075;
-
-  const gymAddend = days * intensityAddend;
-
-  // Composite Physical Activity Level (PAL)
-  const totalPAL = occFactor + gymAddend;
-  const rawTDEE = bmr * totalPAL;
+  // EAT addend per gym session (diminishing returns at high frequency)
+  // Light (yoga/walking/light cardio ~4.5 METs): 0.036 per day
+  // Moderate (standard hypertrophy/resistance ~6.5 METs): 0.055 per day
+  // High (heavy powerlifting/HIIT/CrossFit ~8.5 METs): 0.078 per day
+  // Frequency discount: sessions 5+ have 20% less marginal EAT (fatigue/adaptation)
+  const perDayAddends = { light: 0.036, moderate: 0.055, high: 0.078 };
+  const baseAddend = perDayAddends[gymIntensity] || perDayAddends.moderate;
+  
+  // Apply frequency-based discount for days 5, 6, 7
+  let gymAddend = 0;
+  for (let d = 1; d <= days; d++) {
+    gymAddend += d <= 4 ? baseAddend : baseAddend * 0.80;
+  }
+  gymAddend = parseFloat(gymAddend.toFixed(3));
+  
+  // Physiological PAL ceiling: no human sustains above 2.4 PAL outside
+  // elite expedition athletes (Pontzer et al., 2016 — constrained energy model)
+  const totalPAL = Math.min(2.40, occFactor + gymAddend);
+  const rawTDEE = Math.round(bmr) * totalPAL;
 
   return {
     bmr: Math.round(bmr),
     tdee: Math.round(rawTDEE),
-    totalPAL: parseFloat(totalPAL.toFixed(2)),
+    totalPAL: parseFloat(totalPAL.toFixed(3)),
     occupationalFactor: occFactor,
     gymAddend: parseFloat(gymAddend.toFixed(3))
   };
@@ -238,31 +248,57 @@ export function calculateTDEE({ weight, height, age, gender, profession, gymDays
  * 3. TARGET DAILY CALORIE INTAKE (GOAL SPECIFIC)
  * Clinically safe deficits and surpluses preventing metabolic downregulation
  */
-export function calculateTargetCalories({ tdee, bmr, goal, gender = 'male' }) {
+export function calculateTargetCalories({ tdee, bmr, goal, gender = 'male', weight, height }) {
   const g = (gender || 'male').toLowerCase();
   const minFloor = g === 'female' ? 1250 : 1500;
+
+  // Compute BMI when weight and height are available
+  let bmi = null;
+  if (weight && height) {
+    const w = parseFloat(weight);
+    const h = parseFloat(height);
+    if (w > 0 && h > 0) bmi = w / Math.pow(h / 100, 2);
+  }
 
   switch (goal) {
     case 'fat_loss':
     case 'lose': {
-      // 22% calibrated deficit for steady 0.5-1% bodyweight loss per week
-      const deficitCal = tdee * 0.78;
-      // Absolute safety floor: never drop below minimum metabolic floor or raw BMR
-      const safeTarget = Math.max(deficitCal, minFloor, bmr * 0.95);
-      return Math.round(safeTarget);
+      // Standard 22% deficit → 0.5–0.75% bodyweight loss/week (safe clinical range)
+      let deficitPct = 0.22;
+      if (bmi !== null) {
+        if (bmi > 30) deficitPct = 0.25;   // Obese: larger deficit is safe (more fat stores)
+        if (bmi < 20) deficitPct = 0.12;   // Lean: small deficit to protect lean muscle mass
+      }
+      const deficitCal = tdee * (1 - deficitPct);
+      // Safety floor: never below clinical minimum or 95% of BMR (metabolic protection)
+      return Math.max(Math.round(deficitCal), minFloor, Math.round(bmr * 0.95));
     }
+
     case 'lean_bulk':
-    case 'gain': {
-      // 9% controlled surplus (+250 to +300 kcal) for maximal muscle protein synthesis without adipose accumulation
-      return Math.round(tdee * 1.09);
+    case 'gain':
+    case 'muscle':
+    case 'hypertrophy': {
+      // 9% controlled surplus (~+200–300 kcal): maximizes muscle protein synthesis
+      // without excessive adipose accumulation (Barakat et al., 2020)
+      let surplusPct = 0.09;
+      if (bmi !== null) {
+        if (bmi < 18.5) surplusPct = 0.15;  // Underweight: larger surplus safe and needed
+        if (bmi > 25)   surplusPct = 0.05;  // Overweight: minimal surplus to limit fat gain
+      }
+      return Math.round(tdee * (1 + surplusPct));
     }
+
     case 'aggressive_bulk': {
-      // 17% progressive surplus (+450 to +600 kcal) for fast mass accrual
-      return Math.round(tdee * 1.17);
+      // 17% surplus (~+450–600 kcal): fast mass for lean hardgainers
+      let surplusPct = 0.17;
+      if (bmi !== null && bmi > 25) surplusPct = 0.08; // Overweight: cut aggressive bulk
+      return Math.round(tdee * (1 + surplusPct));
     }
+
     case 'maintain':
     default: {
-      // 100% of TDEE
+      // Slight surplus for underweight users on maintenance to reach healthy weight
+      if (bmi !== null && bmi < 18.5) return Math.round(tdee * 1.05);
       return Math.round(tdee);
     }
   }
@@ -277,13 +313,22 @@ export function calculateMacros({ dailyCalories, weight, goal, isGymGoer = true 
   const cals = parseInt(dailyCalories, 10) || 2000;
 
   // 1. Protein determination based on athletic demand and nitrogen preservation
-  let proteinPerKg = 2.0;
+  let proteinPerKg;
   if (goal === 'fat_loss' || goal === 'lose') {
-    // Elevated protein in deficit to prevent muscle proteolysis (ISSN Recommendation: 2.2-2.4g/kg)
+    // ISSN 2023: elevated protein in deficit to prevent muscle proteolysis
+    // 2.4g/kg for gym users (muscle preservation), 1.8g/kg for sedentary
+    proteinPerKg = isGymGoer ? 2.4 : 1.8;
+  } else if (
+    goal === 'lean_bulk' || goal === 'gain' ||
+    goal === 'muscle' || goal === 'hypertrophy'
+  ) {
+    // NSCA: 2.0–2.2g/kg sufficient with adequate caloric surplus for muscle gain
     proteinPerKg = isGymGoer ? 2.2 : 1.8;
-  } else if (goal === 'lean_bulk' || goal === 'aggressive_bulk') {
+  } else if (goal === 'aggressive_bulk') {
+    // Aggressive bulk: calorie surplus is primary driver; 2.0g/kg sufficient
     proteinPerKg = isGymGoer ? 2.0 : 1.6;
   } else {
+    // Maintenance / general health
     proteinPerKg = isGymGoer ? 1.8 : 1.2;
   }
 
@@ -482,7 +527,7 @@ export function getDetailedCalorieBreakdown(user) {
   const tdee = Math.round(bmr * totalPAL);
 
   // Step 5: Goal Adjustment
-  const targetCalories = calculateTargetCalories({ tdee, bmr, goal, gender });
+  const targetCalories = calculateTargetCalories({ tdee, bmr, goal, gender, weight, height });
   const calorieDelta = targetCalories - tdee;
 
   // Step 6: Macros
@@ -717,7 +762,7 @@ export const GOLDEN_FITNESS_MEALS = [
     name: 'High-Protein Soya Bhurji with Phulkas & Salad',
     category: 'post_workout',
     mealTypes: ['post_workout', 'dinner', 'lunch'],
-    calories: 470,
+    calories: 452,
     protein: 36,
     carbs: 50,
     fat: 12,
@@ -743,30 +788,30 @@ export const GOLDEN_FITNESS_MEALS = [
   },
   {
     id: 'rec-v4',
-    name: 'Whey Protein Power Shake with Banana & Peanut Butter',
+    name: 'Banana Peanut Butter Toast with Whey Protein',
     category: 'post_workout',
-    mealTypes: ['post_workout', 'snacks'],
-    calories: 430,
-    protein: 35,
-    carbs: 48,
-    fat: 10,
-    cost: 55,
-    prepTime: 2,
+    mealTypes: ['post_workout', 'breakfast', 'snacks'],
+    calories: 520,
+    protein: 38,
+    carbs: 54,
+    fat: 16,
+    cost: 58,
+    prepTime: 5,
     difficulty: 'basic',
     cuisine: 'indian',
     region: 'pan-indian',
-    servingUnit: '1 Shaker (1 Scoop Whey + 250ml Milk + Banana)',
+    servingUnit: '2 Slices Toast + 23g PB + 1 Banana + 1 Scoop Whey',
     budgetTier: 'moderate',
-    allergies: ['dairy', 'peanuts'],
+    allergies: ['dairy', 'peanuts', 'gluten'],
     dietaryStyle: ['vegetarian'],
     ingredients: [
-      'Whey Protein Isolate - 1 scoop (32g)',
-      'Toned Milk - 250ml',
-      'Ripe Banana - 1',
-      'Natural Peanut Butter - 1 tbsp'
+      'Whole Wheat Bread - 2 slices',
+      'Natural Peanut Butter - 23g (approx 1.5 tbsp)',
+      'Ripe Banana - 1 medium',
+      'Whey Protein Powder - 1 scoop (32g)'
     ],
-    recipe: '1. Add whey protein, milk, banana, and peanut butter into a blender or shaker bottle. 2. Blend/shake vigorously for 30 seconds. 3. Consume immediately.',
-    benefits: 'Fastest-digesting protein kinetics with rapid leucine spike, maximizing muscle protein synthesis within the post-workout window.'
+    recipe: '1. Toast the whole wheat bread slices until golden crisp. 2. Spread natural peanut butter evenly across both slices. 3. Slice banana into rounds and arrange atop the toast. 4. Mix whey protein with 150ml water/milk and enjoy alongside the toast.',
+    benefits: 'High complex carbs, potassium, healthy fats, and fast-acting whey protein delivering complete muscle protein synthesis post-workout or for breakfast.'
   },
   {
     id: 'rec-v5',
@@ -801,7 +846,7 @@ export const GOLDEN_FITNESS_MEALS = [
     name: 'Desi Egg Bhurji with Multigrain Toast & Salad',
     category: 'post_workout',
     mealTypes: ['post_workout', 'breakfast', 'dinner'],
-    calories: 490,
+    calories: 458,
     protein: 38,
     carbs: 36,
     fat: 18,
@@ -855,7 +900,7 @@ export const GOLDEN_FITNESS_MEALS = [
     name: 'Pan-Seared Boneless Chicken Breast with Steamed Basmati Rice & Salad',
     category: 'post_workout',
     mealTypes: ['post_workout', 'lunch', 'dinner'],
-    calories: 510,
+    calories: 480,
     protein: 48,
     carbs: 54,
     fat: 8,
@@ -884,7 +929,7 @@ export const GOLDEN_FITNESS_MEALS = [
     name: 'Homestyle Chicken Breast Curry with Whole Wheat Phulkas',
     category: 'post_workout',
     mealTypes: ['post_workout', 'dinner', 'lunch'],
-    calories: 490,
+    calories: 468,
     protein: 42,
     carbs: 48,
     fat: 12,
@@ -1579,12 +1624,11 @@ export function getDynamicServingUnit(dish, multiplier = 1.0) {
     return `${soya}g Soya Granules Bhurji + ${phulkas} Whole Wheat Phulkas + Salad`;
   }
 
-  if (id === 'rec-v4' || name.includes('whey protein power shake') || name.includes('whey protein')) {
-    const scoops = mult >= 1.4 ? '1.5 Scoops' : (mult >= 0.8 ? '1 Scoop' : '0.5 Scoop');
-    const wheyG = Math.round(32 * mult);
-    const milk = Math.round(250 * mult);
-    const bananas = mult >= 1.4 ? '2 Bananas' : '1 Banana';
-    return `${scoops} (${wheyG}g Whey) + ${milk}ml Milk + ${bananas}`;
+  if (id === 'rec-v4' || name.includes('banana peanut butter toast') || name.includes('whey protein power shake')) {
+    const toast = Math.max(1, Math.round(2 * mult));
+    const pb = Math.round(23 * mult);
+    const whey = mult >= 1.4 ? '1.5 Scoops' : (mult >= 0.8 ? '1 Scoop' : '0.5 Scoop');
+    return `${toast} Toast Slices + ${pb}g Peanut Butter + 1 Banana + ${whey} Whey`;
   }
 
   if (id === 'rec-v5' || name.includes('greek yogurt') || name.includes('hung curd')) {
@@ -1790,6 +1834,10 @@ export function generateCohesiveWeeklyMealPlan(allFoods = [], user = {}, customB
     user?.goal === 'lean_bulk' ||
     user?.goal === 'aggressive_bulk';
 
+  const resolvedRegion = (regionFilter || user?.cuisinePreference || 'all')
+    .toLowerCase()
+    .replace(/\s+/g, '-');
+
   // Compute clinically accurate targets from complete user profile inputs
   const breakdown = getDetailedCalorieBreakdown(user);
   const targetCalories = parseInt(user?.dailyCalories, 10) || breakdown?.targetCalories || 2000;
@@ -1805,8 +1853,23 @@ export function generateCohesiveWeeklyMealPlan(allFoods = [], user = {}, customB
 
   // Chronobiology-aligned energy split ratios
   const slotRatios = isGymUser
-    ? { breakfast: 0.22, pre_workout: 0.12, lunch: 0.28, post_workout: 0.16, dinner: 0.22, snacks: 0.08 }
-    : { breakfast: 0.26, lunch: 0.35, dinner: 0.28, snacks: 0.11 };
+    ? {
+        // Chronobiology-aligned ratios that sum exactly to 1.00
+        breakfast:    0.22,  // Morning protein primer after overnight fast
+        pre_workout:  0.11,  // Light fuel 45–60 min before training (reduced from 0.12)
+        lunch:        0.27,  // Largest meal — post-training insulin sensitivity peak
+        post_workout: 0.15,  // Rapid recovery window (within 90 min post-workout)
+        dinner:       0.20,  // Clean recovery platter — casein for overnight synthesis
+        snacks:       0.05,  // Light portable between meals
+        // Sum = 0.22+0.11+0.27+0.15+0.20+0.05 = 1.00 ✓
+      }
+    : {
+        breakfast: 0.26,
+        lunch:     0.35,
+        dinner:    0.28,
+        snacks:    0.11,
+        // Sum = 1.00 ✓
+      };
 
   // Master Food Pool: combine GOLDEN_FITNESS_MEALS with allFoods for comprehensive lookup
   const combinedFoods = [...GOLDEN_FITNESS_MEALS, ...(allFoods || [])];
@@ -1847,6 +1910,16 @@ export function generateCohesiveWeeklyMealPlan(allFoods = [], user = {}, customB
         }
       }
 
+      // Regional cuisine filter
+      // Allow 'pan-indian' foods always (they fit all regions)
+      // Only restrict if user has set a specific regional preference
+      if (resolvedRegion && resolvedRegion !== 'all' && resolvedRegion !== 'pan-indian') {
+        const foodRegion = (food.region || 'pan-indian').toLowerCase();
+        if (foodRegion !== 'pan-indian' && foodRegion !== resolvedRegion) {
+          return false;
+        }
+      }
+
       return true;
     });
 
@@ -1868,27 +1941,73 @@ export function generateCohesiveWeeklyMealPlan(allFoods = [], user = {}, customB
 
   // 2. Goal-Aware & Macro-Harmonious Anchor Selector
   const selectAnchors = (arr, count, slotKey) => {
-    const slotRatio = slotRatios[slotKey] || (1 / mealList.length);
-    const targetSlotCal = targetCalories * slotRatio;
-    const isBulking = user?.goal === 'lean_bulk' || user?.goal === 'aggressive_bulk' || user?.goal === 'muscle' || user?.goal === 'gain';
+    const userGoal   = (user?.goal || 'maintain').toLowerCase();
+    const isBulking  = ['lean_bulk','gain','muscle','hypertrophy','aggressive_bulk'].includes(userGoal);
+    const isCutting  = ['fat_loss','lose'].includes(userGoal);
+    const userMaxPrepMins = (
+      { '15_mins': 15, '30_mins': 30, '45_mins': 45, '60_mins': 60 }
+      [user?.mealPrepTime] || 30
+    );
+    const userCookingSkill = user?.cookingSkill || 'basic';
+    const difficultyNum = { basic: 1, moderate: 2, advanced: 3 };
+    const maxCookingDiff = { 'no-cook': 1, basic: 1, moderate: 2, advanced: 3 }[userCookingSkill] || 2;
 
     let scored = [...arr].map(item => {
       let score = 100;
-      const prot = item.protein || 5;
-      const cal = item.calories || 250;
+      const prot  = item.protein  || 5;
+      const cal   = item.calories || 250;
+      const fat   = item.fat      || 8;
+      const carbs = item.carbs    || 20;
+      const prep  = item.prepTime || 15;
+      const diff  = difficultyNum[(item.difficulty || 'basic').toLowerCase()] || 1;
+      const targetSlotCal = targetCalories * (slotRatios[slotKey] || (1 / mealList.length));
 
-      // Bulking affinity: boost protein and calorie density
+      // Calorie proximity score (being close to slot target is most important)
+      const calProximityRatio = 1 - Math.abs(cal - targetSlotCal) / Math.max(targetSlotCal, 1);
+      score += calProximityRatio * 28;
+
+      // Protein density for gym users
+      if (isGymUser) {
+        const protPerCal = prot / Math.max(cal, 1) * 100;
+        score += protPerCal * 1.4;
+      }
+
+      // Goal-specific scoring
       if (isBulking) {
-        score += (prot * 1.5);
-        if (cal >= targetSlotCal * 0.7) score += 20;
+        score += prot * 1.5;
+        if (cal >= targetSlotCal * 0.80) score += 15;
+      }
+      if (isCutting) {
+        score -= fat * 0.5;
+        score += prot * 2.0;
+        if (cal <= targetSlotCal * 1.08) score += 20;
       }
 
-      // Slot-specific criteria
+      // Slot-specific scoring
       if (slotKey === 'post_workout') {
-        score += (prot * 3); // Top priority on high bioavailable protein
-      } else if (slotKey === 'pre_workout') {
-        if (cal >= 200 && cal <= 400) score += 25;
+        score += prot * 3.5;  // Highest protein priority — muscle protein synthesis window
+        if (cal >= 300 && cal <= 700) score += 20;
       }
+      if (slotKey === 'pre_workout') {
+        const carbRatio = carbs / Math.max(cal, 1);
+        score += carbRatio * 50;  // High carb = fast fuel
+        if (fat <= 10) score += 12;  // Low fat = faster gastric emptying
+        if (prep <= 15) score += 10; // Pre-workout should be quick
+      }
+      if (slotKey === 'dinner') {
+        // Casein-rich foods for overnight muscle protein synthesis
+        const ing = (item.ingredients || []).join(' ').toLowerCase();
+        if (['paneer','curd','dahi','egg','chicken','fish'].some(k => ing.includes(k))) score += 14;
+      }
+      if (slotKey === 'breakfast') {
+        if (prep <= 20) score += 8;  // Breakfast should be quick on workdays
+      }
+
+      // Cooking difficulty penalty
+      if (diff > maxCookingDiff) score -= 35;
+
+      // Prep time penalty
+      if (prep > userMaxPrepMins) score -= 18;
 
       return { item, score };
     });
@@ -1911,7 +2030,32 @@ export function generateCohesiveWeeklyMealPlan(allFoods = [], user = {}, customB
   const dailyCosts = {};
   const groceryFrequencyMap = {};
 
+  // Map training days based on user's gym frequency
+  // Distribute training days optimally for recovery
+  const GYM_DAY_SCHEDULE = {
+    0: [],
+    1: ['monday'],
+    2: ['monday', 'thursday'],
+    3: ['monday', 'wednesday', 'friday'],
+    4: ['monday', 'tuesday', 'thursday', 'friday'],
+    5: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
+    6: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'],
+    7: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+  };
+  const gymDayCount = parseInt(user?.gymDays, 10) || 0;
+  const trainingDaySet = new Set(GYM_DAY_SCHEDULE[gymDayCount] || []);
+
   days.forEach((day, dayIndex) => {
+    const isTrainingDay = trainingDaySet.has(day);
+    // Rest days: 10% calorie reduction (no EAT from exercise)
+    const dayTargetCalories = isTrainingDay
+      ? targetCalories
+      : Math.round(targetCalories * 0.90);
+    // Rest days: remove pre/post workout slots from gym users
+    const dayMealList = (isGymUser && isTrainingDay)
+      ? ['breakfast', 'pre_workout', 'lunch', 'post_workout', 'dinner', 'snacks']
+      : ['breakfast', 'lunch', 'dinner', 'snacks'];
+
     const templates = {};
     const usedNames = new Set();
 
@@ -1952,11 +2096,20 @@ export function generateCohesiveWeeklyMealPlan(allFoods = [], user = {}, customB
     const dayMeals = {};
     let currentCost = 0;
 
-    mealList.forEach(m => {
+    const daySlotRatios = (isGymUser && isTrainingDay)
+      ? slotRatios
+      : {
+          breakfast: 0.26,
+          lunch:     0.35,
+          dinner:    0.28,
+          snacks:    0.11,
+        };
+
+    dayMealList.forEach(m => {
       const dish = templates[m];
       if (!dish) return;
 
-      const targetSlotCal = targetCalories * (slotRatios[m] || (1 / mealList.length));
+      const targetSlotCal = dayTargetCalories * (daySlotRatios[m] || (1 / dayMealList.length));
       let initialMult = targetSlotCal / (dish.calories || 250);
       // Discrete kitchen portions rounded to nearest 0.05 (min 0.5x, max 3.0x)
       initialMult = Math.max(0.5, Math.min(3.0, Math.round(initialMult * 20) / 20));
@@ -2082,56 +2235,153 @@ export function normalizeIngredientName(rawStr = '') {
  * 9. SMART ALTERNATIVE MEAL REPLACER
  * Finds 4-6 authentic Indian dishes matching slot, calorie, and protein requirements
  */
-export function getSmartMealReplacements(targetDish, allFoods = [], user = {}, slot = 'lunch', regionFilter = 'all') {
+export function getSmartMealReplacements(
+  targetDish, allFoods = [], user = {}, slot = 'lunch', regionFilter = 'all'
+) {
   if (!targetDish) return [];
 
-  const targetCal = targetDish.calories || 400;
-  const targetProt = targetDish.protein || 20;
-  const pool = [...GOLDEN_FITNESS_MEALS, ...(allFoods || [])];
+  const targetCal    = targetDish.calories || 400;
+  const targetProt   = targetDish.protein  || 20;
+  const targetCarbs  = targetDish.carbs    || 40;
+  const targetFat    = targetDish.fat      || 12;
+  const targetPrep   = targetDish.prepTime || 20;
+  const targetRegion = (targetDish.region  || 'pan-indian').toLowerCase();
 
+  const userGoal     = (user?.goal || 'maintain').toLowerCase();
+  const userDietPref = (user?.dietaryPreferences || '').toLowerCase();
+  const userAllergies= (user?.allergies || []).map(a => a.toLowerCase());
+  const userBudget   = user?.budgetRange || user?.monthlyBudget || 'moderate';
+  const userMaxPrep  = (
+    { '15_mins': 15, '30_mins': 30, '45_mins': 45, '60_mins': 60 }
+    [user?.mealPrepTime] || 30
+  );
+  const userCooking  = user?.cookingSkill || user?.cookingExperience || 'basic';
+  const resolvedRegion = (regionFilter || user?.cuisinePreference || 'all').toLowerCase();
+
+  const pool = [...GOLDEN_FITNESS_MEALS, ...(allFoods || [])];
   const seen = new Set();
-  return pool.filter(food => {
+
+  // ── Hard filters (zero tolerance on allergens and dietary compliance) ──
+
+  function isDietaryCompliant(food) {
+    const styles = (food.dietaryStyle || []).map(s => s.toLowerCase());
+    const ingredients = (food.ingredients || []).join(' ').toLowerCase();
+    const isNonVeg = styles.includes('non-vegetarian') ||
+      ['poultry','meat','fish'].includes(food.category);
+    // Detect egg content carefully (avoid "eggplant" false positive)
+    const hasEgg = styles.includes('eggitarian') ||
+      (food.name || '').toLowerCase().includes('egg white') ||
+      ingredients.match(/\begg\b/);
+    const hasDairy = (food.allergies || []).includes('dairy') ||
+      ['paneer','curd','dahi','milk','ghee','butter','cheese','cream','whey']
+        .some(k => ingredients.includes(k));
+
+    if (!userDietPref) return true;
+    if (userDietPref === 'vegetarian')  return !isNonVeg && !hasEgg;
+    if (userDietPref === 'eggitarian')  return !isNonVeg;
+    if (userDietPref === 'vegan')       return !isNonVeg && !hasEgg && !hasDairy;
+    if (userDietPref === 'jain')
+      return styles.includes('jain') || styles.includes('sattvic');
+    if (userDietPref === 'keto')
+      return styles.includes('keto') || styles.includes('low-carb');
+    if (userDietPref === 'gluten-free')
+      return styles.includes('gluten-free') && !(food.allergies || []).includes('gluten');
+    return true;
+  }
+
+  function isAllergenSafe(food) {
+    if (!userAllergies.length) return true;
+    const foodAllergies = (food.allergies || []).map(a => a.toLowerCase());
+    return !foodAllergies.some(a => userAllergies.includes(a));
+  }
+
+  function isBudgetCompatible(food) {
+    const tierNum = { tight: 1, moderate: 2, flexible: 3, premium: 4 };
+    const userTier = tierNum[userBudget] || 2;
+    const foodTier = tierNum[food.budgetTier] || 2;
+    return foodTier <= userTier;
+  }
+
+  const difficultyNum  = { basic: 1, moderate: 2, advanced: 3 };
+  const maxCookingDiff = { 'no-cook': 1, basic: 1, moderate: 2, advanced: 3 }[userCooking] || 2;
+
+  const candidates = pool.filter(food => {
+    if (!food?.name) return false;
     if (food.name === targetDish.name || food.id === targetDish.id) return false;
     if (seen.has(food.name)) return false;
 
-    // Strict slot match
+    // Must fit the target meal slot
     const slots = (food.mealTypes || []).map(s => s.toLowerCase());
     if (!slots.includes(slot.toLowerCase())) return false;
 
-    // Allergen checks
-    if (food.allergies && user?.allergies && user.allergies.length > 0) {
-      if (food.allergies.some(a => user.allergies.includes(a.toLowerCase()))) return false;
-    }
+    // Hard safety filters (non-negotiable)
+    if (!isAllergenSafe(food))      return false;
+    if (!isDietaryCompliant(food))  return false;
+    if (!isBudgetCompatible(food))  return false;
 
-    // Dietary preferences
-    if (user?.dietaryPreferences) {
-      const pref = user.dietaryPreferences.toLowerCase();
-      const styles = (food.dietaryStyle || []).map(s => s.toLowerCase());
-      const isNonVegDish = styles.includes('non-vegetarian') || food.category === 'poultry' || food.category === 'meat' || food.category === 'fish';
-      const isEggDish = styles.includes('eggitarian') || food.name?.toLowerCase().includes('egg') || (food.ingredients || []).some(i => i.toLowerCase().includes('egg'));
-
-      if (pref === 'jain') {
-        if (!styles.includes('jain') && !styles.includes('sattvic')) return false;
-      } else if (pref === 'vegan') {
-        if (!styles.includes('vegan')) return false;
-      } else if (pref === 'vegetarian') {
-        if (isNonVegDish || isEggDish) return false;
-      } else if (pref === 'eggitarian') {
-        if (isNonVegDish && !isEggDish) return false;
-      }
-    }
+    // Calorie window: ±25% (wide enough to give meaningful choices)
+    if (Math.abs((food.calories || 250) - targetCal) > targetCal * 0.25) return false;
 
     seen.add(food.name);
     return true;
-  }).map(food => {
-    const calDiff = Math.abs((food.calories || 300) - targetCal);
-    const protDiff = Math.abs((food.protein || 15) - targetProt);
-    const score = (calDiff * 0.4) + (protDiff * 2);
+  });
+
+  // ── Multi-factor weighted scoring (lower score = better match) ──
+  const isBulking = ['lean_bulk','gain','muscle','hypertrophy','aggressive_bulk'].includes(userGoal);
+  const isCutting = ['fat_loss','lose'].includes(userGoal);
+
+  const scored = candidates.map(food => {
+    const cal   = food.calories || 250;
+    const prot  = food.protein  || 10;
+    const carbs = food.carbs    || 20;
+    const fat   = food.fat      || 8;
+    const prep  = food.prepTime || 15;
+    const diff  = difficultyNum[(food.difficulty || 'basic').toLowerCase()] || 1;
+    let score   = 0;
+
+    // 1. Calorie match (35%) — most important for daily totals
+    score += Math.abs(cal - targetCal)   / Math.max(targetCal, 1)   * 100 * 0.35;
+
+    // 2. Protein match (30%) — critical for gym users
+    score += Math.abs(prot - targetProt) / Math.max(targetProt, 1)  * 100 * 0.30;
+
+    // 3. Carb match (15%) — important for keto/low-carb users
+    score += Math.abs(carbs - targetCarbs) / Math.max(targetCarbs, 1) * 100 * 0.15;
+
+    // 4. Fat match (10%)
+    score += Math.abs(fat - targetFat)  / Math.max(targetFat, 1)    * 100 * 0.10;
+
+    // 5. Prep time match (7%) — don't swap a 5-min snack for 30-min cooking
+    score += Math.abs(prep - targetPrep) / Math.max(targetPrep, 1)  * 100 * 0.07;
+
+    // 6. Region match bonus (3%) — prefer same region, user preferred region, or pan-indian
+    const foodRegion = (food.region || 'pan-indian').toLowerCase();
+    if (foodRegion === targetRegion || foodRegion === 'pan-indian' || (resolvedRegion !== 'all' && foodRegion === resolvedRegion)) score -= 4;
+
+    // Over-prep time penalty
+    if (prep > userMaxPrep) score += 20;
+
+    // Cooking difficulty penalty
+    if (diff > maxCookingDiff) score += 22;
+
+    // Goal-specific bonuses
+    if (isBulking) {
+      // Reward higher protein density (g protein per 100 kcal)
+      score -= (prot / Math.max(cal, 1) * 100) * 0.4;
+    }
+    if (isCutting) {
+      // Heavily reward protein density, penalize high-calorie options
+      score -= (prot / Math.max(cal, 1) * 100) * 0.75;
+      if (cal > targetCal * 1.05) score += 12;
+    }
+
     return { food, score };
-  })
-  .sort((a, b) => a.score - b.score)
-  .slice(0, 6)
-  .map(s => s.food);
+  });
+
+  return scored
+    .sort((a, b) => a.score - b.score)
+    .slice(0, 5)
+    .map(s => s.food);
 }
 
 /**
@@ -2140,11 +2390,12 @@ export function getSmartMealReplacements(targetDish, allFoods = [], user = {}, s
  */
 export function generateCategorizedGroceryList(weeklyPlan = {}) {
   const categories = {
-    grains: { title: 'Atta, Rice & Whole Grains', items: {} },
-    pulses: { title: 'Dals, Pulses & Legumes', items: {} },
-    dairy_protein: { title: 'Proteins & Dairy Staples', items: {} },
-    vegetables: { title: 'Fresh Sabzis, Greens & Aromatics', items: {} },
-    essentials: { title: 'Oils, Ghee, Spices & Dry Fruits', items: {} }
+    produce: { title: 'Produce & Vegetables', items: {} },
+    dairy_eggs: { title: 'Dairy & Eggs', items: {} },
+    grains: { title: 'Grains & Flours', items: {} },
+    legumes: { title: 'Legumes & Pulses', items: {} },
+    spices: { title: 'Spices & Condiments', items: {} },
+    nuts_supplements: { title: 'Nuts, Seeds & Supplements', items: {} }
   };
 
   Object.values(weeklyPlan).forEach(dayMeals => {
@@ -2158,16 +2409,18 @@ export function generateCategorizedGroceryList(weeklyPlan = {}) {
         if (!normalized) return;
 
         const lineLower = normalized.toLowerCase();
-        let targetCategory = 'essentials';
+        let targetCategory = 'spices';
 
-        if (lineLower.includes('atta') || lineLower.includes('rice') || lineLower.includes('poha') || lineLower.includes('oats') || lineLower.includes('dalia') || lineLower.includes('bread') || lineLower.includes('flour')) {
+        if (lineLower.includes('almond') || lineLower.includes('walnut') || lineLower.includes('seed') || lineLower.includes('peanut') || lineLower.includes('makhana') || lineLower.includes('whey') || lineLower.includes('supplement') || lineLower.includes('dates') || lineLower.includes('cashew') || lineLower.includes('pistachio')) {
+          targetCategory = 'nuts_supplements';
+        } else if (lineLower.includes('atta') || lineLower.includes('rice') || lineLower.includes('poha') || lineLower.includes('oats') || lineLower.includes('dalia') || lineLower.includes('bread') || lineLower.includes('flour') || lineLower.includes('roti') || lineLower.includes('phulka')) {
           targetCategory = 'grains';
-        } else if (lineLower.includes('dal') || lineLower.includes('chana') || lineLower.includes('rajma') || lineLower.includes('moong') || lineLower.includes('sattu') || lineLower.includes('besan')) {
-          targetCategory = 'pulses';
-        } else if (lineLower.includes('paneer') || lineLower.includes('curd') || lineLower.includes('milk') || lineLower.includes('soya') || lineLower.includes('tofu') || lineLower.includes('egg') || lineLower.includes('chicken') || lineLower.includes('fish') || lineLower.includes('whey')) {
-          targetCategory = 'dairy_protein';
-        } else if (lineLower.includes('onion') || lineLower.includes('tomato') || lineLower.includes('ginger') || lineLower.includes('garlic') || lineLower.includes('coriander') || lineLower.includes('lemon') || lineLower.includes('spinach') || lineLower.includes('palak') || lineLower.includes('bhindi') || lineLower.includes('lauki') || lineLower.includes('cucumber') || lineLower.includes('banana') || lineLower.includes('peas')) {
-          targetCategory = 'vegetables';
+        } else if (lineLower.includes('dal') || lineLower.includes('chana') || lineLower.includes('rajma') || lineLower.includes('moong') || lineLower.includes('sattu') || lineLower.includes('besan') || lineLower.includes('sprouts') || lineLower.includes('chole')) {
+          targetCategory = 'legumes';
+        } else if (lineLower.includes('paneer') || lineLower.includes('curd') || lineLower.includes('milk') || lineLower.includes('soya') || lineLower.includes('tofu') || lineLower.includes('egg') || lineLower.includes('chicken') || lineLower.includes('fish') || lineLower.includes('yogurt') || lineLower.includes('cheese') || lineLower.includes('buttermilk')) {
+          targetCategory = 'dairy_eggs';
+        } else if (lineLower.includes('onion') || lineLower.includes('tomato') || lineLower.includes('ginger') || lineLower.includes('garlic') || lineLower.includes('coriander') || lineLower.includes('lemon') || lineLower.includes('spinach') || lineLower.includes('palak') || lineLower.includes('bhindi') || lineLower.includes('lauki') || lineLower.includes('cucumber') || lineLower.includes('banana') || lineLower.includes('peas') || lineLower.includes('apple') || lineLower.includes('fruit') || lineLower.includes('carrot') || lineLower.includes('potato') || lineLower.includes('capsicum') || lineLower.includes('methi') || lineLower.includes('vegetable')) {
+          targetCategory = 'produce';
         }
 
         categories[targetCategory].items[normalized] = (categories[targetCategory].items[normalized] || 0) + 1;
@@ -2176,4 +2429,23 @@ export function generateCategorizedGroceryList(weeklyPlan = {}) {
   });
 
   return categories;
+}
+
+export function getStandardizedGoalLabel(goal) {
+  if (!goal) return 'Muscle mass hypertrophy';
+  const g = String(goal).toLowerCase().replace(/_/g, ' ');
+  if (g.includes('muscle') || g.includes('hypertrophy') || g.includes('bulk') || g.includes('gain')) {
+    return 'Muscle mass hypertrophy';
+  }
+  if (g.includes('fat') || g.includes('lose') || g.includes('loss') || g.includes('cut')) {
+    return 'Fat loss & conditioning';
+  }
+  return toTitleCase(g);
+}
+
+export function formatCompactMacros(protein, carbs, fat) {
+  const p = Math.round(Number(protein) || 0);
+  const c = Math.round(Number(carbs) || 0);
+  const f = Math.round(Number(fat) || 0);
+  return `P${p} · C${c} · F${f}`;
 }

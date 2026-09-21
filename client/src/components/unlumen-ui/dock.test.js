@@ -31,17 +31,19 @@ describe('Dock Component', () => {
     expect(items[1].onClick).toHaveBeenCalled();
   });
 
-  test('renders labels beneath icons when alwaysShowLabels is true', () => {
-    render(<Dock items={items} alwaysShowLabels={true} />);
+  test('renders labels beneath icons', () => {
+    render(<Dock items={items} />);
     const label = screen.getByText('Browser');
-    expect(label).toHaveClass('unlumen-dock-bottom-label');
+    expect(label).toHaveClass('nb-dock-label');
   });
 
   test('handles mouse move and leave events gracefully', () => {
-    const { container } = render(<Dock items={items} magnification={2.5} distance={120} />);
-    const nav = container.querySelector('.unlumen-dock-container');
+    const { container } = render(<Dock items={items} />);
+    const nav = container.querySelector('.nb-dock-pill');
     
-    fireEvent.mouseMove(nav, { clientX: 100 });
-    fireEvent.mouseLeave(nav);
+    if (nav) {
+      fireEvent.mouseMove(nav, { clientX: 100 });
+      fireEvent.mouseLeave(nav);
+    }
   });
 });

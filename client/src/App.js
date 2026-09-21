@@ -10,7 +10,7 @@ import UserProfileDetails from './pages/UserProfileDetails';
 import GlobalSearchModal from './components/GlobalSearchModal';
 import FloatingWorkoutBar from './components/FloatingWorkoutBar';
 import { Dock } from './components/unlumen-ui/dock';
-import { Search, LogOut } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { toTitleCase } from './utils/nutritionEngine';
 // import AIChatbot from './components/AIChatbot';
 
@@ -319,11 +319,23 @@ function App() {
         /* STANDARD APP SIDEBAR LAYOUT */
         <div className="main-layout-wrapper">
           {/* MOBILE / TOP HEADER BAR */}
-          <header className="mobile-header-bar">
-            <h1 style={{ fontSize: 20, margin: 0, fontWeight: 700, letterSpacing: '-0.02em', display: 'flex', alignItems: 'center' }}>
-              <span style={{ color: '#ffffff', fontWeight: 700 }}>Nutri</span>
-              <span style={{ color: 'var(--color-green)', fontWeight: 700 }}>Buddy</span>
-            </h1>
+          <header 
+            className="mobile-header-bar"
+            style={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 1000,
+              background: 'rgba(8, 11, 17, 0.92)',
+              backdropFilter: 'blur(24px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+              borderBottom: '0.5px solid var(--bd)',
+              padding: '12px 20px'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <span style={{ fontSize: 19, fontWeight: 800, letterSpacing: '-0.03em', color: '#ffffff' }}>Nutri</span>
+              <span style={{ fontSize: 19, fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--g)' }}>Buddy</span>
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <button
                 onClick={() => setIsSearchOpen(true)}
@@ -331,36 +343,18 @@ function App() {
                   width: 36, height: 36, borderRadius: 10,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer', padding: 0,
-                  color: 'var(--text-muted)',
+                  color: 'var(--t2)',
                   background: 'transparent',
                   border: 'none',
                   outline: 'none',
                   transition: 'background 0.2s ease'
                 }}
-                onMouseDown={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
-                onMouseUp={(e) => e.currentTarget.style.background = 'transparent'}
-                title="Search foods, exercises, recipes (Ctrl+K)"
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                title="Search (Ctrl+K)"
+                aria-label="Search"
               >
-                <Search size={20} />
-              </button>
-              <button
-                onClick={handleLogout}
-                style={{
-                  width: 36, height: 36, borderRadius: 10,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', padding: 0,
-                  color: '#EF4444',
-                  background: 'rgba(239, 68, 68, 0.12)',
-                  border: '1px solid rgba(239, 68, 68, 0.22)',
-                  outline: 'none',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseDown={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.24)'}
-                onMouseUp={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.12)'}
-                title="Log out"
-                aria-label="Log out"
-              >
-                <LogOut size={17} />
+                <Search size={18} strokeWidth={2.2} />
               </button>
               <button
                 onClick={() => {
@@ -368,19 +362,20 @@ function App() {
                   setIsEditingProfile(false);
                 }}
                 style={{
-                  width: 40, height: 40, borderRadius: '50%',
-                  background: 'var(--color-green)',
-                  color: '#0a1a10',
-                  border: '2px solid rgba(34, 209, 122, 0.3)',
+                  width: 36, height: 36, borderRadius: '50%',
+                  background: 'var(--g)',
+                  color: '#041a0c',
+                  border: 'none',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer', padding: 0,
-                  fontSize: 16, fontWeight: 700,
-                  transition: 'all 0.2s ease',
-                  outline: 'none'
+                  fontSize: 14, fontWeight: 800,
+                  outline: 'none',
+                  boxShadow: '0 2px 8px rgba(34, 209, 122, 0.2)'
                 }}
-                title="My Profile"
+                title="Profile & Settings"
+                aria-label="Profile and Settings"
               >
-                {user.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
+                {user?.fullName ? toTitleCase(user.fullName).charAt(0) : 'J'}
               </button>
             </div>
           </header>
@@ -624,46 +619,24 @@ function App() {
                   >
                     <div style={{
                       width: 36, height: 36, borderRadius: '50%',
-                      background: 'var(--color-green, #22d17a)',
-                      color: '#0a1a10',
+                      background: 'var(--g, #22d17a)',
+                      color: '#041a0c',
                       border: currentPage === 'profile' ? '2px solid rgba(255, 255, 255, 0.4)' : '1px solid rgba(255, 255, 255, 0.1)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: 14, fontWeight: 700,
                       flexShrink: 0,
                       boxShadow: '0 2px 10px rgba(34, 209, 122, 0.25)'
                     }}>
-                      {user.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
+                      {user?.fullName ? toTitleCase(user.fullName).charAt(0) : 'J'}
                     </div>
                     <div style={{ minWidth: 0 }}>
-                      <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {toTitleCase(user.fullName || 'Member')}
+                      <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: 'var(--t1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {toTitleCase(user?.fullName || 'Member')}
                       </p>
-                      <p style={{ margin: 0, fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {user.profession || 'Member'}
+                      <p style={{ margin: 0, fontSize: 11, color: 'var(--t3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {user?.profession || 'Member'}
                       </p>
                     </div>
-                  </button>
-                  <button 
-                    onClick={handleLogout}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      background: 'rgba(239, 68, 68, 0.12)',
-                      border: '1px solid rgba(239, 68, 68, 0.24)',
-                      color: '#EF4444',
-                      padding: '6px 10px',
-                      fontSize: 12,
-                      fontWeight: 700,
-                      borderRadius: 8,
-                      cursor: 'pointer',
-                      flexShrink: 0,
-                      transition: 'all 0.2s ease'
-                    }}
-                    title="Sign out"
-                  >
-                    <LogOut size={13} />
-                    Logout
                   </button>
                 </div>
               ) : (
@@ -676,8 +649,8 @@ function App() {
                     className="sidebar-nav-item"
                     style={{
                       width: 36, height: 36, borderRadius: '50%',
-                      background: 'var(--color-green, #22d17a)',
-                      color: '#0a1a10',
+                      background: 'var(--g, #22d17a)',
+                      color: '#041a0c',
                       border: currentPage === 'profile' ? '2px solid rgba(255, 255, 255, 0.4)' : '1px solid rgba(255, 255, 255, 0.1)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       cursor: 'pointer', padding: 0,
@@ -688,29 +661,8 @@ function App() {
                     }}
                     title="Profile Details"
                   >
-                    {user.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
+                    {user?.fullName ? toTitleCase(user.fullName).charAt(0) : 'J'}
                     <span className="sidebar-tooltip">Profile</span>
-                  </button>
-                  <button
-                    onClick={handleLogout}
-                    className="sidebar-nav-item"
-                    style={{
-                      width: 32, height: 32, borderRadius: 8,
-                      background: 'rgba(239, 68, 68, 0.12)',
-                      border: '1px solid rgba(239, 68, 68, 0.24)',
-                      color: '#EF4444',
-                      cursor: 'pointer',
-                      padding: 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      outline: 'none',
-                      transition: 'all 0.2s ease'
-                    }}
-                    title="Sign out"
-                  >
-                    <LogOut size={15} />
-                    <span className="sidebar-tooltip">Logout</span>
                   </button>
                 </div>
               )}
@@ -746,62 +698,59 @@ function App() {
         </div>
       )}
 
-      {/* MACOS-STYLE DOCK TOOLBAR (Gaussian Neighbor Magnification + Spring Physics) */}
+      {/* FLOATING NAVIGATION DOCK (PART 2) */}
       {!isOnboarding && user && !(workoutSession && workoutSession.isSessionActive && workoutSession.isInsideConsole && currentPage === 'exercise') && (
-        <div className="app-dock-toolbar-fixed" role="navigation" aria-label="Main Navigation Dock">
-          <Dock
-            items={[
-              {
-                label: 'Dashboard',
-                isActive: currentPage === 'dashboard',
-                onClick: () => handleNavigate('dashboard'),
-                icon: (
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="7" height="9" /><rect x="14" y="3" width="7" height="5" />
-                    <rect x="14" y="12" width="7" height="9" /><rect x="3" y="16" width="7" height="5" />
-                  </svg>
-                )
-              },
-              {
-                label: 'Food Log',
-                isActive: currentPage === 'food-log',
-                onClick: () => handleNavigate('food-log'),
-                icon: (
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                  </svg>
-                )
-              },
-              {
-                label: 'Meal Planner',
-                isActive: currentPage === 'meal-planner',
-                onClick: () => handleNavigate('meal-planner'),
-                icon: (
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                    <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-                  </svg>
-                )
-              },
-              {
-                label: 'Workouts',
-                isActive: currentPage === 'exercise',
-                onClick: () => handleNavigate('exercise'),
-                icon: (
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="6" y1="12" x2="18" y2="12" /><line x1="6" y1="7" x2="6" y2="17" /><line x1="18" y1="7" x2="18" y2="17" />
-                    <rect x="2" y="9" width="4" height="6" /><rect x="18" y="9" width="4" height="6" />
-                  </svg>
-                )
-              }
-            ]}
-            magnification={1.48}
-            distance={65}
-            iconSize={42}
-            gap={22}
-            className="nutribuddy-dock-nav"
-          />
-        </div>
+        <Dock
+          items={[
+            {
+              label: 'Home',
+              isActive: currentPage === 'dashboard',
+              onClick: () => handleNavigate('dashboard'),
+              icon: (
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                  <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                  <rect x="14" y="14" width="7" height="7" rx="1.5" />
+                  <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                </svg>
+              )
+            },
+            {
+              label: 'Food',
+              isActive: currentPage === 'food-log',
+              onClick: () => handleNavigate('food-log'),
+              icon: (
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                </svg>
+              )
+            },
+            {
+              label: 'Meals',
+              isActive: currentPage === 'meal-planner',
+              onClick: () => handleNavigate('meal-planner'),
+              icon: (
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+              )
+            },
+            {
+              label: 'Workouts',
+              isActive: currentPage === 'exercise',
+              onClick: () => handleNavigate('exercise'),
+              icon: (
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12" />
+                </svg>
+              )
+            }
+          ]}
+        />
       )}
 
       {/* Floating Active Workout Capsule (Elevated Obsidian Emerald Pill) */}
