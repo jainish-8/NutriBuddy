@@ -50,14 +50,13 @@ export default function UserProfileDetails({ user, onEdit, onLogout, setCurrentP
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
     } catch {}
-    const baseW = parseFloat(user?.weight) || 72;
-    const now = new Date();
-    return [
-      { date: new Date(now.getTime() - 21 * 86400000).toISOString().split('T')[0], weight: +(baseW + (user?.goal === 'fat_loss' ? 1.8 : -1.2)).toFixed(1) },
-      { date: new Date(now.getTime() - 14 * 86400000).toISOString().split('T')[0], weight: +(baseW + (user?.goal === 'fat_loss' ? 1.1 : -0.8)).toFixed(1) },
-      { date: new Date(now.getTime() - 7 * 86400000).toISOString().split('T')[0], weight: +(baseW + (user?.goal === 'fat_loss' ? 0.4 : -0.3)).toFixed(1) },
-      { date: now.toISOString().split('T')[0], weight: baseW }
-    ];
+    // Fresh profile: start with only their current weight as the first entry
+    const baseW = parseFloat(user?.weight);
+    if (baseW > 0) {
+      const today = new Date().toISOString().split('T')[0];
+      return [{ date: today, weight: baseW }];
+    }
+    return [];
   });
   const [newWeightInput, setNewWeightInput] = useState('');
 

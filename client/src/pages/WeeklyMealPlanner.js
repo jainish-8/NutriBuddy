@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { handleCard3DMouseMove, handleCard3DMouseLeave, handleCardSpotlight } from '../utils/cardTilt';
 
-const PLAN_ENGINE_VERSION = 'v7.3_rest_day_chronobiology';
+const PLAN_ENGINE_VERSION = 'v7.4_dietary_strict';
 const MULTIPLIERS = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5];
 
 const DAYS = [
@@ -513,8 +513,10 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
   // Calculations for Selected Day
   const currentDayMeals = useMemo(() => weeklyPlan[selectedDay] || {}, [weeklyPlan, selectedDay]);
 
-  const gymDayCount = user?.gymDays !== undefined ? parseInt(user.gymDays, 10) : 3;
-  const isGymUser = gymDayCount > 0 || user?.isGymGoer === true || user?.goal === 'hypertrophy' || user?.fitnessGoal === 'muscle';
+  const gymDayCount = (user?.gymDays !== undefined && user?.gymDays !== null && user?.gymDays !== '')
+    ? parseInt(user.gymDays, 10)
+    : 0;
+  const isGymUser = gymDayCount > 0 || user?.isGymGoer === true || user?.goal === 'hypertrophy' || user?.goal === 'lean_bulk' || user?.goal === 'muscle' || user?.fitnessGoal === 'muscle';
 
   const trainingDaySet = useMemo(() => new Set(GYM_DAY_SCHEDULE[gymDayCount] || []), [gymDayCount]);
   const isTrainingDay = trainingDaySet.has(selectedDay);

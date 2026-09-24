@@ -107,7 +107,7 @@ export default function Dashboard({ user, setCurrentPage }) {
       const saved = localStorage.getItem(streakKey);
       if (saved !== null) return parseInt(saved, 10);
     } catch {}
-    return 5;
+    return 0;
   });
 
   const now = useMemo(() => new Date(), []);
@@ -205,7 +205,7 @@ export default function Dashboard({ user, setCurrentPage }) {
       const saved = localStorage.getItem(`nutribuddy_eaten_meals_${userId}_${todayStr}`);
       if (saved) return JSON.parse(saved);
     } catch {}
-    return { breakfast: true, pre_workout: true };
+    return {};
   });
 
   const toggleMealEaten = (slotKey) => {

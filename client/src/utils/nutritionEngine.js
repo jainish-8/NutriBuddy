@@ -308,36 +308,45 @@ export function calculateTargetCalories({ tdee, bmr, goal, gender = 'male', weig
  * 4. MACRONUTRIENT PARTITIONING (ISSN / NSCA STANDARDS)
  * Strict Gram-for-Gram calculation with zero rounding drift
  */
-export function calculateMacros({ dailyCalories, weight, goal, isGymGoer = true }) {
+export function calculateMacros({ dailyCalories, weight, goal, isGymGoer = false }) {
   const w = parseFloat(weight) || 70;
   const cals = parseInt(dailyCalories, 10) || 2000;
 
   // 1. Protein determination based on athletic demand and nitrogen preservation
+  // Clinical evidence-based ranges (ISSN 2023, NSCA, WHO):
+  //   - Sedentary, fat loss: 1.2–1.5g/kg (WHO: 0.8g/kg minimum; ISSN adds margin for retention)
+  //   - Active gym + fat loss: 1.8–2.0g/kg (muscle preservation in deficit)
+  //   - Gym + muscle gain: 1.8–2.0g/kg (NSCA: sufficient with caloric surplus)
+  //   - General maintain, sedentary: 1.0–1.2g/kg (healthy adult baseline)
   let proteinPerKg;
   if (goal === 'fat_loss' || goal === 'lose') {
-    // ISSN 2023: elevated protein in deficit to prevent muscle proteolysis
-    // 2.4g/kg for gym users (muscle preservation), 1.8g/kg for sedentary
-    proteinPerKg = isGymGoer ? 2.4 : 1.8;
+    // ISSN 2023: higher protein in deficit to prevent muscle proteolysis
+    proteinPerKg = isGymGoer ? 2.0 : 1.4;
   } else if (
     goal === 'lean_bulk' || goal === 'gain' ||
     goal === 'muscle' || goal === 'hypertrophy'
   ) {
-    // NSCA: 2.0–2.2g/kg sufficient with adequate caloric surplus for muscle gain
-    proteinPerKg = isGymGoer ? 2.2 : 1.8;
-  } else if (goal === 'aggressive_bulk') {
-    // Aggressive bulk: calorie surplus is primary driver; 2.0g/kg sufficient
+    // NSCA: 1.8–2.0g/kg sufficient with adequate caloric surplus for muscle gain
     proteinPerKg = isGymGoer ? 2.0 : 1.6;
+  } else if (goal === 'aggressive_bulk') {
+    // Aggressive bulk: calorie surplus is primary driver; 1.8g/kg sufficient
+    proteinPerKg = isGymGoer ? 1.8 : 1.4;
   } else {
     // Maintenance / general health
-    proteinPerKg = isGymGoer ? 1.8 : 1.2;
+    proteinPerKg = isGymGoer ? 1.6 : 1.1;
   }
 
-  const targetProteinGrams = Math.round(w * proteinPerKg);
+  // Hard cap: protein calories must not exceed 35% of total calories (prevents carb starvation)
+  let targetProteinGrams = Math.round(w * proteinPerKg);
+  const maxProteinFromCalories = Math.round((cals * 0.35) / 4);
+  if (targetProteinGrams > maxProteinFromCalories) {
+    targetProteinGrams = maxProteinFromCalories;
+  }
   const proteinCalories = targetProteinGrams * 4;
 
-  // 2. Essential Dietary Fats: 25% of total calories (ensuring minimum 0.8g/kg for endocrine health)
+  // 2. Essential Dietary Fats: 25% of total calories (ensuring minimum 0.7g/kg for endocrine health)
   let targetFatGrams = Math.round((cals * 0.25) / 9);
-  const minFatGrams = Math.round(w * 0.8);
+  const minFatGrams = Math.round(w * 0.7);
   if (targetFatGrams < minFatGrams) targetFatGrams = minFatGrams;
   const fatCalories = targetFatGrams * 9;
 
@@ -352,6 +361,7 @@ export function calculateMacros({ dailyCalories, weight, goal, isGymGoer = true 
     calories: (targetProteinGrams * 4) + (targetFatGrams * 9) + (targetCarbsGrams * 4)
   };
 }
+
 
 /**
  * 5. DYNAMIC RECIPE INGREDIENTS & INSTRUCTIONS SCALER
@@ -2481,16 +2491,18 @@ export function generateClinicalWeeklyPlan(allFoods = [], user = {}, seedOffset 
  * - Strict Allergen Protection & Dietary Lifestyle Compliance
  */
 export function generateCohesiveWeeklyMealPlan(allFoods = [], user = {}, customBudget = null, regionFilter = null, seedOffset = 0) {
-  const isGymUser = (user?.gymDays !== undefined ? parseInt(user.gymDays, 10) : 3) > 0 ||
+  // Strictly derive gym user status from explicit user data only — never assume defaults
+  const gymDaysVal = user?.gymDays !== undefined && user?.gymDays !== null && user?.gymDays !== ''
+    ? parseInt(user.gymDays, 10)
+    : 0;
+  const isGymUser = gymDaysVal > 0 ||
     user?.isGymGoer === true ||
-    user?.activityLevel === 'active' ||
-    user?.activityLevel === 'very-active' ||
-    user?.fitnessGoal === 'muscle' ||
-    user?.fitnessGoal === 'lean-muscle' ||
-    user?.goal === 'muscle' ||
     user?.goal === 'lean_bulk' ||
     user?.goal === 'aggressive_bulk' ||
+    user?.goal === 'muscle' ||
     user?.goal === 'hypertrophy' ||
+    user?.fitnessGoal === 'muscle' ||
+    user?.fitnessGoal === 'lean-muscle' ||
     user?.fitnessGoal === 'hypertrophy' ||
     user?.trainingGoal === 'hypertrophy' ||
     String(user?.goal || '').toLowerCase().includes('hypertrophy');
