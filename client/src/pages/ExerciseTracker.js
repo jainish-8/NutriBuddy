@@ -1598,6 +1598,8 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
   const [activeDrawer, setActiveDrawer] = useState(null); // null | 'anatomy' | 'warmup' | 'plates' | 'cues' | 'swap'
   const [openRpePicker, setOpenRpePicker] = useState(null); // { exIdx, setIdx }
   const [showConsoleOverflow, setShowConsoleOverflow] = useState(false);
+  const [customPlateWeight, setCustomPlateWeight] = useState('');
+  const [customWarmupWeight, setCustomWarmupWeight] = useState('');
 
   // Rest Timer States
   const [restRemaining, setRestRemaining] = useState(0);
@@ -1818,24 +1820,12 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
     return () => clearInterval(elapsedTimerRef.current);
   }, [isSessionActive]);
 
-  // Rest Countdown Timer
+  // Rest Countdown Timer Cleanup
   useEffect(() => {
-    if (restActive && restRemaining > 0) {
-      timerRef.current = setInterval(() => {
-        setRestRemaining(prev => {
-          if (prev <= 1) {
-            clearInterval(timerRef.current);
-            setRestActive(false);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      clearInterval(timerRef.current);
-    }
-    return () => clearInterval(timerRef.current);
-  }, [restActive, restRemaining]);
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
 
   const showNotification = (type, msg) => {
     setNotification({ type, msg });
@@ -2005,10 +1995,26 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
           isPR: isNewPR || curr.isPR
         };
 
+        // Auto-start rest timer when a set is completed (not when un-completing)
         if (nextCompleted) {
-          const targetRest = currentEx.restSec || 90;
-          setRestRemaining(targetRest);
+          const ex = updated[exIdx] || updated[currentExIndex];
+          const restSeconds = ex?.restSec || ex?.rest || 90;
+          setRestRemaining(restSeconds);
           setRestActive(true);
+          // Clear any existing timer
+          if (timerRef.current) clearInterval(timerRef.current);
+          timerRef.current = setInterval(() => {
+            setRestRemaining(prev => {
+              if (prev <= 1) {
+                clearInterval(timerRef.current);
+                setRestActive(false);
+                // Show "Rest complete" notification
+                showNotification('success', 'Rest complete — load the next set!');
+                return 0;
+              }
+              return prev - 1;
+            });
+          }, 1000);
         }
       }
       return updated;
@@ -2070,6 +2076,13 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
       });
     });
 
+    const totalReps = activeExercises.flatMap(ex => ex.sets || [])
+      .filter(s => s.completed)
+      .reduce((sum, s) => sum + (parseInt(s.reps, 10) || 0), 0);
+    const heaviestSet = Math.max(...activeExercises.flatMap(ex => ex.sets || [])
+      .filter(s => s.completed)
+      .map(s => parseFloat(s.weight) || 0), 0);
+
     const sessionRecord = {
       id: Date.now().toString(),
       workoutName,
@@ -2077,6 +2090,8 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
       timestamp: Date.now(),
       totalVolume,
       totalSets: totalSetsCount,
+      totalReps,
+      heaviestSet,
       exercises: activeExercises
     };
 
@@ -2091,16 +2106,32 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
       name: workoutName,
       duration: elapsedSeconds,
       totalVolume,
+      totalReps,
+      heaviestSet,
       totalSets: totalSetsCount,
       newPrs: newPrsDetected
     });
 
     setIsSessionActive(false);
     setIsConsoleMode(false);
-    showNotification('success', `Workout completed! ${totalSetsCount} sets logged (${Math.round(totalVolume)} kg total volume).`);
+    showNotification('success', `Workout completed! ${totalSetsCount} sets logged (${totalReps} total reps).`);
+  };
+
+  const handleDeleteSession = (sessionId, idx, e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    if (window.confirm("Delete this session? This cannot be undone.")) {
+      const updated = workoutHistory.filter((s, i) => (sessionId && s.id) ? s.id !== sessionId : i !== idx);
+      setWorkoutHistory(updated);
+      localStorage.setItem(`nutribuddy_workout_history_${activeUserId}`, JSON.stringify(updated));
+      showNotification('info', 'Session deleted from archive.');
+    }
   };
 
   const handleToggleStreakShield = () => {
+    if (streak < 7) {
+      showNotification('info', 'Complete 7 consecutive workouts to unlock Streak Shield.');
+      return;
+    }
     const next = !streakShield;
     setStreakShield(next);
     localStorage.setItem(`nutribuddy_shield_${activeUserId}`, next.toString());
@@ -2261,14 +2292,17 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
     if (!currentActiveEx) return null;
     const historyLogs = workoutHistory.flatMap(h => h.exercises || []).filter(e => e.name === currentActiveEx.name);
     let bestSet = null;
-    let maxWeight = 0;
+    let maxEst1RM = 0;
     for (const e of historyLogs) {
       for (const s of (e.sets || [])) {
         const w = parseFloat(s.weight) || 0;
-        const r = parseInt(s.reps) || 0;
-        if (w > maxWeight) {
-          maxWeight = w;
-          bestSet = { weight: w, reps: r };
+        const r = parseInt(s.reps, 10) || 0;
+        if (w > 0 && r > 0) {
+          const est1RM = r <= 10 ? Math.round(w * (1 + r / 30)) : Math.round(w * (1 + 10 / 30));
+          if (!bestSet || est1RM > maxEst1RM) {
+            maxEst1RM = est1RM;
+            bestSet = { weight: w, reps: r, est1RM };
+          }
         }
       }
     }
@@ -2286,19 +2320,28 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
       const matching = workoutHistory.flatMap(h => h.exercises || []).filter(e => {
         const name = (e.name || '').toLowerCase();
         if (pattern.key === 'squat') return name.includes('squat');
-        if (pattern.key === 'bench') return name.includes('bench');
+        if (pattern.key === 'bench') return name.includes('bench press') && !name.includes('overhead');
         if (pattern.key === 'deadlift') return name.includes('deadlift');
-        if (pattern.key === 'press') return name.includes('overhead') || name.includes('press');
+        if (pattern.key === 'press') return name.includes('overhead press') || name.includes('ohp') || name.includes('military');
         return false;
       });
       let maxPr = null;
       for (const ex of matching) {
         for (const s of ex.sets || []) {
           const w = parseFloat(s.weight) || 0;
-          const r = parseInt(s.reps) || 0;
+          const r = parseInt(s.reps, 10) || 0;
           if (w > 0 && r > 0) {
-            if (!maxPr || w > maxPr.weight) {
-              maxPr = { weight: w, reps: r, timestamp: ex.timestamp || Date.now() };
+            // Epley formula: est1RM = w × (1 + r/30)
+            const est1RM = r <= 10
+              ? Math.round(w * (1 + r / 30))
+              : Math.round(w * (1 + 10 / 30)); // Cap at 10 reps for reliability
+            if (!maxPr || est1RM > maxPr.est1RM) {
+              maxPr = {
+                weight: w,
+                reps: r,
+                est1RM,
+                timestamp: ex.timestamp || Date.now()
+              };
             }
           }
         }
@@ -2308,6 +2351,27 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
     return prs;
   })();
 
+  const VOLUME_TARGETS = {
+    'Chest':      14,  // Middle of 10–20 optimal range (Israetel, 2019)
+    'Back':       16,  // Middle of 12–22 optimal range
+    'Quads':      14,  // Middle of 10–20 optimal range
+    'Hamstrings': 12,  // Middle of 10–16 optimal range
+    'Shoulders':  14,  // Middle of 12–20 optimal range
+    'Arms':       12,  // Middle of 10–14 optimal range
+    'Core':       12,  // Middle of 10–16 optimal range
+    'Glutes':     12,  // 10–16 sets/week optimal
+    'Calves':     10   // 6–14 sets/week optimal
+  };
+
+  const getVolumeStatus = (sets, target) => {
+    if (sets === 0) return { label: 'Not trained', color: 'var(--text-muted)' };
+    const ratio = sets / target;
+    if (ratio >= 1.0)  return { label: 'Optimal ✓', color: '#22d17a' };
+    if (ratio >= 0.7)  return { label: 'Good', color: '#5b8ef5' };
+    if (ratio >= 0.4)  return { label: 'Building', color: '#f5a833' };
+    return { label: 'Below minimum', color: '#f55b5b' };
+  };
+
   const volumePerGroup = (() => {
     const counts = {
       'Chest': 0,
@@ -2316,7 +2380,9 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
       'Hamstrings': 0,
       'Shoulders': 0,
       'Arms': 0,
-      'Core': 0
+      'Core': 0,
+      'Glutes': 0,
+      'Calves': 0
     };
     for (const session of workoutHistory.slice(-7)) {
       for (const ex of session.exercises || []) {
@@ -2325,6 +2391,8 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
           : entry?.muscleGroup?.includes('Back') || entry?.muscleGroup?.includes('Lats') ? 'Back'
           : entry?.muscleGroup?.includes('Quad') ? 'Quads'
           : entry?.muscleGroup?.includes('Hamstring') || entry?.muscleGroup?.includes('Posterior') ? 'Hamstrings'
+          : entry?.muscleGroup?.includes('Glute') ? 'Glutes'
+          : entry?.muscleGroup?.includes('Calf') || entry?.muscleGroup?.includes('Calves') ? 'Calves'
           : entry?.muscleGroup?.includes('Shoulder') ? 'Shoulders'
           : entry?.muscleGroup?.includes('Bicep') || entry?.muscleGroup?.includes('Tricep') || entry?.muscleGroup?.includes('Arm') ? 'Arms'
           : entry?.muscleGroup?.includes('Core') || entry?.muscleGroup?.includes('Abs') ? 'Core'
@@ -2345,9 +2413,9 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
     const available = [20, 10, 5, 2.5, 1.25];
     const plates = [];
     for (const p of available) {
-      while (rem >= p) {
+      while (rem >= p - 0.001) {
         plates.push(p);
-        rem -= p;
+        rem = Math.round((rem - p) * 100) / 100;
       }
     }
     return plates;
@@ -2650,19 +2718,45 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                     }}
                   >
                     <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
-                          {altEx.name}
-                        </span>
-                        <span style={{ fontSize: 10.5, fontWeight: 800, padding: '2px 8px', borderRadius: 6, background: 'var(--brand-primary-subtle)', color: 'var(--brand-primary-light)' }}>
-                          {altEx.muscleGroup}
-                        </span>
-                        {altEx.movementPlane && (
-                          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)' }}>
-                            • {altEx.movementPlane}
-                          </span>
-                        )}
-                      </div>
+                      {(() => {
+                        const userEq = intakeForm?.equipment || user?.equipment || 'full_gym';
+                        const n = (altEx.name || '').toLowerCase();
+                        const isBW = /push-up|pull-up|dip|plank|bodyweight/i.test(n);
+                        let eqBadge = { label: '✓ Available', color: '#22D17A', bg: 'rgba(34, 209, 122, 0.12)', border: 'rgba(34, 209, 122, 0.3)' };
+
+                        if (isBW) {
+                          eqBadge = { label: 'Bodyweight', color: '#5B8EF5', bg: 'rgba(91, 142, 245, 0.12)', border: 'rgba(91, 142, 245, 0.3)' };
+                        } else {
+                          const isMachine = /machine|cable|pec deck/i.test(n);
+                          const isBarbell = /barbell/i.test(n);
+                          const isDumbbell = /dumbbell/i.test(n);
+                          if (userEq === 'bodyweight') {
+                            const needed = isMachine ? 'Machine' : isBarbell ? 'Barbell' : isDumbbell ? 'Dumbbells' : 'Gear';
+                            eqBadge = { label: `⚠ Needs ${needed}`, color: '#F5A833', bg: 'rgba(245, 168, 51, 0.12)', border: 'rgba(245, 168, 51, 0.3)' };
+                          } else if (userEq === 'home_gym' && isMachine) {
+                            eqBadge = { label: '⚠ Needs Machine', color: '#F5A833', bg: 'rgba(245, 168, 51, 0.12)', border: 'rgba(245, 168, 51, 0.3)' };
+                          }
+                        }
+
+                        return (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
+                              {altEx.name}
+                            </span>
+                            <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 6, background: eqBadge.bg, color: eqBadge.color, border: `0.5px solid ${eqBadge.border}` }}>
+                              {eqBadge.label}
+                            </span>
+                            <span style={{ fontSize: 10.5, fontWeight: 800, padding: '2px 8px', borderRadius: 6, background: 'var(--brand-primary-subtle)', color: 'var(--brand-primary-light)' }}>
+                              {altEx.muscleGroup}
+                            </span>
+                            {altEx.movementPlane && (
+                              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)' }}>
+                                • {altEx.movementPlane}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })()}
                       {altEx.targetAnatomy && (
                         <div style={{ fontSize: 11.5, color: 'var(--brand-primary-light)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
                           <Target size={12} /> Target: {formatCleanAnatomy(altEx.targetAnatomy)}
@@ -3022,18 +3116,22 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
               {completedSummary.name}
             </h2>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 16 }}>
-              <div style={{ background: 'var(--bg-surface-raised)', padding: 10, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
-                <span style={{ fontSize: 9.5, color: 'var(--text-muted)', display: 'block' }}>Duration</span>
-                <span className="tabular-nums" style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-primary)' }}>{formatMMSS(completedSummary.duration)}</span>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 16 }}>
+              <div style={{ background: 'var(--bg-surface-raised)', padding: 12, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+                <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Sets completed</span>
+                <span className="tabular-nums" style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)' }}>{completedSummary.totalSets}</span>
               </div>
-              <div style={{ background: 'var(--bg-surface-raised)', padding: 10, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
-                <span style={{ fontSize: 9.5, color: 'var(--text-muted)', display: 'block' }}>Sets</span>
-                <span className="tabular-nums" style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-primary)' }}>{completedSummary.totalSets}</span>
+              <div style={{ background: 'var(--bg-surface-raised)', padding: 12, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+                <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Total reps</span>
+                <span className="tabular-nums" style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)' }}>{completedSummary.totalReps || 0}</span>
               </div>
-              <div style={{ background: 'var(--bg-surface-raised)', padding: 10, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
-                <span style={{ fontSize: 9.5, color: 'var(--text-muted)', display: 'block' }}>Volume</span>
-                <span className="tabular-nums" style={{ fontSize: 14, fontWeight: 800, color: 'var(--brand-primary-light)' }}>{Math.round(completedSummary.totalVolume)} kg</span>
+              <div style={{ background: 'var(--bg-surface-raised)', padding: 12, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+                <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Heaviest lift</span>
+                <span className="tabular-nums" style={{ fontSize: 16, fontWeight: 800, color: 'var(--brand-primary-light)' }}>{completedSummary.heaviestSet || 0} kg</span>
+              </div>
+              <div style={{ background: 'var(--bg-surface-raised)', padding: 12, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+                <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'block', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Duration</span>
+                <span className="tabular-nums" style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)' }}>{formatMMSS(completedSummary.duration)}</span>
               </div>
             </div>
 
@@ -3557,22 +3655,24 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                 <span>Minimize</span>
               </button>
 
-              {/* Center: Live Timer & Pacer */}
+              {/* Center: Current Exercise & Set Progress (Timer strictly in persistent top bar) */}
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 8,
+                  gap: 6,
                   minWidth: 0,
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                  padding: '0 8px'
                 }}
               >
-                <span className="tabular-nums" style={{ color: 'var(--g)', fontSize: 17, fontWeight: 800, fontFamily: "'JetBrains Mono', monospace", letterSpacing: '-0.02em' }}>
-                  {formatMMSS(elapsedSeconds)}
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 12.5, fontWeight: 700, color: 'var(--t1)' }}>
+                  {currentActiveEx?.name || workoutName}
                 </span>
-                <span style={{ fontSize: 13, color: 'var(--t3)' }}>|</span>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120, fontSize: 13, fontWeight: 700, color: 'var(--t2)' }}>
-                  {workoutName}
+                <span style={{ fontSize: 11.5, color: 'var(--t3)', flexShrink: 0 }}>—</span>
+                <span style={{ fontSize: 12, color: 'var(--g)', fontWeight: 700, flexShrink: 0, fontFamily: "'JetBrains Mono', monospace" }}>
+                  Set {currentActiveEx ? ((currentActiveEx.sets || []).findIndex(s => !s.completed) !== -1 ? (currentActiveEx.sets || []).findIndex(s => !s.completed) + 1 : (currentActiveEx.sets || []).length) : 1}/{currentActiveEx?.sets?.length || 4}
                 </span>
               </div>
 
@@ -3701,6 +3801,22 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                 const isCurrent = idx === currentExIndex;
                 const isAllDone = totCount > 0 && doneCount === totCount;
 
+                let tabBg = 'transparent';
+                let tabBorder = '2px solid transparent';
+                let tabColor = 'var(--text-muted)';
+                let tabFontWeight = 500;
+
+                if (isCurrent) {
+                  tabBg = 'var(--brand-primary-subtle)';
+                  tabFontWeight = 800;
+                  tabBorder = '3px solid var(--brand-primary-light, #22d17a)';
+                  tabColor = 'var(--t1)';
+                } else if (isAllDone) {
+                  tabBg = 'rgba(34, 209, 122, 0.08)';
+                  tabBorder = '2px solid var(--brand-primary-light, #22d17a)';
+                  tabColor = 'var(--t1)';
+                }
+
                 return (
                   <button
                     key={idx}
@@ -3720,21 +3836,21 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                       alignItems: 'center',
                       gap: 6,
                       cursor: 'pointer',
-                      background: isCurrent ? 'var(--gd)' : 'transparent',
+                      background: tabBg,
                       border: 'none',
-                      borderBottom: isCurrent ? '2px solid var(--g)' : '2px solid transparent',
-                      color: isCurrent ? 'var(--t1)' : 'var(--t2)',
+                      borderBottom: tabBorder,
+                      color: tabColor,
                       fontSize: 13,
-                      fontWeight: isCurrent ? 700 : 500
+                      fontWeight: tabFontWeight
                     }}
                   >
                     <span>{ex.name}</span>
                     <span style={{
                       fontSize: 11,
                       fontWeight: 700,
-                      color: isCurrent || isAllDone ? 'var(--g)' : 'var(--t3)'
+                      color: isAllDone || isCurrent ? 'var(--brand-primary-light, #22d17a)' : 'var(--text-muted)'
                     }}>
-                      {doneCount}/{totCount}
+                      {isAllDone ? `✓ ${doneCount}/${totCount}` : `${doneCount}/${totCount}`}
                     </span>
                   </button>
                 );
@@ -3878,44 +3994,145 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
 
                 {activeDrawer === 'cues' && (
                   <div>
-                    {currentActiveEx.cues && currentActiveEx.cues.length > 0 ? (
-                      <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: 'var(--t2)', lineHeight: 1.8 }}>
-                        {currentActiveEx.cues.map((c, i) => <li key={i}>{c}</li>)}
-                      </ul>
-                    ) : (
-                      <p style={{ margin: 0, fontSize: 12, color: 'var(--t3)' }}>Focus on controlled eccentric lowering and explosive contraction.</p>
-                    )}
+                    {(() => {
+                      const phaseLabels = ['Setup', 'Eccentric (lowering)', 'Concentric (pressing/pulling)', 'Lockout'];
+                      const cuesList = currentActiveEx.cues && currentActiveEx.cues.length > 0
+                        ? currentActiveEx.cues
+                        : ["Maintain a tight, stabilized torso and proper joint alignment.", "Control the lowering phase steadily without bouncing.", "Drive powerfully through the full range of motion."];
+                      
+                      const exName = (currentActiveEx.name || '').toLowerCase();
+                      let commonMistake = null;
+                      if (exName.includes('bench') && !exName.includes('overhead')) {
+                        commonMistake = "Bouncing the bar off chest — control the eccentric";
+                      } else if (exName.includes('squat')) {
+                        commonMistake = "Knees caving inward (valgus collapse) — cue knees out";
+                      } else if (exName.includes('deadlift')) {
+                        commonMistake = "Rounding the lower back — brace harder and hinge, don't squat";
+                      } else if (exName.includes('overhead') || exName.includes('ohp') || exName.includes('military')) {
+                        commonMistake = "Excessive lumbar extension (lower back arch) — brace core";
+                      }
+
+                      return (
+                        <div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                            {cuesList.map((cueText, i) => (
+                              <div key={i} style={{ marginBottom: 10, background: 'var(--s2)', padding: '10px 14px', borderRadius: 12, border: '0.5px solid var(--bd2)' }}>
+                                <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--brand-primary-light, #22d17a)', letterSpacing: '0.08em', marginBottom: 4, textTransform: 'uppercase' }}>
+                                  {phaseLabels[i] || `Phase ${i + 1}`}
+                                </div>
+                                <div style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.55 }}>
+                                  {cueText}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {commonMistake && (
+                            <div style={{ marginTop: 14, background: 'rgba(245, 91, 91, 0.08)', border: '1px solid rgba(245, 91, 91, 0.25)', borderRadius: 12, padding: '12px 14px' }}>
+                              <span style={{ fontSize: 10, fontWeight: 800, color: '#fb7185', letterSpacing: '0.08em', display: 'block', marginBottom: 4, textTransform: 'uppercase' }}>
+                                ⚠ Common Mistake to Avoid
+                              </span>
+                              <p style={{ margin: 0, fontSize: 12.5, color: 'var(--t1)', lineHeight: 1.5 }}>
+                                {commonMistake}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
 
                 {activeDrawer === 'warmup' && (
                   <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                      <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--g)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                        Target Working Load
-                      </span>
-                      <span style={{ fontSize: 12, color: 'var(--t2)' }}>
-                        Working Weight: <strong style={{ color: 'var(--t1)', fontFamily: "'JetBrains Mono', monospace" }}>{currentActiveEx.sets[0]?.weight || 60} kg</strong>
-                      </span>
-                    </div>
                     {(() => {
-                      const target = parseFloat(currentActiveEx.sets[0]?.weight) || 60;
-                      const w1 = Math.round(target * 0.5);
-                      const w2 = Math.round(target * 0.7);
-                      const w3 = Math.round(target * 0.85);
+                      const workingWeight = customWarmupWeight !== ''
+                        ? (parseFloat(customWarmupWeight) || 0)
+                        : (parseFloat(currentActiveEx.sets?.[0]?.weight) || 60);
+
+                      const round2_5 = (val) => Math.max(20, Math.round(val / 2.5) * 2.5);
+
+                      const steps = [
+                        { name: 'Activation', pct: 0.30, reps: 15, weight: round2_5(workingWeight * 0.30), desc: 'Groove the movement pattern with zero fatigue', color: 'var(--cyan)' },
+                        { name: 'Feeder', pct: 0.50, reps: 10, weight: round2_5(workingWeight * 0.50), desc: 'Increase synovial fluid in joint; moderate nervous system activation', color: 'var(--blu)' },
+                        { name: 'Approach', pct: 0.70, reps: 5, weight: round2_5(workingWeight * 0.70), desc: 'Approach working load; prepare connective tissue', color: 'var(--amb)' },
+                        { name: 'Primer', pct: 0.85, reps: 2, weight: round2_5(workingWeight * 0.85), desc: 'Near-maximal CNS priming; muscle spindle activation', color: 'var(--g)' }
+                      ];
+
                       return (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 10 }}>
-                          <div style={{ background: 'var(--s2)', padding: 12, borderRadius: 12, border: '0.5px solid var(--bd2)' }}>
-                            <span style={{ fontSize: 10, color: 'var(--t3)', display: 'block', fontWeight: 800, textTransform: 'uppercase' }}>Bar / Light (50%)</span>
-                            <span style={{ fontSize: 15, fontWeight: 900, color: 'var(--t1)', fontFamily: "'JetBrains Mono', monospace" }}>{w1} kg × 10</span>
+                        <div>
+                          {/* Working weight input */}
+                          <div style={{ background: 'var(--s2)', border: '0.5px solid var(--bd2)', borderRadius: 14, padding: '12px 16px', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                            <div>
+                              <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--g)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block' }}>
+                                Working Weight
+                              </span>
+                              <span style={{ fontSize: 11, color: 'var(--t3)' }}>Base target for warm-up ramp</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <input
+                                type="number"
+                                step="2.5"
+                                value={customWarmupWeight !== '' ? customWarmupWeight : (currentActiveEx.sets?.[0]?.weight || 60)}
+                                onChange={e => setCustomWarmupWeight(e.target.value)}
+                                style={{
+                                  width: 72,
+                                  height: 34,
+                                  textAlign: 'center',
+                                  background: 'var(--s3)',
+                                  border: '0.5px solid var(--bd)',
+                                  borderRadius: 8,
+                                  color: 'var(--t1)',
+                                  fontSize: 15,
+                                  fontWeight: 800,
+                                  fontFamily: "'JetBrains Mono', monospace",
+                                  outline: 'none'
+                                }}
+                              />
+                              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--t2)' }}>kg</span>
+                            </div>
                           </div>
-                          <div style={{ background: 'var(--s2)', padding: 12, borderRadius: 12, border: '0.5px solid var(--bd2)' }}>
-                            <span style={{ fontSize: 10, color: 'var(--t3)', display: 'block', fontWeight: 800, textTransform: 'uppercase' }}>Feeder (70%)</span>
-                            <span style={{ fontSize: 15, fontWeight: 900, color: 'var(--t1)', fontFamily: "'JetBrains Mono', monospace" }}>{w2} kg × 5</span>
-                          </div>
-                          <div style={{ background: 'var(--s2)', padding: 12, borderRadius: 12, border: '0.5px solid var(--bd2)' }}>
-                            <span style={{ fontSize: 10, color: 'var(--t3)', display: 'block', fontWeight: 800, textTransform: 'uppercase' }}>Primer (85%)</span>
-                            <span style={{ fontSize: 15, fontWeight: 900, color: 'var(--t1)', fontFamily: "'JetBrains Mono', monospace" }}>{w3} kg × 2</span>
+
+                          {/* 4-Step Protocol List */}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                            {steps.map((st, sIdx) => (
+                              <div
+                                key={sIdx}
+                                style={{
+                                  background: 'var(--s2)',
+                                  border: '0.5px solid var(--bd2)',
+                                  borderRadius: 14,
+                                  padding: '12px 16px',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: 4
+                                }}
+                              >
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <span style={{
+                                      fontSize: 10,
+                                      fontWeight: 800,
+                                      padding: '2px 8px',
+                                      borderRadius: 6,
+                                      background: 'rgba(255,255,255,0.06)',
+                                      color: st.color,
+                                      border: '0.5px solid var(--bd)',
+                                      textTransform: 'uppercase',
+                                      letterSpacing: '0.04em'
+                                    }}>
+                                      Step {sIdx + 1} — {st.name} ({Math.round(st.pct * 100)}%)
+                                    </span>
+                                  </div>
+                                  <span className="tabular-nums" style={{ fontSize: 15, fontWeight: 900, color: 'var(--t1)', fontFamily: "'JetBrains Mono', monospace" }}>
+                                    {st.weight} kg × {st.reps} reps
+                                  </span>
+                                </div>
+                                <span style={{ fontSize: 11.5, color: 'var(--t3)', lineHeight: 1.4 }}>
+                                  {st.desc}
+                                </span>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       );
@@ -3926,30 +4143,105 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                 {activeDrawer === 'plates' && (
                   <div>
                     {(() => {
-                      const target = parseFloat(currentActiveEx.sets[0]?.weight) || 60;
+                      const target = customPlateWeight !== ''
+                        ? (parseFloat(customPlateWeight) || 0)
+                        : (parseFloat(currentActiveEx.sets?.[0]?.weight) || 60);
+
                       const plates = calculatePlates(target);
+                      const loadedPerSide = plates.reduce((acc, p) => acc + p, 0);
+                      const loadableTotal = 20 + (loadedPerSide * 2);
+
+                      const plateColors = {
+                        20: '#EF4444',   // Red — standard 20kg
+                        10: '#3B82F6',   // Blue — standard 10kg
+                        5:  '#F59E0B',   // Yellow — standard 5kg
+                        2.5:'#10B981',   // Green — standard 2.5kg
+                        1.25:'#6B7280'   // Grey — standard 1.25kg
+                      };
+
                       return (
                         <div>
-                          <div style={{ fontSize: 12, color: 'var(--t2)', marginBottom: 12 }}>
-                            Load per side for <strong style={{ color: 'var(--t1)', fontFamily: "'JetBrains Mono', monospace" }}>{target} kg</strong> (on standard 20 kg Olympic barbell):
-                          </div>
-                          {plates.length > 0 ? (
-                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                              {plates.map((p, pIdx) => (
-                                <span key={pIdx} style={{
-                                  background: p >= 20 ? 'rgba(91, 142, 245, 0.15)' : p >= 10 ? 'var(--gd)' : 'rgba(245, 168, 51, 0.15)',
-                                  color: p >= 20 ? 'var(--blu)' : p >= 10 ? 'var(--g)' : 'var(--amb)',
-                                  border: `1px solid ${p >= 20 ? 'rgba(91, 142, 245, 0.35)' : p >= 10 ? 'var(--gb)' : 'rgba(245, 168, 51, 0.35)'}`,
-                                  padding: '8px 14px', borderRadius: 8, fontWeight: 800, fontSize: 13,
-                                  fontFamily: "'JetBrains Mono', monospace"
-                                }}>
-                                  {p} kg
-                                </span>
-                              ))}
+                          {/* Target weight input field */}
+                          <div style={{ background: 'var(--s2)', border: '0.5px solid var(--bd2)', borderRadius: 14, padding: '12px 16px', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                            <div>
+                              <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--g)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block' }}>
+                                Target Total Weight
+                              </span>
+                              <span style={{ fontSize: 11, color: 'var(--t3)' }}>Olympic barbell (20 kg base)</span>
                             </div>
-                          ) : (
-                            <span style={{ fontSize: 12, color: 'var(--t3)' }}>Load empty bar (20 kg) or use dumbbells.</span>
-                          )}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <input
+                                type="number"
+                                step="2.5"
+                                value={customPlateWeight !== '' ? customPlateWeight : (currentActiveEx.sets?.[0]?.weight || 60)}
+                                onChange={e => setCustomPlateWeight(e.target.value)}
+                                style={{
+                                  width: 72,
+                                  height: 34,
+                                  textAlign: 'center',
+                                  background: 'var(--s3)',
+                                  border: '0.5px solid var(--bd)',
+                                  borderRadius: 8,
+                                  color: 'var(--t1)',
+                                  fontSize: 15,
+                                  fontWeight: 800,
+                                  fontFamily: "'JetBrains Mono', monospace",
+                                  outline: 'none'
+                                }}
+                              />
+                              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--t2)' }}>kg</span>
+                            </div>
+                          </div>
+
+                          {/* Plates row display */}
+                          <div style={{ background: 'var(--s2)', border: '0.5px solid var(--bd2)', borderRadius: 14, padding: '16px', textAlign: 'center' }}>
+                            {target <= 20 ? (
+                              <div style={{ padding: '16px 0', color: 'var(--t2)', fontSize: 13, fontWeight: 700 }}>
+                                Bar only (20 kg) — no plates needed
+                              </div>
+                            ) : plates.length > 0 ? (
+                              <div>
+                                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 14 }}>
+                                  Load per side ({loadedPerSide} kg)
+                                </span>
+                                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
+                                  {plates.map((p, pIdx) => (
+                                    <div
+                                      key={pIdx}
+                                      style={{
+                                        width: 54,
+                                        height: 54,
+                                        borderRadius: '50%',
+                                        background: plateColors[p] || '#6B7280',
+                                        color: '#ffffff',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontWeight: 900,
+                                        fontSize: 13,
+                                        boxShadow: '0 4px 12px rgba(0,0,0,0.35)',
+                                        border: '2px solid rgba(255,255,255,0.25)',
+                                        fontFamily: "'JetBrains Mono', monospace"
+                                      }}
+                                    >
+                                      <span>{p}</span>
+                                      <span style={{ fontSize: 9, opacity: 0.85, marginTop: -2 }}>kg</span>
+                                    </div>
+                                  ))}
+                                </div>
+                                {loadableTotal !== target && (
+                                  <div style={{ marginTop: 14, fontSize: 11.5, color: 'var(--amb)', fontWeight: 700 }}>
+                                    Nearest loadable: {loadableTotal} kg (standard plate increments)
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div style={{ padding: '16px 0', color: 'var(--t3)', fontSize: 13 }}>
+                                No plates needed.
+                              </div>
+                            )}
+                          </div>
                         </div>
                       );
                     })()}
@@ -4210,13 +4502,46 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                       </div>
                     </div>
 
+                    {/* PROMINENT REST TIMER BANNER (SECTION 1.2) */}
+                    {restActive && (
+                      <div style={{
+                        background: 'rgba(34,209,122,0.08)',
+                        border: '1px solid rgba(34,209,122,0.25)',
+                        borderRadius: 14,
+                        padding: '14px 20px',
+                        marginBottom: 16,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <Timer size={18} color="var(--brand-primary-light, #22d17a)" />
+                          <div>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.06em' }}>
+                              Rest period
+                            </div>
+                            <div style={{ fontSize: 26, fontWeight: 900, color: 'var(--brand-primary-light, #22d17a)', letterSpacing: '-0.04em', lineHeight: 1 }}>
+                              {Math.floor(restRemaining / 60)}:{String(restRemaining % 60).padStart(2, '0')}
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => { setRestActive(false); setRestRemaining(0); if (timerRef.current) clearInterval(timerRef.current); }}
+                          style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                        >
+                          Skip rest
+                        </button>
+                      </div>
+                    )}
+
                     {/* SET MATRIX TABLE */}
                     <div className="set-matrix-table-container" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
                       <div className="hidden md:block desktop-set-matrix-view">
                         {/* Column Headers */}
                         <div style={{
                           display: 'grid',
-                          gridTemplateColumns: showRpe ? '50px 120px 130px 100px 100px 70px' : '50px 140px 150px 120px 70px',
+                          gridTemplateColumns: showRpe ? '50px 120px 140px 110px 90px 70px' : '50px 140px 160px 130px 70px',
                           gap: 12,
                           paddingBottom: 10,
                           borderBottom: '0.5px solid var(--bd)',
@@ -4227,149 +4552,167 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                           <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: "'Inter', sans-serif" }}>Previous</span>
                           <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: "'Inter', sans-serif" }}>Weight (kg)</span>
                           <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: "'Inter', sans-serif" }}>Reps</span>
-                          {showRpe && <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: "'Inter', sans-serif" }}>Effort (1-10)</span>}
+                          {showRpe && <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', fontFamily: "'Inter', sans-serif" }}>RPE</span>}
                           <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', fontFamily: "'Inter', sans-serif" }}>Done</span>
                         </div>
 
                         {/* Sets Rows */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                          {currentActiveEx.sets.map((set, setIdx) => {
-                            const prevFormatted = formatPreviousSet(currentActiveEx.name, setIdx);
-                            const isPr = checkIfWeightIsPR(currentActiveEx.name, set.weight);
+                          {(() => {
+                            const isCompoundLift = /bench|squat|deadlift|row|press|pull/i.test(currentActiveEx?.name || '');
+                            const firstIncompleteIdx = (currentActiveEx.sets || []).findIndex(s => !s.completed);
 
-                            return (
-                              <div
-                                key={set.id}
-                                style={{
-                                  display: 'grid',
-                                  gridTemplateColumns: showRpe ? '50px 120px 130px 100px 100px 70px' : '50px 140px 150px 120px 70px',
-                                  gap: 12,
-                                  alignItems: 'center',
-                                  padding: '8px 12px',
-                                  borderRadius: 12,
-                                  background: set.completed ? 'rgba(34, 209, 122, 0.04)' : 'var(--s2)',
-                                  border: `0.5px solid ${set.completed ? 'rgba(34, 209, 122, 0.25)' : 'var(--bd2)'}`,
-                                  transition: 'all 0.15s ease'
-                                }}
-                              >
-                                {/* Set Number */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                  <span style={{
-                                    width: 28, height: 28, borderRadius: 8,
-                                    background: set.isWarmup ? 'rgba(91, 142, 245, 0.15)' : 'var(--s3)',
-                                    color: set.isWarmup ? 'var(--blu)' : 'var(--t2)',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    fontSize: 11, fontWeight: 800,
-                                    fontFamily: "'JetBrains Mono', monospace"
-                                  }}>
-                                    {set.isWarmup ? 'W' : set.id}
-                                  </span>
-                                </div>
+                            return currentActiveEx.sets.map((set, setIdx) => {
+                              const lastLog = retrieveLastLogForExercise(currentActiveEx?.name, setIdx);
+                              const isPotentialPR = lastLog?.weight && parseFloat(set.weight) > parseFloat(lastLog.weight);
+                              const isActiveRow = setIdx === firstIncompleteIdx;
 
-                                {/* Previous Best */}
-                                <div style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }}>
-                                  {prevFormatted || '—'}
-                                </div>
-
-                                {/* Weight Input */}
-                                <div style={{ position: 'relative' }}>
-                                  <input
-                                    type="number"
-                                    placeholder="0"
-                                    value={set.weight || ''}
-                                    disabled={set.completed}
-                                    onChange={(e) => handleUpdateSetField(currentExIndex, setIdx, 'weight', e.target.value)}
-                                    style={{
-                                      width: '100%',
-                                      padding: '7px 10px',
-                                      fontSize: 13,
-                                      fontWeight: 700,
-                                      textAlign: 'center',
-                                      background: set.completed ? 'rgba(34, 209, 122, 0.06)' : 'var(--s3)',
-                                      border: `0.5px solid ${set.completed ? 'rgba(34, 209, 122, 0.35)' : isPr ? 'var(--amb)' : 'var(--bd)'}`,
-                                      borderRadius: 10,
-                                      color: 'var(--t1)',
-                                      outline: 'none',
+                              return (
+                                <div
+                                  key={set.id}
+                                  style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: showRpe ? '50px 120px 140px 110px 90px 70px' : '50px 140px 160px 130px 70px',
+                                    gap: 12,
+                                    alignItems: 'center',
+                                    padding: '16px 12px',
+                                    borderRadius: 12,
+                                    background: set.completed ? 'rgba(34, 209, 122, 0.05)' : 'var(--s2)',
+                                    border: `0.5px solid ${set.completed ? 'rgba(34, 209, 122, 0.25)' : 'var(--bd2)'}`,
+                                    borderLeft: isActiveRow ? '3px solid var(--brand-primary-light, #22d17a)' : undefined,
+                                    transition: 'all 0.15s ease'
+                                  }}
+                                >
+                                  {/* Set Number with green check overlay if completed */}
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    <span style={{
+                                      width: 28, height: 28, borderRadius: 8,
+                                      background: set.completed ? 'rgba(34, 209, 122, 0.15)' : set.isWarmup ? 'rgba(91, 142, 245, 0.15)' : 'var(--s3)',
+                                      color: set.completed ? 'var(--brand-primary-light, #22d17a)' : set.isWarmup ? 'var(--blu)' : 'var(--t2)',
+                                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                      fontSize: 11, fontWeight: 800,
                                       fontFamily: "'JetBrains Mono', monospace"
-                                    }}
-                                  />
-                                </div>
+                                    }}>
+                                      {set.completed ? <Check size={14} strokeWidth={3} /> : set.isWarmup ? 'W' : set.id}
+                                    </span>
+                                  </div>
 
-                                {/* Reps Input */}
-                                <div>
-                                  <input
-                                    type="number"
-                                    placeholder="0"
-                                    value={set.reps || ''}
-                                    disabled={set.completed}
-                                    onChange={(e) => handleUpdateSetField(currentExIndex, setIdx, 'reps', e.target.value)}
-                                    style={{
-                                      width: '100%',
-                                      padding: '7px 10px',
-                                      fontSize: 13,
-                                      fontWeight: 700,
-                                      textAlign: 'center',
-                                      background: set.completed ? 'rgba(34, 209, 122, 0.06)' : 'var(--s3)',
-                                      border: `0.5px solid ${set.completed ? 'rgba(34, 209, 122, 0.35)' : 'var(--bd)'}`,
-                                      borderRadius: 10,
-                                      color: 'var(--t1)',
-                                      outline: 'none',
-                                      fontFamily: "'JetBrains Mono', monospace"
-                                    }}
-                                  />
-                                </div>
+                                  {/* PREV column */}
+                                  <div style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', fontFamily: "'JetBrains Mono', monospace" }}>
+                                    {lastLog?.weight && lastLog?.reps
+                                      ? <span style={{ fontWeight: 600, color: 'var(--t2)' }}>{lastLog.weight}kg × {lastLog.reps}</span>
+                                      : <span style={{ color: 'var(--text-muted)', opacity: 0.5 }}>—</span>
+                                    }
+                                  </div>
 
-                                {/* Effort Selector */}
-                                {showRpe && (
-                                  <div>
-                                    <button
-                                      type="button"
+                                  {/* Weight Input (22px, border-bottom only, PR indicator & 1RM) */}
+                                  <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <input
+                                      type="number"
+                                      placeholder="0"
+                                      value={set.weight || ''}
                                       disabled={set.completed}
-                                      onClick={() => setOpenRpePicker({ exIdx: currentExIndex, setIdx })}
+                                      onChange={(e) => handleUpdateSetField(currentExIndex, setIdx, 'weight', e.target.value)}
                                       style={{
                                         width: '100%',
-                                        padding: '7px 10px',
-                                        background: set.completed ? 'rgba(34, 209, 122, 0.06)' : 'var(--s3)',
-                                        border: `0.5px solid ${set.completed ? 'rgba(34, 209, 122, 0.35)' : 'var(--bd)'}`,
-                                        borderRadius: 10,
+                                        padding: '4px 0',
+                                        fontSize: 22,
+                                        fontWeight: 800,
+                                        textAlign: 'center',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        borderBottom: `2px solid ${isPotentialPR ? 'var(--brand-primary-light, #22d17a)' : set.completed ? 'rgba(34, 209, 122, 0.4)' : 'var(--border-subtle, var(--bd))'}`,
                                         color: 'var(--t1)',
-                                        fontSize: 11,
-                                        fontWeight: 700,
-                                        cursor: set.completed ? 'default' : 'pointer',
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
+                                        outline: 'none',
                                         fontFamily: "'JetBrains Mono', monospace"
                                       }}
-                                    >
-                                      <span>{set.rpe}/10</span>
-                                      <ChevronDown size={12} color="var(--t3)" />
-                                    </button>
+                                    />
+                                    {isPotentialPR && (
+                                      <span style={{ fontSize: 9.5, fontWeight: 800, color: 'var(--brand-primary-light, #22d17a)', marginTop: 2, whiteSpace: 'nowrap' }}>
+                                        🏆 New PR!
+                                      </span>
+                                    )}
+                                    {isCompoundLift && set.weight && set.reps && parseInt(set.reps, 10) <= 10 && (
+                                      <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2, whiteSpace: 'nowrap' }}>
+                                        Est. 1RM: <span style={{ fontWeight: 700, color: 'var(--text-secondary, #e4e4e7)' }}>
+                                          {Math.round(parseFloat(set.weight) * (1 + parseInt(set.reps, 10) / 30))} kg
+                                        </span>
+                                      </div>
+                                    )}
                                   </div>
-                                )}
 
-                                {/* CLEAR TACTILE DONE BUTTON WITH INSTANT FEEDBACK */}
-                                <button
-                                  type="button"
-                                  onClick={() => handleCheckoffSet(currentExIndex, setIdx)}
-                                  style={{
-                                    width: 38, height: 38, borderRadius: 10,
-                                    background: set.completed ? 'var(--g)' : 'var(--gd)',
-                                    border: `1px solid ${set.completed ? 'var(--g)' : 'var(--gb)'}`,
-                                    color: set.completed ? '#041a0c' : 'var(--g)',
-                                    cursor: 'pointer',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    margin: '0 auto', transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                                    boxShadow: set.completed ? '0 0 16px rgba(34, 209, 122, 0.4)' : 'none',
-                                    transform: set.completed ? 'scale(1.05)' : 'scale(1)'
-                                  }}
-                                  title={set.completed ? 'Completed! Click to undo' : 'Click to log set as done'}
-                                >
-                                  <Check size={18} strokeWidth={set.completed ? 3.5 : 2.5} color={set.completed ? '#041a0c' : 'var(--g)'} />
-                                </button>
-                              </div>
-                            );
-                          })}
+                                  {/* Reps Input (22px, border-bottom only) */}
+                                  <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <input
+                                      type="number"
+                                      placeholder="0"
+                                      value={set.reps || ''}
+                                      disabled={set.completed}
+                                      onChange={(e) => handleUpdateSetField(currentExIndex, setIdx, 'reps', e.target.value)}
+                                      style={{
+                                        width: '100%',
+                                        padding: '4px 0',
+                                        fontSize: 22,
+                                        fontWeight: 800,
+                                        textAlign: 'center',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        borderBottom: `2px solid ${set.completed ? 'rgba(34, 209, 122, 0.4)' : 'var(--border-subtle, var(--bd))'}`,
+                                        color: 'var(--t1)',
+                                        outline: 'none',
+                                        fontFamily: "'JetBrains Mono', monospace"
+                                      }}
+                                    />
+                                  </div>
+
+                                  {/* RPE Column & Clickable Badge */}
+                                  {showRpe && (
+                                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                      <div
+                                        onClick={() => !set.completed && setOpenRpePicker({ exIdx: currentExIndex, setIdx })}
+                                        style={{
+                                          fontSize: 13,
+                                          fontWeight: 800,
+                                          color: set.rpe ? 'var(--brand-primary-light, #22d17a)' : 'var(--text-muted)',
+                                          cursor: set.completed ? 'default' : 'pointer',
+                                          userSelect: 'none',
+                                          padding: '4px 10px',
+                                          borderRadius: 8,
+                                          background: 'var(--bg-surface-raised, var(--s3))',
+                                          border: '1px solid var(--border-subtle, var(--bd))',
+                                          textAlign: 'center',
+                                          minWidth: 44,
+                                          fontFamily: "'JetBrains Mono', monospace"
+                                        }}
+                                      >
+                                        {set.rpe || '–'}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* CLEAR TACTILE DONE BUTTON WITH INSTANT FEEDBACK */}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCheckoffSet(currentExIndex, setIdx)}
+                                    style={{
+                                      width: 38, height: 38, borderRadius: 10,
+                                      background: set.completed ? 'var(--g)' : 'var(--gd)',
+                                      border: `1px solid ${set.completed ? 'var(--g)' : 'var(--gb)'}`,
+                                      color: set.completed ? '#041a0c' : 'var(--g)',
+                                      cursor: 'pointer',
+                                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                      margin: '0 auto', transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                                      boxShadow: set.completed ? '0 0 16px rgba(34, 209, 122, 0.4)' : 'none',
+                                      transform: set.completed ? 'scale(1.05)' : 'scale(1)'
+                                    }}
+                                    title={set.completed ? 'Completed! Click to undo' : 'Click to log set as done'}
+                                  >
+                                    <Check size={18} strokeWidth={set.completed ? 3.5 : 2.5} color={set.completed ? '#041a0c' : 'var(--g)'} />
+                                  </button>
+                                </div>
+                              );
+                            });
+                          })()}
                         </div>
                       </div>
 
@@ -4554,6 +4897,9 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                   onSwapExercise={() => setActiveDrawer(activeDrawer === 'swap' ? null : 'swap')}
                   onAddExercise={() => setShowExerciseSearchModal(true)}
                   showRpe={showRpe}
+                  restActive={restActive}
+                  restRemaining={restRemaining}
+                  onSkipRest={() => { setRestActive(false); setRestRemaining(0); if (timerRef.current) clearInterval(timerRef.current); }}
                 />
               ) : (
                 <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)' }}>
@@ -4747,7 +5093,53 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                   </button>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, maxHeight: '60vh', overflowY: 'auto' }}>
+                {/* 10-Button Horizontal Row (1–10) (Section 1.3) */}
+                <div style={{
+                  display: 'flex',
+                  gap: 6,
+                  alignItems: 'center',
+                  overflowX: 'auto',
+                  padding: '4px 2px',
+                  scrollbarWidth: 'none'
+                }}>
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => {
+                    const isValSelected = activeExercises[openRpePicker.exIdx]?.sets?.[openRpePicker.setIdx]?.rpe === num ||
+                      String(activeExercises[openRpePicker.exIdx]?.sets?.[openRpePicker.setIdx]?.rpe) === String(num);
+                    return (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => {
+                          handleUpdateSetField(openRpePicker.exIdx, openRpePicker.setIdx, 'rpe', num);
+                          setOpenRpePicker(null);
+                        }}
+                        style={{
+                          flex: 1,
+                          minWidth: 34,
+                          height: 40,
+                          borderRadius: 10,
+                          background: isValSelected ? 'var(--brand-primary-light, #22d17a)' : 'var(--s2)',
+                          color: isValSelected ? '#041a0c' : 'var(--t1)',
+                          border: isValSelected ? '1px solid var(--brand-primary-light, #22d17a)' : '0.5px solid var(--bd2)',
+                          fontSize: 14,
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontFamily: "'JetBrains Mono', monospace",
+                          boxShadow: isValSelected ? '0 0 12px rgba(34, 209, 122, 0.4)' : 'none',
+                          transition: 'all 0.15s ease'
+                        }}
+                        className="active:scale-95"
+                      >
+                        {num}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, maxHeight: '50vh', overflowY: 'auto' }}>
                   {[
                     { rpe: '10', title: '10 — Max Effort', desc: '0 Reps in Reserve (Failure)', color: 'var(--red)' },
                     { rpe: '9.5', title: '9.5 — Near Failure', desc: 'Maybe 0–1 Rep in Reserve', color: '#F97316' },
@@ -5237,8 +5629,17 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
 
             // Workout Day View
             const dayExercises = currentDayData.exercises || [];
-            const totalSets = dayExercises.reduce((acc, e) => acc + (parseInt(e.sets) || 3), 0);
-            const estMinutes = Math.max(25, Math.round(totalSets * 3));
+            const totalSets = dayExercises.reduce((acc, e) => acc + (parseInt(e.sets, 10) || 3), 0);
+            const estMinutes = currentDayData.estimatedMinutes || currentDayData.estimatedTime || (() => {
+              let totalSec = 5 * 60; // 5 min warmup buffer
+              dayExercises.forEach(ex => {
+                const s = parseInt(ex.sets, 10) || 3;
+                const rest = parseInt(ex.restSec, 10) || 90;
+                const isTier1_2 = ex.tier === 1 || ex.tier === 2;
+                totalSec += (s * 45) + ((s - 1) * rest) + 30 + (isTier1_2 ? 240 : 0);
+              });
+              return Math.max(25, Math.round(totalSec / 60));
+            })();
 
             return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -5458,6 +5859,20 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                             <div style={{ fontSize: 10, fontWeight: 500, color: 'var(--text-muted)', marginTop: 1 }}>
                               {isIsometric ? 'hold' : 'reps'}
                             </div>
+                            {/* 4-step week progression indicator (Section 2.3) */}
+                            <div style={{ display: 'flex', gap: 4, marginTop: 6, justifyContent: 'flex-end' }}>
+                              {['Base', '+5%', '+10%', 'Deload'].map((label, idx) => (
+                                <div key={idx} style={{
+                                  fontSize: 9, fontWeight: 700,
+                                  padding: '2px 7px', borderRadius: 20,
+                                  background: idx === selectedWeek ? 'var(--brand-primary-subtle, rgba(34, 209, 122, 0.15))' : 'rgba(255, 255, 255, 0.04)',
+                                  color: idx === selectedWeek ? 'var(--brand-primary-light, #22d17a)' : 'var(--text-muted, #71717A)',
+                                  border: `1px solid ${idx === selectedWeek ? 'rgba(34,209,122,0.3)' : 'rgba(255, 255, 255, 0.08)'}`
+                                }}>
+                                  {label}
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       );
@@ -5520,30 +5935,37 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
             </div>
 
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, position: 'relative' }}>
-              <button
-                type="button"
-                onClick={handleToggleStreakShield}
-                style={{
-                  background: streakShield ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.04)',
-                  border: streakShield ? '1px solid rgba(16, 185, 129, 0.5)' : '1px solid rgba(255, 255, 255, 0.08)',
-                  boxShadow: streakShield ? '0 0 12px rgba(16, 185, 129, 0.2)' : 'none',
-                  padding: '6px 14px',
-                  borderRadius: 9999,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  cursor: 'pointer',
-                  color: streakShield ? '#34D399' : '#D4D4D8',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  transition: 'all 0.15s ease'
-                }}
-                className="active:scale-95 transition"
-                title="Toggle Streak Shield"
-              >
-                <Shield size={13} color={streakShield ? '#10B981' : '#A1A1AA'} />
-                <span>Streak Shield {streakShield ? 'Active' : 'Off'}</span>
-              </button>
+              {(() => {
+                const canUseShield = streak >= 7;
+                return (
+                  <button
+                    type="button"
+                    onClick={handleToggleStreakShield}
+                    disabled={!canUseShield}
+                    style={{
+                      background: streakShield ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                      border: streakShield ? '1px solid rgba(16, 185, 129, 0.5)' : '1px solid rgba(255, 255, 255, 0.08)',
+                      boxShadow: streakShield ? '0 0 12px rgba(16, 185, 129, 0.2)' : 'none',
+                      padding: '6px 14px',
+                      borderRadius: 9999,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      cursor: canUseShield ? 'pointer' : 'not-allowed',
+                      opacity: canUseShield ? 1 : 0.45,
+                      color: streakShield ? '#34D399' : '#D4D4D8',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      transition: 'all 0.15s ease'
+                    }}
+                    className={canUseShield ? "active:scale-95 transition" : ""}
+                    title={canUseShield ? (streakShield ? "Deactivate Streak Shield" : "Activate Streak Shield") : "Complete 7 consecutive workouts to unlock Streak Shield."}
+                  >
+                    <Shield size={13} color={streakShield ? '#10B981' : '#A1A1AA'} />
+                    <span>Streak Shield {streakShield ? 'Active' : 'Off'}</span>
+                  </button>
+                );
+              })()}
               <button
                 type="button"
                 onClick={(e) => {
@@ -5573,7 +5995,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                     position: 'absolute',
                     bottom: 'calc(100% + 8px)',
                     right: 0,
-                    width: 240,
+                    width: 250,
                     backgroundColor: 'var(--s3)',
                     border: '0.5px solid var(--bd)',
                     borderRadius: 12,
@@ -5588,7 +6010,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                     animation: 'toastSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
                   }}
                 >
-                  Streak Shield protects your streak if you miss one day. Earn it by maintaining a 7-day unbroken streak.
+                  Streak Shield protects your streak if you miss one training day. Earn it by completing 7 consecutive days without missing a session.
                 </div>
               )}
             </div>
@@ -5679,11 +6101,26 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                     {formatCleanSplitName(generatedProgram.splitName)}
                   </h3>
 
-                  {/* Subtitle */}
+                  {/* Subtitle (Goal-Aware per Section 6.2) */}
                   <p 
                     style={{ fontSize: 12, color: '#A1A1AA', margin: '4px 0 16px', lineHeight: 1.45 }}
                   >
-                    Personalized 4-week progressive overload routine calibrated for strength and recovery.
+                    {(() => {
+                      const goal = intakeForm?.trainingGoal;
+                      if (goal === 'hypertrophy') {
+                        return "High volume mesocycle targeting 10–20 sets/muscle per week with progressive overload for maximum muscle growth.";
+                      }
+                      if (goal === 'strength') {
+                        return "Intensity-focused program building towards near-maximal loads with low volume, high rest, and CNS adaptation.";
+                      }
+                      if (goal === 'fat_loss') {
+                        return "Metabolic conditioning split with supersets and shortened rest periods to maximize caloric burn.";
+                      }
+                      if (goal === 'endurance') {
+                        return "High-rep, time-under-tension focused routine building muscular endurance and cardiovascular capacity.";
+                      }
+                      return "High volume mesocycle targeting 10–20 sets/muscle per week with progressive overload for maximum muscle growth.";
+                    })()}
                   </p>
 
                   {/* Action Buttons (Max 2, No Third Button) */}
@@ -5912,47 +6349,30 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                 </div>
 
                 <div style={{ display: 'flex', gap: 10, fontSize: 11, fontWeight: 700, flexWrap: 'wrap' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#71717A' }}>
-                    <span style={{ width: 8, height: 8, borderRadius: 2, background: '#3F3F46' }} /> &lt;6 Low
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'var(--text-muted, #71717A)' }}>
+                    <span style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--text-muted, #71717A)' }} /> Not trained
                   </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#F59E0B' }}>
-                    <span style={{ width: 8, height: 8, borderRadius: 2, background: '#F59E0B' }} /> 6–9 Maint.
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#f55b5b' }}>
+                    <span style={{ width: 8, height: 8, borderRadius: 2, background: '#f55b5b' }} /> Below min
                   </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#10B981' }}>
-                    <span style={{ width: 8, height: 8, borderRadius: 2, background: '#10B981' }} /> 10–20 Optimal
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#f5a833' }}>
+                    <span style={{ width: 8, height: 8, borderRadius: 2, background: '#f5a833' }} /> Building
                   </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#818CF8' }}>
-                    <span style={{ width: 8, height: 8, borderRadius: 2, background: '#818CF8' }} /> &gt;20 High
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#5b8ef5' }}>
+                    <span style={{ width: 8, height: 8, borderRadius: 2, background: '#5b8ef5' }} /> Good
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#22d17a' }}>
+                    <span style={{ width: 8, height: 8, borderRadius: 2, background: '#22d17a' }} /> Optimal ✓
                   </span>
                 </div>
               </div>
 
-              {/* Horizontal Volume Bars */}
+              {/* Horizontal Volume Bars (Sections 3.1, 3.2, 3.3) */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {Object.entries(volumePerGroup).map(([group, sets]) => {
-                  let statusColor = '#94A3B8';
-                  let statusBadge = 'Below Baseline';
-                  let statusBg = 'rgba(148, 163, 184, 0.1)';
-                  let statusBorder = 'rgba(148, 163, 184, 0.2)';
-
-                  if (sets >= 20) {
-                    statusColor = '#818CF8';
-                    statusBadge = 'Maximum Recoverable';
-                    statusBg = 'rgba(129, 140, 248, 0.12)';
-                    statusBorder = 'rgba(129, 140, 248, 0.3)';
-                  } else if (sets >= 10) {
-                    statusColor = '#10B981';
-                    statusBadge = 'Optimal Hypertrophy';
-                    statusBg = 'rgba(16, 185, 129, 0.12)';
-                    statusBorder = 'rgba(16, 185, 129, 0.3)';
-                  } else if (sets >= 6) {
-                    statusColor = '#F59E0B';
-                    statusBadge = 'Maintenance';
-                    statusBg = 'rgba(245, 158, 11, 0.12)';
-                    statusBorder = 'rgba(245, 158, 11, 0.3)';
-                  }
-
-                  const pct = Math.min(100, (sets / 20) * 100);
+                  const target = VOLUME_TARGETS[group] || 14;
+                  const status = getVolumeStatus(sets, target);
+                  const pct = Math.min(100, Math.round((sets / target) * 100));
 
                   return (
                     <div
@@ -5977,35 +6397,24 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                             fontWeight: 800,
                             padding: '2px 8px',
                             borderRadius: 9999,
-                            background: statusBg,
-                            border: `1px solid ${statusBorder}`,
-                            color: statusColor
+                            background: `${status.color}18`,
+                            border: `1px solid ${status.color}40`,
+                            color: status.color
                           }}>
-                            {statusBadge}
+                            {status.label}
                           </span>
-                          <span className="tabular-nums" style={{ fontSize: 13, fontWeight: 900, color: statusColor }}>
-                            {sets} <span style={{ fontSize: 11, color: '#71717A' }}>/ 16 sets</span>
+                          <span className="tabular-nums" style={{ fontSize: 13, fontWeight: 900, color: status.color }}>
+                            {sets} <span style={{ fontSize: 11, color: '#71717A' }}>/ {target} sets</span>
                           </span>
                         </div>
                       </div>
 
-                      {/* Progress Track with Zone Markers */}
+                      {/* Progress Track */}
                       <div style={{ position: 'relative', height: 8, background: 'rgba(255, 255, 255, 0.05)', borderRadius: 4, overflow: 'hidden' }}>
-                        {/* Optimal zone highlight (50% to 100% = 10 to 20 sets) */}
-                        <div style={{
-                          position: 'absolute',
-                          left: '50%',
-                          width: '50%',
-                          height: '100%',
-                          background: 'rgba(16, 185, 129, 0.08)',
-                          borderLeft: '1px dashed rgba(16, 185, 129, 0.3)'
-                        }} />
-
-                        {/* Progress fill */}
                         <div style={{
                           width: `${pct}%`,
                           height: '100%',
-                          background: statusColor,
+                          background: status.color,
                           borderRadius: 4,
                           transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
                         }} />
@@ -6048,8 +6457,11 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                         <span style={{ fontSize: 10, color: '#10B981', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, letterSpacing: '0.06em', marginBottom: 8, }}>
                           <Trophy size={13} color="#10B981" /> {pattern.label}
                         </span>
-                        <div className="tabular-nums" style={{ fontSize: 22, fontWeight: 800, color: '#FFFFFF', marginBottom: 4, fontFamily: 'var(--font-heading)' }}>
-                          {pr.weight} kg × {pr.reps}
+                        <div className="tabular-nums" style={{ fontSize: 16.5, fontWeight: 800, color: '#FFFFFF', marginBottom: 2, fontFamily: 'var(--font-heading)' }}>
+                          Best set: {pr.weight}kg × {pr.reps} reps
+                        </div>
+                        <div className="tabular-nums" style={{ fontSize: 13.5, fontWeight: 800, color: '#10B981', marginBottom: 6 }}>
+                          Estimated 1RM: {pr.est1RM} kg
                         </div>
                         <span style={{ fontSize: 11, color: '#71717A' }}>Logged {formatPrDate(pr.timestamp)}</span>
                       </div>
@@ -6101,7 +6513,7 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
             </div>
           )}
 
-          {/* TAB 4: TRAINING SESSIONS ARCHIVE */}
+          {/* TAB 4: TRAINING SESSIONS ARCHIVE (Sections 5.1 & 5.2) */}
           {activeTab === 'history' && (
             <div className="fadeInUp" style={{ background: 'linear-gradient(180deg, #161922 0%, #0F1117 100%)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 16, padding: 24, boxShadow: '0 8px 24px -4px rgba(0, 0, 0, 0.5)' }}>
               <h3 style={{ fontSize: 18, margin: '0 0 4px', fontWeight: 800, color: '#FFFFFF', fontFamily: 'var(--font-heading)', letterSpacing: '-0.015em' }}>Training Sessions Archive</h3>
@@ -6114,32 +6526,151 @@ export default function ExerciseTracker({ user, setCurrentPage, onSessionStateCh
                   <p style={{ margin: '4px 0 0', fontSize: 12, color: '#71717A' }}>Start any session from the templates or your mesocycle to begin building your archive.</p>
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {workoutHistory.map((session, idx) => (
-                    <div key={session.id || idx} style={{
-                      padding: '16px 18px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: 14, border: '1px solid rgba(255, 255, 255, 0.06)',
-                      display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12
-                    }}>
-                      <div>
-                        <h4 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 700, color: '#FFFFFF' }}>{session.workoutName}</h4>
-                        <span style={{ fontSize: 11, color: '#71717A' }}>
-                          {new Date(session.timestamp).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} · {formatMMSS(session.duration || 0)}
-                        </span>
-                      </div>
+                (() => {
+                  const sessionsByDate = {};
+                  workoutHistory.forEach(s => {
+                    const dateKey = new Date(s.timestamp).toDateString() + '_' + s.workoutName;
+                    sessionsByDate[dateKey] = (sessionsByDate[dateKey] || 0) + 1;
+                  });
 
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: '#D4D4D8', background: 'rgba(255, 255, 255, 0.05)', padding: '4px 10px', borderRadius: 8, border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                          {session.totalSets || (session.exercises?.length * 3) || 12} sets
-                        </span>
-                        {session.totalVolume > 0 && (
-                          <span style={{ fontSize: 12, fontWeight: 800, color: '#10B981', background: 'rgba(16, 185, 129, 0.12)', padding: '4px 10px', borderRadius: 8, border: '1px solid rgba(16, 185, 129, 0.25)' }}>
-                            {Math.round(session.totalVolume)} kg
-                          </span>
-                        )}
-                      </div>
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {workoutHistory.map((session, idx) => {
+                        const dateKey = new Date(session.timestamp).toDateString() + '_' + session.workoutName;
+                        const isDuplicate = (sessionsByDate[dateKey] || 0) > 1;
+
+                        const topExercises = (session.exercises || [])
+                          .filter(e => (e.sets || []).some(s => s.completed))
+                          .slice(0, 3)
+                          .map(e => e.name)
+                          .join(', ');
+
+                        const totalReps = session.totalReps || (session.exercises || [])
+                          .flatMap(e => e.sets || [])
+                          .filter(s => s.completed)
+                          .reduce((sum, s) => sum + (parseInt(s.reps, 10) || 0), 0);
+
+                        const totalSetsCount = session.totalSets || (session.exercises || [])
+                          .flatMap(e => e.sets || [])
+                          .filter(s => s.completed).length || (session.exercises?.length * 3) || 12;
+
+                        const sessionPrs = session.newPrs || [];
+
+                        return (
+                          <div
+                            key={session.id || idx}
+                            style={{
+                              padding: '16px 18px',
+                              background: 'rgba(255, 255, 255, 0.03)',
+                              borderRadius: 14,
+                              border: '1px solid rgba(255, 255, 255, 0.06)',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: 10
+                            }}
+                          >
+                            {/* Row 1: Workout Name, Date/Time, Duplicate Badge, Delete Button */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+                              <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                                  <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#FFFFFF' }}>
+                                    {session.workoutName}
+                                  </h4>
+                                  {isDuplicate && (
+                                    <span
+                                      style={{
+                                        fontSize: 10,
+                                        fontWeight: 800,
+                                        color: 'var(--amb)',
+                                        background: 'rgba(245, 168, 51, 0.12)',
+                                        border: '0.5px solid rgba(245, 168, 51, 0.35)',
+                                        borderRadius: 6,
+                                        padding: '2px 7px',
+                                        cursor: 'help'
+                                      }}
+                                      title="Another session with this name was logged on the same day. You may want to delete one."
+                                    >
+                                      Duplicate?
+                                    </span>
+                                  )}
+                                </div>
+                                <span style={{ fontSize: 11, color: '#71717A', display: 'block', marginTop: 2 }}>
+                                  {new Date(session.timestamp).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} · {new Date(session.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={(e) => handleDeleteSession(session.id, idx, e)}
+                                title="Delete session"
+                                aria-label="Delete session"
+                                style={{
+                                  background: 'rgba(245, 91, 91, 0.08)',
+                                  border: '0.5px solid rgba(245, 91, 91, 0.2)',
+                                  color: 'var(--red)',
+                                  borderRadius: 8,
+                                  width: 28,
+                                  height: 28,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.15s ease',
+                                  flexShrink: 0
+                                }}
+                                className="active:scale-90 transition hover:bg-red-900/30"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+
+                            {/* Row 2: Duration | Sets completed | Total reps */}
+                            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                              <span style={{ fontSize: 12, fontWeight: 600, color: '#D4D4D8', background: 'rgba(255, 255, 255, 0.05)', padding: '3px 9px', borderRadius: 8, border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                                ⏱ {formatMMSS(session.duration || 0)}
+                              </span>
+                              <span style={{ fontSize: 12, fontWeight: 600, color: '#D4D4D8', background: 'rgba(255, 255, 255, 0.05)', padding: '3px 9px', borderRadius: 8, border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                                {totalSetsCount} sets
+                              </span>
+                              <span style={{ fontSize: 12, fontWeight: 600, color: '#D4D4D8', background: 'rgba(255, 255, 255, 0.05)', padding: '3px 9px', borderRadius: 8, border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                                {totalReps} total reps
+                              </span>
+                            </div>
+
+                            {/* Row 3: Top 3 exercises completed */}
+                            {topExercises && (
+                              <div style={{ fontSize: 11.5, color: 'var(--t3)', lineHeight: 1.4 }}>
+                                <span style={{ fontWeight: 600, color: 'var(--t2)' }}>Key movements:</span> {topExercises}
+                              </div>
+                            )}
+
+                            {/* Row 4 (if PRs): 🏆 [exercise] PR: [weight]kg in amber */}
+                            {sessionPrs.length > 0 && (
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 2 }}>
+                                {sessionPrs.map((pr, pIdx) => (
+                                  <span
+                                    key={pIdx}
+                                    style={{
+                                      fontSize: 11,
+                                      fontWeight: 700,
+                                      color: 'var(--amb)',
+                                      background: 'rgba(245, 168, 51, 0.1)',
+                                      padding: '2px 8px',
+                                      borderRadius: 6,
+                                      border: '0.5px solid rgba(245, 168, 51, 0.25)'
+                                    }}
+                                  >
+                                    🏆 {pr.exercise} PR: {pr.weight}kg
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
-                  ))}
-                </div>
+                  );
+                })()
               )}
             </div>
           )}

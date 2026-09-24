@@ -32,8 +32,8 @@ export default function StrengthTrendChart({
   }
 
   const weights = chartData.map(d => d.weight);
-  const minWeight = Math.floor(Math.min(...weights) * 0.92);
-  const maxWeight = Math.ceil(Math.max(...weights) * 1.06);
+  const minWeight = Math.floor(Math.min(...weights) * 0.95);
+  const maxWeight = Math.ceil(Math.max(...weights) * 1.05);
   const range = maxWeight - minWeight || 1;
 
   // SVG Coordinates

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, Plus, Minus, Calculator, Repeat } from 'lucide-react';
+import { Check, Plus, Minus, Calculator, Repeat, Timer } from 'lucide-react';
 import './ActiveExerciseView.css';
 
 export const ActiveExerciseView = ({
@@ -16,6 +16,9 @@ export const ActiveExerciseView = ({
   onSwapExercise,
   onAddExercise,
   showRpe = true,
+  restActive = false,
+  restRemaining = 0,
+  onSkipRest,
 }) => {
   const [flashingIdx, setFlashingIdx] = useState(null);
 
@@ -144,6 +147,39 @@ export const ActiveExerciseView = ({
         </div>
       </div>
 
+      {/* REST TIMER BANNER (MOBILE) */}
+      {restActive && (
+        <div style={{
+          background: 'rgba(34,209,122,0.08)',
+          border: '1px solid rgba(34,209,122,0.25)',
+          borderRadius: 14,
+          padding: '12px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          animation: 'fadeIn 0.2s ease'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Timer size={18} color="var(--brand-primary-light, #22d17a)" />
+            <div>
+              <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.06em' }}>
+                Rest period
+              </div>
+              <div style={{ fontSize: 24, fontWeight: 900, color: 'var(--brand-primary-light, #22d17a)', letterSpacing: '-0.04em', lineHeight: 1 }}>
+                {Math.floor(restRemaining / 60)}:{String(restRemaining % 60).padStart(2, '0')}
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onSkipRest}
+            style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+          >
+            Skip rest
+          </button>
+        </div>
+      )}
+
       {/* 2. MOBILE SET MATRIX (ZERO-OVERFLOW CSS GRID) */}
       <div 
         className="nb-card"
@@ -160,7 +196,7 @@ export const ActiveExerciseView = ({
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '28px minmax(0, 1fr) 62px 52px 36px',
+            gridTemplateColumns: showRpe ? '32px minmax(0, 1fr) 68px 56px 38px' : '32px minmax(0, 1fr) 78px 66px 38px',
             gap: 6,
             paddingBottom: 8,
             borderBottom: '0.5px solid var(--bd)',
@@ -182,129 +218,161 @@ export const ActiveExerciseView = ({
 
         {/* Set Rows */}
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {sets.map((set, idx) => (
-            <div
-              key={set.id || idx}
-              className={set.completed ? 'set-row-completed' : ''}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '28px minmax(0, 1fr) 62px 52px 36px',
-                gap: 6,
-                alignItems: 'center',
-                paddingTop: 8,
-                paddingBottom: 8,
-                borderBottom: '0.5px solid var(--bd2)',
-                backgroundColor: flashingIdx === idx ? 'rgba(34, 209, 122, 0.08)' : set.completed ? 'rgba(34, 209, 122, 0.04)' : 'transparent',
-                borderRadius: 8,
-                transition: 'background-color 0.4s ease'
-              }}
-            >
-              {/* Col 1: Set Number */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: set.completed ? 'var(--g)' : 'var(--t3)', fontFamily: "'JetBrains Mono', monospace" }}>
-                  {idx + 1}
-                </span>
-              </div>
+          {(() => {
+            const activeIdx = sets.findIndex(s => !s.completed);
+            const isCompound = /bench|squat|deadlift|row|press|pull/i.test(exerciseName || '');
 
-              {/* Col 2: Previous Target & RPE Tag */}
-              <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden', paddingLeft: 4 }}>
-                <span style={{ fontSize: 11.5, color: 'var(--t3)', fontFamily: "'JetBrains Mono', monospace", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.2 }}>
-                  {set.prev || '—'}
-                </span>
-                {showRpe && (
-                  <button
-                    type="button"
-                    onClick={() => onOpenRpe && onOpenRpe(idx)}
-                    style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer', fontSize: 11, fontWeight: 700, color: 'var(--g)', marginTop: 2, fontFamily: "'JetBrains Mono', monospace" }}
-                  >
-                    @{set.rpe || 8} RPE
-                  </button>
-                )}
-              </div>
+            return sets.map((set, idx) => {
+              const isActiveRow = idx === activeIdx;
+              const prevW = set.prev && set.prev !== '—' ? parseFloat(set.prev.split('×')[0] || 0) : null;
+              const isPotentialPR = prevW && parseFloat(set.weight) > prevW;
+              const canShow1RM = isCompound && set.weight && set.reps && parseInt(set.reps, 10) <= 10;
+              const est1RM = canShow1RM ? Math.round(parseFloat(set.weight) * (1 + parseInt(set.reps, 10) / 30)) : null;
 
-              {/* Col 3: Weight (Kg) Input */}
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <input
-                  type="number"
-                  step="0.5"
-                  inputMode="decimal"
-                  value={set.weight ?? ''}
-                  onChange={(e) => onUpdateSet(idx, 'weight', e.target.value)}
-                  placeholder="0.0"
+              return (
+                <div
+                  key={set.id || idx}
+                  className={set.completed ? 'set-row-completed' : ''}
                   style={{
-                    width: '100%',
-                    minWidth: 48,
-                    maxWidth: 62,
-                    height: 34,
-                    textAlign: 'center',
-                    boxSizing: 'border-box',
-                    backgroundColor: set.completed ? 'rgba(34, 209, 122, 0.06)' : 'var(--s2)',
-                    border: '0.5px solid var(--bd)',
-                    borderRadius: 8,
-                    fontSize: 13,
-                    fontWeight: 700,
-                    color: 'var(--t1)',
-                    outline: 'none',
-                    fontFamily: "'JetBrains Mono', monospace"
-                  }}
-                />
-              </div>
-
-              {/* Col 4: Reps Input */}
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  value={set.reps ?? ''}
-                  onChange={(e) => onUpdateSet(idx, 'reps', e.target.value)}
-                  placeholder="0"
-                  style={{
-                    width: '100%',
-                    minWidth: 48,
-                    maxWidth: 52,
-                    height: 34,
-                    textAlign: 'center',
-                    boxSizing: 'border-box',
-                    backgroundColor: set.completed ? 'rgba(34, 209, 122, 0.06)' : 'var(--s2)',
-                    border: '0.5px solid var(--bd)',
-                    borderRadius: 8,
-                    fontSize: 13,
-                    fontWeight: 700,
-                    color: 'var(--t1)',
-                    outline: 'none',
-                    fontFamily: "'JetBrains Mono', monospace"
-                  }}
-                />
-              </div>
-
-              {/* Col 5: Done Checkmark Button */}
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <button
-                  type="button"
-                  onClick={() => handleCheck(idx)}
-                  style={{
-                    height: 30,
-                    width: 30,
-                    display: 'flex',
+                    display: 'grid',
+                    gridTemplateColumns: showRpe ? '32px minmax(0, 1fr) 68px 56px 38px' : '32px minmax(0, 1fr) 78px 66px 38px',
+                    gap: 6,
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
+                    paddingTop: 14,
+                    paddingBottom: 14,
+                    borderBottom: '0.5px solid var(--bd2)',
+                    backgroundColor: flashingIdx === idx ? 'rgba(34, 209, 122, 0.08)' : set.completed ? 'rgba(34, 209, 122, 0.05)' : 'transparent',
+                    borderLeft: isActiveRow ? '3px solid var(--brand-primary-light, #22d17a)' : '3px solid transparent',
                     borderRadius: 8,
-                    backgroundColor: set.completed ? 'var(--g)' : 'var(--gd)',
-                    color: set.completed ? '#041a0c' : 'var(--g)',
-                    border: set.completed ? '1px solid var(--g)' : '1px solid var(--gb)',
-                    boxShadow: set.completed ? '0 0 14px rgba(34, 209, 122, 0.4)' : 'none',
-                    transition: 'all 0.15s ease',
-                    padding: 0
+                    transition: 'background-color 0.4s ease'
                   }}
-                  className={`active:scale-90 ${set.completed ? 'checkmark-scale' : ''}`}
-                  aria-label={set.completed ? `Set ${idx + 1} complete, tap to undo` : `Mark set ${idx + 1} done`}
                 >
-                  <Check size={16} strokeWidth={set.completed ? 3.5 : 2.5} color={set.completed ? '#041a0c' : 'var(--g)'} className={set.completed ? 'anim-scale-in' : ''} />
-                </button>
-              </div>
-            </div>
-          ))}
+                  {/* Col 1: Set Number or Check */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {set.completed ? (
+                      <span style={{
+                        width: 24, height: 24, borderRadius: '50%',
+                        background: 'rgba(34, 209, 122, 0.15)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      }}>
+                        <Check size={14} strokeWidth={3} color="var(--g)" />
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--t3)', fontFamily: "'JetBrains Mono', monospace" }}>
+                        {idx + 1}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Col 2: Previous Target & RPE Tag */}
+                  <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden', paddingLeft: 4 }}>
+                    <span style={{ fontSize: 11, color: 'var(--t3)', fontFamily: "'JetBrains Mono', monospace", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.2 }}>
+                      {set.prev || '—'}
+                    </span>
+                    {showRpe && (
+                      <button
+                        type="button"
+                        onClick={() => onOpenRpe && onOpenRpe(idx)}
+                        style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer', fontSize: 10.5, fontWeight: 700, color: set.rpe ? 'var(--brand-primary-light, #22d17a)' : 'var(--text-muted)', marginTop: 2, fontFamily: "'JetBrains Mono', monospace" }}
+                      >
+                        {set.rpe ? `@${set.rpe} RPE` : 'RPE –'}
+                      </button>
+                    )}
+                    {isPotentialPR && (
+                      <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--brand-primary-light, #22d17a)', marginTop: 1 }}>
+                        🏆 PR!
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Col 3: Weight (Kg) Input */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <input
+                      type="number"
+                      step="0.5"
+                      inputMode="decimal"
+                      value={set.weight ?? ''}
+                      onChange={(e) => onUpdateSet(idx, 'weight', e.target.value)}
+                      placeholder="0"
+                      style={{
+                        width: '100%',
+                        height: 36,
+                        textAlign: 'center',
+                        boxSizing: 'border-box',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        borderBottom: `2px solid ${set.completed ? 'rgba(34, 209, 122, 0.35)' : isPotentialPR ? 'var(--brand-primary-light, #22d17a)' : 'var(--border-subtle)'}`,
+                        borderRadius: 0,
+                        fontSize: 20,
+                        fontWeight: 800,
+                        color: 'var(--t1)',
+                        outline: 'none',
+                        fontFamily: "'JetBrains Mono', monospace"
+                      }}
+                    />
+                    {est1RM && (
+                      <span style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>
+                        1RM: {est1RM}k
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Col 4: Reps Input */}
+                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      value={set.reps ?? ''}
+                      onChange={(e) => onUpdateSet(idx, 'reps', e.target.value)}
+                      placeholder="0"
+                      style={{
+                        width: '100%',
+                        height: 36,
+                        textAlign: 'center',
+                        boxSizing: 'border-box',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        borderBottom: `2px solid ${set.completed ? 'rgba(34, 209, 122, 0.35)' : 'var(--border-subtle)'}`,
+                        borderRadius: 0,
+                        fontSize: 20,
+                        fontWeight: 800,
+                        color: 'var(--t1)',
+                        outline: 'none',
+                        fontFamily: "'JetBrains Mono', monospace"
+                      }}
+                    />
+                  </div>
+
+                  {/* Col 5: Done Checkmark Button */}
+                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleCheck(idx)}
+                      style={{
+                        height: 34,
+                        width: 34,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        borderRadius: 10,
+                        backgroundColor: set.completed ? 'var(--g)' : 'var(--gd)',
+                        color: set.completed ? '#041a0c' : 'var(--g)',
+                        border: set.completed ? '1px solid var(--g)' : '1px solid var(--gb)',
+                        boxShadow: set.completed ? '0 0 14px rgba(34, 209, 122, 0.4)' : 'none',
+                        transition: 'all 0.15s ease',
+                        padding: 0
+                      }}
+                      className={`active:scale-90 ${set.completed ? 'checkmark-scale' : ''}`}
+                      aria-label={set.completed ? `Set ${idx + 1} complete, tap to undo` : `Mark set ${idx + 1} done`}
+                    >
+                      <Check size={18} strokeWidth={set.completed ? 3.5 : 2.5} color={set.completed ? '#041a0c' : 'var(--g)'} className={set.completed ? 'anim-scale-in' : ''} />
+                    </button>
+                  </div>
+                </div>
+              );
+            });
+          })()}
         </div>
 
         {/* Action Buttons: Add Set & Remove Set */}

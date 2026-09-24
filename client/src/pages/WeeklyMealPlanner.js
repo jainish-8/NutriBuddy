@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { handleCard3DMouseMove, handleCard3DMouseLeave, handleCardSpotlight } from '../utils/cardTilt';
 
-const PLAN_ENGINE_VERSION = 'v7.1_precision_qa';
+const PLAN_ENGINE_VERSION = 'v7.3_rest_day_chronobiology';
 const MULTIPLIERS = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5];
 
 const DAYS = [
@@ -38,10 +38,23 @@ const DAYS = [
 
 const SLOTS = [
   { key: 'breakfast', label: 'Breakfast', color: 'var(--blu)' },
+  { key: 'pre_workout', label: 'Pre-workout', color: 'var(--amb)' },
   { key: 'lunch', label: 'Lunch', color: 'var(--g)' },
-  { key: 'snacks', label: 'Snack', color: 'var(--amb)' },
+  { key: 'post_workout', label: 'Post-workout', color: 'var(--cyan)' },
+  { key: 'snacks', label: 'Snack', color: '#f59e0b' },
   { key: 'dinner', label: 'Dinner', color: 'var(--pur)' }
 ];
+
+const GYM_DAY_SCHEDULE = {
+  0: [],
+  1: ['monday'],
+  2: ['monday', 'thursday'],
+  3: ['monday', 'wednesday', 'friday'],
+  4: ['monday', 'tuesday', 'thursday', 'friday'],
+  5: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
+  6: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'],
+  7: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+};
 
 export default function WeeklyMealPlanner({ user, setCurrentPage }) {
   const userId = user?.id || user?._id || user?.email || user?.fullName || 'active_user';
@@ -191,7 +204,7 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
       const saved = localStorage.getItem(storageKey) || localStorage.getItem(legacyKey);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed?.plan && Object.keys(parsed.plan).length > 0) {
+        if (parsed?.version === PLAN_ENGINE_VERSION && parsed?.plan && Object.keys(parsed.plan).length > 0) {
           const cleaned = sanitizePlan(parsed.plan);
           setWeeklyPlan(cleaned);
           setCorePantry(parsed.corePantry || []);
@@ -276,7 +289,7 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
     setLoading(true);
     setTimeout(() => {
       const foodSource = allFoods && allFoods.length > 0 ? allFoods : fallbackFoods;
-      const generated = generateCohesiveWeeklyMealPlan(foodSource, user, null, 'all');
+      const generated = generateCohesiveWeeklyMealPlan(foodSource, user, null, user?.cuisinePreference || 'all');
       const cleaned = sanitizePlan(generated.plan);
       setWeeklyPlan(cleaned);
       setCorePantry(generated.corePantryList || []);
@@ -500,6 +513,45 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
   // Calculations for Selected Day
   const currentDayMeals = useMemo(() => weeklyPlan[selectedDay] || {}, [weeklyPlan, selectedDay]);
 
+  const gymDayCount = user?.gymDays !== undefined ? parseInt(user.gymDays, 10) : 3;
+  const isGymUser = gymDayCount > 0 || user?.isGymGoer === true || user?.goal === 'hypertrophy' || user?.fitnessGoal === 'muscle';
+
+  const trainingDaySet = useMemo(() => new Set(GYM_DAY_SCHEDULE[gymDayCount] || []), [gymDayCount]);
+  const isTrainingDay = trainingDaySet.has(selectedDay);
+
+  // Day-aware calorie target: 100% on gym workout days, 90% recovery target on rest days for gym users
+  const dayTargetCal = useMemo(() => {
+    if (isGymUser && !isTrainingDay) {
+      return Math.round(targetCal * 0.90);
+    }
+    return targetCal;
+  }, [isGymUser, isTrainingDay, targetCal]);
+
+  // Active slots for selected day (dynamically adapts between training days and rest days)
+  const activeSlots = useMemo(() => {
+    const dayMealKeys = Object.keys(currentDayMeals);
+    if (dayMealKeys.length > 0) {
+      return SLOTS.filter(s => dayMealKeys.includes(s.key)).map(s => {
+        if (s.key === 'snacks') {
+          return {
+            ...s,
+            label: isTrainingDay ? 'Snack' : 'Evening Snack'
+          };
+        }
+        return s;
+      });
+    }
+    if (isGymUser && isTrainingDay) {
+      return SLOTS;
+    }
+    return SLOTS.filter(s => s.key !== 'pre_workout' && s.key !== 'post_workout').map(s => {
+      if (s.key === 'snacks') {
+        return { ...s, label: 'Evening Snack' };
+      }
+      return s;
+    });
+  }, [currentDayMeals, isGymUser, isTrainingDay]);
+
   const dayTotals = useMemo(() => {
     let calories = 0;
     let protein = 0;
@@ -508,9 +560,8 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
     let cost = 0;
     const currentMeals = weeklyPlan[selectedDay] || {};
 
-    SLOTS.forEach(slot => {
-      // Look for direct slot or fallback for snack (e.g. post_workout)
-      const meal = currentMeals[slot.key] || (slot.key === 'snacks' ? currentMeals['post_workout'] || currentMeals['pre_workout'] : null);
+    activeSlots.forEach(slot => {
+      const meal = currentMeals[slot.key];
       if (meal) {
         calories += Number(meal.calories) || 0;
         protein += Number(meal.protein) || 0;
@@ -527,7 +578,7 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
       fat: Math.round(fat),
       cost: Math.round(cost)
     };
-  }, [weeklyPlan, selectedDay]);
+  }, [weeklyPlan, selectedDay, activeSlots]);
 
   // Weekly estimated grocery cost
   const weekCost = useMemo(() => {
@@ -559,10 +610,10 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
   const fatPct = targetFat > 0 ? Math.round((dayTotals.fat / targetFat) * 100) : 0;
 
   // Calorie progress bar color: green <=100%, amber 101-110%, red >110%
-  const calRatio = targetCal > 0 ? dayTotals.calories / targetCal : 0;
+  const calRatio = dayTargetCal > 0 ? dayTotals.calories / dayTargetCal : 0;
   const calProgressColor = calRatio > 1.10 ? 'var(--red)' : calRatio > 1.0 ? 'var(--amb)' : 'var(--g)';
   const calFillPct = Math.min(100, Math.round(calRatio * 100));
-  const calRemaining = Math.max(0, targetCal - dayTotals.calories);
+  const calRemaining = Math.max(0, dayTargetCal - dayTotals.calories);
 
   // SVG Macro Donut Calculations (106px x 106px, stroke 11)
   const donutSize = 106;
@@ -590,14 +641,14 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
     const fiberEst = Math.round(dayTotals.carbs * 0.14) + 12;
     const sodiumEst = Math.round(dayTotals.calories * 0.85);
     const potassiumEst = Math.round(dayTotals.protein * 18) + 1200;
-    const wholeFoodsScore = Math.min(98, Math.max(78, Math.round(85 + (dayTotals.protein > 100 ? 5 : 0) - (Math.abs(dayTotals.calories - targetCal) > 200 ? 8 : 0))));
+    const wholeFoodsScore = Math.min(98, Math.max(78, Math.round(85 + (dayTotals.protein > 100 ? 5 : 0) - (Math.abs(dayTotals.calories - dayTargetCal) > 200 ? 8 : 0))));
     return {
       fiber: fiberEst,
       sodium: sodiumEst,
       potassium: potassiumEst,
       qualityScore: wholeFoodsScore
     };
-  }, [dayTotals, targetCal]);
+  }, [dayTotals, dayTargetCal]);
 
   // Dynamic meal prep tip
   const prepTip = useMemo(() => {
@@ -607,15 +658,27 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
           title: 'Morning Fuel Strategy',
           tip: 'Have a glass of warm water 15 minutes prior to optimize digestion. Prioritize eating within 90 minutes of waking.'
         };
+      case 'pre_workout':
+        return {
+          title: 'Pre-Workout Stamina Strategy',
+          tip: 'Consume 45-60 min prior to training. Fast-acting glycogen primers with minimal fats prevent GI distress and fuel maximum power output.'
+        };
       case 'lunch':
         return {
           title: 'Midday Satiety Strategy',
           tip: 'Consume salads/dal fiber first before carbohydrates to blunt glucose spikes and maintain post-lunch productivity.'
         };
+      case 'post_workout':
+        return {
+          title: 'Post-Workout Recovery & mTOR',
+          tip: 'Consume within 45 min post-lifting. Rapid amino acid delivery (≥2.7g leucine) triggers muscle protein synthesis and stops catabolism.'
+        };
       case 'snacks':
         return {
-          title: 'Workout Fueling Timing',
-          tip: 'Consume 45-60 min before training for sustained glycogen, or within 45 min post-workout for muscle protein synthesis.'
+          title: isTrainingDay ? 'Workout Fueling Timing' : 'Evening Protein Bridge',
+          tip: isTrainingDay
+            ? 'Consume 45-60 min before training for sustained glycogen, or within 45 min post-workout for muscle protein synthesis.'
+            : 'Protein-forward evening nourishment maintaining steady amino acid elevation between lunch and dinner on recovery days.'
         };
       case 'dinner':
         return {
@@ -628,7 +691,7 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
           tip: 'Focus on whole, unprocessed foods and keep hydration steady throughout the day.'
         };
     }
-  }, [inspectedSlot]);
+  }, [inspectedSlot, isTrainingDay]);
 
   // Live drawer meal synchronized with portion adjustments
   const liveDrawerMeal = useMemo(() => {
@@ -733,6 +796,11 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--g)', flexShrink: 0 }} />
             {(() => {
               const stdGoal = getStandardizedGoalLabel(user?.goal || user?.fitnessGoal);
+              if (isGymUser) {
+                return isTrainingDay
+                  ? `${stdGoal} · Workout Day (${Number(dayTargetCal).toLocaleString()} kcal)`
+                  : `${stdGoal} · Recovery Day (${Number(dayTargetCal).toLocaleString()} kcal)`;
+              }
               return `${stdGoal} — ${Number(targetCal).toLocaleString()} kcal/day`;
             })()}
           </div>
@@ -861,20 +929,20 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
                 padding: '2px 7px',
                 borderRadius: 99,
                 whiteSpace: 'nowrap',
-                color: Math.abs(dayTotals.calories - targetCal) <= 80 ? 'var(--g)' : dayTotals.calories > targetCal ? 'var(--amb)' : 'var(--blu)',
-                background: Math.abs(dayTotals.calories - targetCal) <= 80 ? 'rgba(34, 197, 94, 0.12)' : dayTotals.calories > targetCal ? 'rgba(245, 168, 51, 0.12)' : 'rgba(91, 142, 245, 0.12)',
-                border: `0.5px solid ${Math.abs(dayTotals.calories - targetCal) <= 80 ? 'rgba(34, 197, 94, 0.3)' : dayTotals.calories > targetCal ? 'rgba(245, 168, 51, 0.3)' : 'rgba(91, 142, 245, 0.3)'}`
+                color: Math.abs(dayTotals.calories - dayTargetCal) <= 80 ? 'var(--g)' : dayTotals.calories > dayTargetCal ? 'var(--amb)' : 'var(--blu)',
+                background: Math.abs(dayTotals.calories - dayTargetCal) <= 80 ? 'rgba(34, 197, 94, 0.12)' : dayTotals.calories > dayTargetCal ? 'rgba(245, 168, 51, 0.12)' : 'rgba(91, 142, 245, 0.12)',
+                border: `0.5px solid ${Math.abs(dayTotals.calories - dayTargetCal) <= 80 ? 'rgba(34, 197, 94, 0.3)' : dayTotals.calories > dayTargetCal ? 'rgba(245, 168, 51, 0.3)' : 'rgba(91, 142, 245, 0.3)'}`
               }}
             >
-              {Math.abs(dayTotals.calories - targetCal) <= 80
+              {Math.abs(dayTotals.calories - dayTargetCal) <= 80
                 ? 'Balanced'
-                : dayTotals.calories > targetCal
-                  ? `+${dayTotals.calories - targetCal} kcal Surplus`
-                  : `${dayTotals.calories - targetCal} kcal Deficit`}
+                : dayTotals.calories > dayTargetCal
+                  ? `+${dayTotals.calories - dayTargetCal} kcal Surplus`
+                  : `${dayTotals.calories - dayTargetCal} kcal Deficit`}
             </span>
           </div>
           <span className="tabular-nums" style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--t2)' }}>
-            <strong style={{ color: 'var(--t1)', fontWeight: 800 }}>{dayTotals.calories.toLocaleString()}</strong> / {targetCal.toLocaleString()} kcal
+            <strong style={{ color: 'var(--t1)', fontWeight: 800 }}>{dayTotals.calories.toLocaleString()}</strong> / {dayTargetCal.toLocaleString()} kcal
           </span>
         </div>
 
@@ -1197,14 +1265,19 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
           5. MEAL CARDS (4 cards: Breakfast, Lunch, Snack, Dinner) (Part 5.5)
           ─────────────────────────────────────────────────────────── */}
       <section style={{ padding: '0 16px' }}>
-        {SLOTS.map((slot, idx) => {
-          const rawMeal = currentDayMeals[slot.key] || (slot.key === 'snacks' ? currentDayMeals['post_workout'] || currentDayMeals['pre_workout'] : null);
+        {activeSlots.map((slot, idx) => {
+          const rawMeal = currentDayMeals[slot.key];
           const meal = sanitizeMealData(rawMeal) || {
-            name: slot.key === 'breakfast' ? 'Oatmeal with Almonds & Banana' : slot.key === 'lunch' ? 'Paneer Bhurji with 2 Phulkas & Dal' : slot.key === 'snacks' ? 'Banana Peanut Butter Toast with Whey Protein' : 'Tofu Stir-fry with Steamed Brown Rice',
-            calories: slot.key === 'breakfast' ? 480 : slot.key === 'lunch' ? 680 : slot.key === 'snacks' ? 520 : 610,
-            protein: slot.key === 'breakfast' ? 22 : slot.key === 'lunch' ? 38 : slot.key === 'snacks' ? 38 : 34,
-            carbs: slot.key === 'breakfast' ? 64 : slot.key === 'lunch' ? 72 : slot.key === 'snacks' ? 54 : 68,
-            fat: slot.key === 'breakfast' ? 14 : slot.key === 'lunch' ? 22 : slot.key === 'snacks' ? 16 : 18,
+            name: slot.key === 'breakfast' ? 'Oatmeal with Almonds & Banana' :
+                  slot.key === 'pre_workout' ? 'Banana Peanut Butter Toast with Medjool Dates' :
+                  slot.key === 'lunch' ? 'Paneer Bhurji with 2 Phulkas & Dal' :
+                  slot.key === 'post_workout' ? 'Roasted Chana & Boiled Egg Whites Bowl with Whey' :
+                  slot.key === 'snacks' ? 'Roasted Makhana & Almonds Bowl' :
+                  'Tofu Stir-fry with Steamed Brown Rice',
+            calories: slot.key === 'breakfast' ? 480 : slot.key === 'pre_workout' ? 260 : slot.key === 'lunch' ? 680 : slot.key === 'post_workout' ? 420 : slot.key === 'snacks' ? 160 : 610,
+            protein: slot.key === 'breakfast' ? 22 : slot.key === 'pre_workout' ? 12 : slot.key === 'lunch' ? 38 : slot.key === 'post_workout' ? 34 : slot.key === 'snacks' ? 8 : 34,
+            carbs: slot.key === 'breakfast' ? 64 : slot.key === 'pre_workout' ? 44 : slot.key === 'lunch' ? 72 : slot.key === 'post_workout' ? 42 : slot.key === 'snacks' ? 20 : 68,
+            fat: slot.key === 'breakfast' ? 14 : slot.key === 'pre_workout' ? 4 : slot.key === 'lunch' ? 22 : slot.key === 'post_workout' ? 5 : slot.key === 'snacks' ? 6 : 18,
             multiplier: 1.0,
             servingUnit: '1 serving · ~320g'
           };
@@ -1294,6 +1367,12 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
                 <div style={{ fontSize: 12.5, color: 'var(--t3)' }}>
                   {meal.servingUnit || '1 serving · ~320g'}
                 </div>
+                {meal.compositionNote && meal.compositionNote !== 'Complete Standalone Balanced Portion' && (
+                  <div style={{ fontSize: 11, color: '#38bdf8', marginTop: 3, display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <span style={{ fontSize: 9.5, padding: '1px 5px', borderRadius: 4, background: 'rgba(56, 189, 248, 0.12)', border: '1px solid rgba(56, 189, 248, 0.25)', fontWeight: 600, flexShrink: 0 }}>CLINICAL COMBO</span>
+                    <span className="truncate">{meal.compositionNote}</span>
+                  </div>
+                )}
               </div>
 
               {/* Macro Bar + Compact Stepper aligned to the right of macro row */}
@@ -1552,6 +1631,12 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
                 <div style={{ fontSize: 12.5, color: 'var(--t3)', marginTop: 4 }}>
                   {liveDrawerMeal.servingUnit || '1 serving'}
                 </div>
+                {liveDrawerMeal.compositionNote && liveDrawerMeal.compositionNote !== 'Complete Standalone Balanced Portion' && (
+                  <div style={{ fontSize: 11.5, color: '#38bdf8', marginTop: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <span style={{ fontSize: 9.5, padding: '1px 5px', borderRadius: 4, background: 'rgba(56, 189, 248, 0.12)', border: '1px solid rgba(56, 189, 248, 0.25)', fontWeight: 600, flexShrink: 0 }}>CLINICAL COMBO</span>
+                    <span>{liveDrawerMeal.compositionNote}</span>
+                  </div>
+                )}
               </div>
 
               {/* Close Button */}
@@ -2195,7 +2280,7 @@ export default function WeeklyMealPlanner({ user, setCurrentPage }) {
                         {opt.name}
                       </div>
                       <div style={{ fontSize: 11, color: 'var(--t3)', marginTop: 3 }}>
-                        {formatCompactMacros(opt.protein, opt.carbs, opt.fat)}
+                        {formatCompactMacros(opt.protein, opt.carbs, opt.fat)} · <span style={{ color: 'var(--t2)' }}>{opt.servingUnit || '1 serving'}</span>
                       </div>
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
